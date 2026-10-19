@@ -21,6 +21,7 @@
     <string name="unit_kg">kg</string>
     <string name="number_decrease">Zmniejsz: %1$s</string>
     <string name="number_increase">Zwiększ: %1$s</string>
+    <string name="number_empty">—</string>
     <string name="action_clear">Wyczyść</string>
     <string name="action_retry">Spróbuj ponownie</string>
     <string name="action_back">Wstecz</string>

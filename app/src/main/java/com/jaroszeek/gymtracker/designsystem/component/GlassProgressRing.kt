@@ -29,7 +29,10 @@ import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
 private const val FULL_CIRCLE = 360f
 private const val TOP = -90f
 
-/** Accent arc on a faint accent track, clockwise from the top; [content] sits in the middle. */
+/**
+ * Accent arc on a faint accent track, clockwise from the top; [content] sits in the middle.
+ * Drawn in [com.jaroszeek.gymtracker.designsystem.theme.GtColors.accentText]: a vivid accent fades into light backgrounds.
+ */
 @Composable
 fun GlassProgressRing(
     progress: Float,
@@ -37,7 +40,7 @@ fun GlassProgressRing(
     strokeWidth: Dp = GtSizes.RingStroke,
     content: @Composable BoxScope.() -> Unit = {},
 ) {
-    val accent = GtTheme.colors.accent
+    val accent = GtTheme.colors.accentText
     val value = progress.coerceIn(0f, 1f)
     Box(
         modifier

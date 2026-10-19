@@ -348,6 +348,7 @@ private fun SetRow(
                     step = WEIGHT_STEP_KG,
                     decimals = 2,
                     unit = stringResource(R.string.unit_kg),
+                    placeholder = stringResource(R.string.number_empty),
                 )
                 GlassNumberField(
                     value = set.reps?.toDouble(),
@@ -355,6 +356,7 @@ private fun SetRow(
                     label = stringResource(R.string.workout_label_reps),
                     modifier = Modifier.weight(1f),
                     range = 0.0..MAX_REPS,
+                    placeholder = stringResource(R.string.number_empty),
                 )
             }
         }
