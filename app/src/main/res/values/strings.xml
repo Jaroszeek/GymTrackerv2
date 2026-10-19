@@ -510,6 +510,7 @@
     <string name="health_disconnect_text">Cofniemy wszystkie zgody i usuniemy zaimportowane dane. Twoje treningi zostaną, a połączenia z sesjami z zegarka wrócą, gdy połączysz się ponownie.</string>
     <string name="health_disconnect_confirm">Rozłącz</string>
     <string name="health_disconnect_failed">Nie udało się rozłączyć. Spróbuj ponownie.</string>
+    <string name="health_revoked">Rozłączono. Android cofnie zgody po zamknięciu aplikacji, a połączyć się ponownie możesz po jej ponownym otwarciu.</string>
     <string name="health_entry_text">Tętno i sesje z zegarka, pomiary ciała, kroki i sen</string>
     <string name="unit_bpm">ud./min</string>
     <string name="value_bpm">%1$d ud./min</string>

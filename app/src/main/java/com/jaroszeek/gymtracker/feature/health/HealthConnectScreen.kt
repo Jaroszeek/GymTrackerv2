@@ -147,6 +147,12 @@ fun HealthConnectScreen(
                     GlassButton(stringResource(R.string.action_retry), onClick = onRetry, style = GlassButtonStyle.Secondary)
                 }
             }
+            // Connecting again before the permissions are gone would only lose them later
+            access.revoked -> item(key = "revoked") {
+                GlassCard(Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.health_revoked), style = GtTheme.typography.body)
+                }
+            }
             else -> {
                 if (access.reads) {
                     item(key = "sync") { SyncCard(state, onSyncNow, onSyncOnOpen, onBackgroundSync) }

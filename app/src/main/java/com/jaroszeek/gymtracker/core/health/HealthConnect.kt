@@ -59,8 +59,22 @@ class HealthConnect @Inject constructor(@ApplicationContext private val context:
     /** Null while Health Connect is missing or needs an update. */
     fun client(): HealthConnectClient? = if (availability() == HealthAvailability.Available) HealthConnectClient.getOrCreate(context) else null
 
-    /** Empty without Health Connect. Throws when its service fails, like every other call. */
-    suspend fun granted(): Set<String> = client()?.permissionController?.getGrantedPermissions().orEmpty()
+    /**
+     * Set by [revokeAll] for the rest of this process: Android takes the permissions away only when
+     * the process ends, so until then the app acts as if they were gone.
+     */
+    @Volatile
+    var revoked = false
+        private set
+
+    /** Empty without Health Connect and after [revokeAll]. Throws when its service fails, like every other call. */
+    suspend fun granted(): Set<String> = if (revoked) emptySet() else client()?.permissionController?.getGrantedPermissions().orEmpty()
+
+    suspend fun revokeAll() {
+        val client = client() ?: return
+        client.permissionController.revokeAllPermissions()
+        revoked = true
+    }
 
     /** History and background reads need a newer Health Connect than the rest. */
     fun supports(feature: HealthFeature): Boolean {

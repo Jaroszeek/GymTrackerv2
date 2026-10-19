@@ -38,6 +38,8 @@ data class HealthAccess(
     val backgroundSupported: Boolean = false,
     /** Reading the permissions failed. */
     val error: Boolean = false,
+    /** Disconnected in this run of the app; the permissions go when it closes. */
+    val revoked: Boolean = false,
 ) {
     fun connected(feature: HealthFeature): Boolean = granted.containsAll(feature.permissions)
 
@@ -244,6 +246,7 @@ class HealthConnectViewModel @Inject constructor(
                 granted = health.granted(),
                 historySupported = health.supports(HealthFeature.History),
                 backgroundSupported = health.supports(HealthFeature.Background),
+                revoked = health.revoked,
             )
         } catch (e: CancellationException) {
             throw e

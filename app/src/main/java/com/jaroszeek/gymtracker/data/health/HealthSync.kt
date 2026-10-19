@@ -106,7 +106,7 @@ class HealthSync @Inject constructor(
         val client = health.client() ?: return
         _status.update { it.copy(running = true) }
         val problem = try {
-            val granted = client.permissionController.getGrantedPermissions()
+            val granted = health.granted()
             if (background && HealthPermission.PERMISSION_READ_HEALTH_DATA_IN_BACKGROUND !in granted) return
             if (SyncedType.entries.none { it.permission in granted }) return
             resetForHistory(granted)
@@ -137,7 +137,7 @@ class HealthSync @Inject constructor(
     suspend fun disconnect() {
         mutex.withLock {
             withContext(io) {
-                health.client()?.permissionController?.revokeAllPermissions()
+                health.revokeAll()
                 val dao = database.healthDao()
                 database.withWriteTransaction {
                     dao.deleteAllSessions()

@@ -41,7 +41,7 @@ class HealthWriter @Inject constructor(
     private suspend fun write(id: Long) {
         val client = health.client() ?: return
         try {
-            if (!client.permissionController.getGrantedPermissions().containsAll(HealthFeature.WriteWorkouts.permissions)) return
+            if (!health.granted().containsAll(HealthFeature.WriteWorkouts.permissions)) return
             val workout = workouts.forHealth(id)
             val clientId = "$CLIENT_ID_PREFIX$id"
             if (workout != null && workout.hcSessionId == null && workout.endedAt > workout.startedAt && preferences.healthWriteWorkouts.first()) {
