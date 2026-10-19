@@ -35,9 +35,12 @@ data class WorkoutNotificationContent(
 @Singleton
 class WorkoutNotifications @Inject constructor(@ApplicationContext private val context: Context) {
 
-    /** Low importance: no sound, vibration or badge, still allowed to be promoted (D-044). */
+    /**
+     * Default importance without sound, vibration or badge: a low one counts as silent, and Android hides
+     * silent notifications from the lock screen by default, where the rest countdown belongs (D-044).
+     */
     fun createChannel() {
-        val channel = NotificationChannel(CHANNEL_ID, context.getString(R.string.notification_channel_workout), NotificationManager.IMPORTANCE_LOW).apply {
+        val channel = NotificationChannel(CHANNEL_ID, context.getString(R.string.notification_channel_workout), NotificationManager.IMPORTANCE_DEFAULT).apply {
             description = context.getString(R.string.notification_channel_workout_description)
             setShowBadge(false)
             setSound(null, null)
