@@ -47,17 +47,15 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 | v1 / Etap 2 | `exercises` (external_id UNIQUE, name, aliases_pl, search_text bez diakrytyków, category, equipment, force, level, mechanic, instructions JSON, images JSON, source), `exercise_muscles` (exercise_id, muscle, is_primary) |
 | v2 / Etap 3 | `routines`, `routine_blocks` (routine_id, position), `routine_variants` (block_id, exercise_id RESTRICT, target_sets, reps_min, reps_max, target_weight_kg, rest_seconds NULL = domyślna) |
 | v3 / Etap 4 | `workouts` (routine_id SET NULL, name, started_at, ended_at), `workout_exercises` (workout_id, exercise_id RESTRICT, routine_variant_id SET NULL, position), `workout_sets` (type, weight_kg, reps) — tylko zakończone treningi (D-038) |
-| v4 / Etap 6 | `personal_records`: cache przeliczany po zakończeniu, edycji i usunięciu treningu; unikalność na (exercise_id, type, weight_kg) |
-| v5 / Etap 7 | `hc_exercise_sessions` (hc_id PK i podsumowanie tętna, stref oraz kcal), `workouts.hc_session_id` UNIQUE (łączenie 1:1), `workouts.hc_written_id`, `body_measurements` (type, value, measured_at, source, hc_id UNIQUE), `sleep_sessions`, `vital_samples` (RHR, HRV), `hc_sync_tokens` |
+| ~~v4 / Etap 6~~ | ~~`personal_records`~~ — zmienione w D-054: rekordy liczone przy odczycie, bez tabeli |
+| v4 / Etap 7 | zmienione w D-060: w `GtDatabase` tylko `workouts.hc_session_id` i `workouts.hc_match_dismissed`; dane z HC w osobnej bazie `health.db` |
 
 - **Aktywny trening:** ~~wiersz `workouts` z `ended_at = NULL`~~ — zmienione w D-038: plik JSON z debounce, w bazie tylko zakończone treningi.
 - **Ochrona ćwiczeń używanych w historii:** zapewnia FK `RESTRICT` w bazie, a nie kod aplikacji.
 - **Wyszukiwanie:** `LIKE` na `search_text`. Przy ok. 900 wierszach wystarcza, więc FTS nie jest potrzebne.
 - **Szablony rutyn:** JSON w assets, przy kopiowaniu zapisywany do tabel rutyn.
-- **Czego nie trzymamy w Room:**
-  - próbek tętna: wykres czytamy z HC na żądanie, w sesji zostaje podsumowanie;
-  - kroków, dystansu i kalorii: Aggregate API na żądanie.
-- **Tokeny zmian HC:** w bazie, nie w DataStore, żeby kopia zapasowa była z nimi spójna.
+- ~~**Czego nie trzymamy w Room:** próbek tętna oraz kroków, dystansu i kalorii~~ — zmienione w D-060: są w `health.db`.
+- **Tokeny zmian HC:** w bazie (`health.db`), nie w DataStore. Baza jest poza kopią, więc po przywróceniu kopii import zaczyna się od nowa (D-060).
 - **DataStore:** ustawienia, układ dashboardu, data urodzenia, ręczne tętno maksymalne.
 
 ### D-006 Szkło: Kyant Backdrop 2.0.1 ukryty w `GlassSurface`
@@ -124,6 +122,7 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
   - Etap 7 zaczynamy od debugowego inspektora HC na telefonie właściciela.
   - `connect-testing` istnieje tylko w wersji alpha, więc o zgodę na nią zapytam w Etapie 7.
 - **Powód:** mało danych w bazie i kopii zapasowej, a sumy z Aggregate API są poprawnie deduplikowane przez HC.
+- **Zmiany w Etapie 7:** dane w osobnej bazie, próbki tętna lokalnie (D-060); zamiast inspektora HC generator danych w buildzie `benchmark` (D-066); zamiast `connect-testing` własny fake w testach (D-059).
 
 ### D-012 Obrazy i sieć: Coil 3 + OkHttp
 - **Decyzja:** Coil 3.6.3 (`coil-compose` i `coil-network-okhttp`, czyli OkHttp 5.5.0) z cache dyskowym. Z tego samego OkHttp skorzysta aktualizator w Etapie 11.
@@ -431,6 +430,104 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 - Na polecenie właściciela (2026-10-19) każdy etap dostaje wydanie testowe `preview-stage-<nr>` na zasadach z D-051 (pre-release, APK debug zbudowany lokalnie). Etap 6 dostał je po merge'u, z `main`. Kolejne etapy dostaną je razem z PR, żeby dało się je sprawdzić na telefonie przed akceptacją.
 - Galeria komponentów nie ma już ikony w launcherze, bo właściciel nie chce jej na telefonie. Zostaje jako narzędzie deweloperskie, bo CLAUDE.md wymaga galerii dla każdego komponentu. Otwiera ją `adb shell am start -n …` (README) i macrobenchmark, który startuje ją po nazwie.
 
+### D-059 Etap 7: zależności i uprawnienia
+- **Zależności:** `androidx.health.connect:connect-client` 1.1.0 (najnowsza stabilna, 1.2.0 jest w alpha) i `androidx.work:work-runtime-ktx` 2.12.0 (synchronizacja w tle). Obie Apache-2.0. Release: 4,69 MB (4 920 572 B; po Etapie 6: 4,04 MB, +0,65 MB).
+- **Odrzucone:**
+  - `hilt-work`: jedyny worker bierze zależności przez `EntryPoint`, więc nie trzeba biblioteki ani własnej fabryki WorkManagera;
+  - `connect-testing` (tylko alpha): testy JVM mają własny `FakeHealthConnectClient` (tylko w testach).
+- **Nowe uprawnienia w manifeście — do akceptacji razem z Etapem 7:**
+  - 15 odczytów HC: sesje ćwiczeń, tętno, kalorie aktywne i łączne, waga, wzrost, tkanka tłuszczowa, beztłuszczowa masa ciała, masa kości, woda w organizmie, kroki, dystans, sen, tętno spoczynkowe, HRV;
+  - `READ_HEALTH_DATA_HISTORY` i `READ_HEALTH_DATA_IN_BACKGROUND` (opcjonalne) oraz `WRITE_EXERCISE` (opcjonalny zapis, D-064);
+  - z manifestu WorkManagera: `ACCESS_NETWORK_STATE` i `RECEIVE_BOOT_COMPLETED` (przywraca zaplanowaną pracę po restarcie telefonu). Synchronizacja nie używa sieci.
+  - Każdą zgodę HC aplikacja prosi osobno, przy funkcji, która jej potrzebuje, z wyjaśnieniem. Brak zgody to zwykły stan.
+- `activity-alias` `ViewPermissionUsageActivity` z akcją `VIEW_PERMISSION_USAGE`, chroniony `START_VIEW_PERMISSION_USAGE`: przez niego Health Connect otwiera ekran polityki prywatności w aplikacji.
+- Build `benchmark` (tylko emulator, nie jest dystrybuowany) ma dodatkowo 10 uprawnień zapisu HC dla generatora danych testowych (D-066).
+
+### D-060 Osobna baza `health.db`, poza kopią systemową
+- Dane z HC trafiają do osobnej bazy Room `health.db` (wersja 1: `sessions`, `heart_rate`, `measurements`, `sleep`, `daily_activity`, `dirty_days`, `sync_tokens`), a nie do `GtDatabase`, jak planował D-005.
+- **Powód:**
+  - to kopia danych z HC, którą zawsze da się zaimportować ponownie, a „Rozłącz i usuń dane” kasuje ją w całości;
+  - cały plik łatwo wyłączyć z kopii systemowej (`data_extraction_rules.xml`), więc dane zdrowotne nie opuszczają telefonu. Kopia zapasowa aplikacji z Etapu 9 też ich nie obejmie; po przywróceniu kopii import zaczyna się od nowa.
+- W `GtDatabase` (v3 → v4, AutoMigration z testem) zostaje tylko połączenie treningu z sesją: `workouts.hc_session_id` i `workouts.hc_match_dismissed`. Połączenie przeżywa rozłączenie i wraca po ponownym imporcie, bo id rekordu w HC się nie zmienia. Kolumna nie ma indeksu UNIQUE: sesję połączoną z innym treningiem aplikacja pomija w propozycji i na liście wyboru.
+- **Inaczej niż w D-005:**
+  - próbki tętna sesji trzymamy lokalnie (co najmniej 5 s między próbkami), bo szczegóły treningu i historia mają działać od razu i bez zgody na odczyt w tle;
+  - dzienne sumy kroków, dystansu i kalorii też są lokalnie (`daily_activity`), policzone przez Aggregate API.
+
+### D-061 Synchronizacja z HC
+- **Kiedy:**
+  - przy starcie aplikacji, jeśli włączone, i nie częściej niż co 5 min;
+  - „Synchronizuj teraz”;
+  - od razu po nadaniu nowych zgód;
+  - co godzinę w tle (WorkManager, bateria nie jest słaba, tylko ze zgodą `READ_HEALTH_DATA_IN_BACKGROUND`).
+  Jeden przebieg naraz (mutex), na dispatcherze IO; UI nigdy na niego nie czeka.
+- **Jak:**
+  - Każdy typ rekordu ma osobny changes token.
+  - Bez tokenu, z tokenem odrzuconym albo wygasłym: pełny odczyt typu stronami po 1000 rekordów i uzgodnienie usunięć.
+  - Rekordy zapisane przez GymTracker pomijamy.
+  - Po nadaniu zgody na starsze dane tokeny są kasowane i idzie pełny import.
+- **Sesje:** tętno i kalorie odświeżamy w sesjach oznaczonych jako nieaktualne, czyli takich, w których czasie zmieniło się tętno albo kalorie. Najnowsze idą pierwsze, do 100 na przebieg. Kalorie liczy Aggregate API, które deduplikuje źródła według priorytetów HC.
+- **Dni:** dni oznaczone do przeliczenia liczy `aggregateGroupByPeriod` (do 366 dni na wywołanie). Pełny import oznacza ostatnie 30 dni, a ze zgodą na starsze dane 365.
+- **Odporność:**
+  - typ bez zgody jest pomijany;
+  - zgoda cofnięta w trakcie przebiegu (SecurityException) nie przerywa reszty: sesja zachowuje dotychczasowe tętno, a dni czekają na następny przebieg;
+  - przy limicie zapytań to, co już zaimportowano, zostaje, a status mówi, że następny przebieg dokończy.
+- **Deduplikacja:**
+  - z sesji tego samego typu z różnych aplikacji, nakładających się w co najmniej połowie krótszej, zostaje najdłuższa; tak samo z nocami snu;
+  - dni z wartościami z kilku aplikacji (tętno spoczynkowe, HRV) uśredniamy;
+  - przy każdym rekordzie zapisujemy `dataOrigin`.
+- **ponytail — znane ograniczenia:**
+  - usunięcie rekordu kroków albo kalorii nie mówi, którego dnia dotyczyło, więc przeliczamy ostatnie 30 dni; starsze poprawi pełny import;
+  - rekord kroków albo kalorii przesunięty w czasie oznacza tylko nowe dni;
+  - horyzont zgody na starsze dane to 365 dni.
+
+### D-062 Łączenie treningu z sesją z zegarka
+- **Propozycja:** sesja, która nakłada się z treningiem najdłużej, o ile wspólny czas to co najmniej połowa dłuższego z nich. Dzięki temu krótki spacer na siłownię nie pasuje. Pokazujemy ją tylko wtedy, gdy trening nie ma połączenia, a propozycji nie odrzucono („To nie ten”).
+- **Ręcznie:** do 6 sesji, które zaczęły się do 12 h od treningu, najbliższe pierwsze. Sesje połączone z innym treningiem są pominięte. Odłączenie odrzuca też propozycję, żeby nie wracała.
+- **Historia:**
+  - połączona sesja nie jest osobnym wpisem, a trening dostaje ikonę zegarka;
+  - pozostałe sesje są w historii jako „Zaimportowane”, z polską nazwą typu (60 typów HC) i źródłem, i mają ekran tylko do odczytu.
+- **Szczegóły treningu:**
+  - tętno średnie (ważone czasem) i maksymalne;
+  - wykres;
+  - czas w pięciu strefach (50–60 … 90–100% tętna maksymalnego); przerwa dłuższa niż 2 min między próbkami to brak danych;
+  - kalorie aktywne i łączne.
+
+### D-063 Strefy tętna i gotowość
+- **Tętno maksymalne:** wpisane ręcznie (100–230), a bez niego wzór Tanaki 208 − 0,7 × wiek (wiek 10–100). Wiek zapisujemy jako rok urodzenia w DataStore. Pola liczbowe przyjmują wartości w trakcie pisania, więc mają szerokie zakresy, a wiarygodność sprawdza domena.
+- **Gotowość** (w UI orientacyjna, nie medyczna): dzisiejsza wartość względem średniej z 7 poprzednich dni (potrzeba co najmniej 3 dni z wartością).
+  - Sen: co najmniej 90% normy = 2 pkt, 75% = 1, mniej = 0.
+  - Tętno spoczynkowe: do +2 ud./min = 2 pkt, do +5 = 1.
+  - HRV: co najmniej 95% normy = 2 pkt, 85% = 1.
+  - Średnia punktów: co najmniej 1,5 = Dobra, 0,75 = Umiarkowana, mniej = Niska.
+  - Sen liczymy bez przebudzeń; noc należy do dnia pobudki.
+  - Brakujące wskaźniki (np. HRV z Samsung Health) pomijamy.
+- Do Etapu 8 karta gotowości jest na tymczasowym ekranie Start, a wejście do Health Connect na tymczasowym Profilu.
+
+### D-064 Zapis treningów do HC
+- Domyślnie wyłączony. Włączenie pokazuje ostrzeżenie o duplikatach (zegarek i GymTracker) i prosi o `WRITE_EXERCISE`.
+- Zakończony trening trafia do HC jako sesja treningu siłowego: nazwa, początek, koniec. `clientRecordId` = `workout-<id>`, więc edycja zastępuje kopię, a usunięcie treningu ją kasuje.
+- Trening połączony z sesją z zegarka nie dostaje kopii, a połączenie usuwa wcześniejszą. Przy wyłączonym zapisie zmiana treningu usuwa jego kopię, jeśli była.
+- Kolumna `workouts.hc_written_id` z D-005 okazała się niepotrzebna, bo kluczem jest `clientRecordId`.
+- Bez serii, tętna i kalorii; serie jako segmenty sesji są w `IDEAS.md`.
+
+### D-065 Rozłączenie
+- „Rozłącz i usuń dane” cofa wszystkie zgody (`revokeAllPermissions`), kasuje `health.db` i wyłącza zapis oraz synchronizację w tle. Treningi i ich połączenia zostają, a po ponownym połączeniu tętno wraca.
+- Android cofa zgody dopiero po zakończeniu procesu aplikacji (`revokeSelfPermissionsOnKill`; sprawdzone na emulatorze). Do tego czasu aplikacja zachowuje się tak, jakby zgód nie było: nic nie czyta ani nie zapisuje. Ekran mówi, że połączyć się ponownie można po ponownym otwarciu aplikacji, bo ponowne połączenie wcześniej przepadłoby przy jej zamknięciu.
+
+### D-066 Testy Etapu 7
+- **Generator danych zamiast inspektora:** inspektor HC z D-011 i D-014 zastąpił generator danych testowych `HealthSeedActivity` w buildzie `benchmark`. To inny pakiet niż debug, więc jego dane wyglądają jak z zegarka. Zapisuje:
+  - sesję siłową z tętnem co 5 s i kaloriami w podanym przedziale czasu;
+  - spacer;
+  - 9 dni snu z fazami, tętna spoczynkowego, HRV, kroków, dystansu i wagi.
+  Uprawnienia zapisu są tylko w `src/benchmark/AndroidManifest.xml`. Komendy są w README. Tego, co faktycznie przychodzi z Samsung Health, nie da się zasymulować, więc sprawdzi to test na telefonie (`PROGRESS.md`).
+- **Testy JVM:**
+  - `FakeHealthConnectClient`: stronicowanie, changes tokens, wygasanie tokenów, agregaty;
+  - import, odświeżanie sesji, cofnięcie zgody w trakcie przebiegu, przesunięcie rekordu tętna;
+  - repozytorium;
+  - domena: strefy, gotowość, dopasowanie sesji;
+  - migracja 3 → 4.
+- **Emulator:** przy pierwszym imporcie sesja z generatora miała same kalorie spoczynkowe (BMR), bo aplikacji ze zgodami nadanymi przez `pm grant` nie było jeszcze na liście priorytetów źródeł HC. Po rozłączeniu i ponownym połączeniu kalorie aktywne i łączne zgadzały się z danymi (533 i 697 kcal). Sumy kalorii zależą więc od listy priorytetów w HC (README); na telefonie Samsung Health jest na niej.
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |
@@ -449,7 +546,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 | hilt-lifecycle-viewmodel-compose / lifecycle-viewmodel-navigation3, lifecycle-runtime-compose | 1.4.0 / 2.11.0 | Apache-2.0 | 2 | ViewModele per wpis nawigacji, `collectAsStateWithLifecycle` |
 | Coil 3 + OkHttp | 3.6.3 / 5.5.0 | Apache-2.0 | 2 | zdjęcia ćwiczeń (D-012) |
 | reorderable (Calvin-LL) | 3.1.0 | Apache-2.0 | 3 | drag & drop w edytorze rutyn (D-037), ok. 17 KB |
-| work-runtime-ktx / hilt-work | 2.12.0 / 1.4.0 | Apache-2.0 | 7 | synchronizacja HC w tle |
+| work-runtime-ktx | 2.12.0 | Apache-2.0 | 7 | synchronizacja HC w tle; hilt-work odrzucone (D-059) |
 | health connect-client | 1.1.0 | Apache-2.0 | 7 | Health Connect (D-011) |
 | profileinstaller / baselineprofile / benchmark-macro | 1.4.1 / 1.5.0 / 1.5.0 | Apache-2.0 | 1 (pomiar), 10 | Baseline Profile, pomiary |
 | JUnit / coroutines-test / androidx.test runner, ext-junit / compose ui-test-junit4, ui-test-manifest | 4.13.2 / 1.11.0 / 1.7.0, 1.3.0 / BOM | EPL-1.0 / Apache-2.0 | 1–4 | testy (D-042) |

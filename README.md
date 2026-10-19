@@ -33,8 +33,9 @@ Natywna aplikacja na Androida do śledzenia treningów siłowych. Działa lokaln
 - Room 3 (sterownik systemowego SQLite), Coil 3 z OkHttp.
 
 - DataStore (flagi aplikacji, w Etapie 9 ustawienia).
+- Health Connect (`connect-client`) i WorkManager (synchronizacja w tle).
 
-Kolejne biblioteki (WorkManager, Health Connect) dochodzą w etapach, które ich potrzebują. Wersje: `gradle/libs.versions.toml`, uzasadnienia: `docs/DECISIONS.md`.
+Wersje: `gradle/libs.versions.toml`, uzasadnienia: `docs/DECISIONS.md`.
 
 ## Budowanie
 
@@ -69,6 +70,42 @@ W galerii jest też sonda Live Update: publikuje powiadomienie z prośbą o prom
 ```
 
 Macrobenchmark przewija galerię pod szklanym navbarem na buildzie `benchmark` (R8), z rozmyciem i bez niego. Miarodajny jest tylko wynik z telefonu.
+
+## Health Connect (Samsung Health, Galaxy Watch)
+
+GymTracker czyta z Health Connect:
+- sesje z zegarka z tętnem i kaloriami;
+- pomiary ciała;
+- kroki i dystans;
+- sen, tętno spoczynkowe i HRV.
+
+Na tej podstawie pokazuje tętno, strefy i kalorie przy treningu połączonym z sesją z zegarka, a także sesje z zegarka w historii i orientacyjną gotowość do treningu. Dane zostają na telefonie w osobnej bazie, wyłączonej z kopii systemowej. Bez Health Connect i bez zgód aplikacja działa normalnie. Opcjonalnie zapisuje zakończone treningi do Health Connect (domyślnie wyłączone).
+
+Konfiguracja Samsung Health → Health Connect:
+1. Samsung Health → Ustawienia → Health Connect: zezwól Samsung Health na zapis danych, najlepiej wszystkich. Health Connect jest też w Ustawieniach telefonu (wyszukaj „Health Connect”).
+2. Dane z Galaxy Watch trafiają do Health Connect przez Samsung Health, więc pojawią się po synchronizacji zegarka z telefonem.
+3. Health Connect → Dane i dostęp → kategoria (np. Aktywność) → Źródła danych i priorytet: Samsung Health na górze. Sumy kalorii i kroków Health Connect liczy tylko z aplikacji z tej listy.
+4. GymTracker → Profil → Health Connect → „Połącz” przy funkcji, której chcesz używać. Bez zgody „Starsze dane” Health Connect udostępnia tylko dane z 30 dni przed pierwszym połączeniem.
+
+Samsung Health przekazuje do Health Connect m.in.:
+- sesje ćwiczeń z tętnem;
+- kroki;
+- sen z fazami;
+- wagę i skład ciała;
+- kalorie.
+
+Tętna spoczynkowego i HRV Samsung nie wymienia na liście danych udostępnianych w Health Connect. Jeśli nie przychodzą, gotowość opiera się na śnie.
+
+Dane testowe na emulatorze daje build `benchmark` (inny pakiet, więc jego dane wyglądają jak z zegarka, D-066):
+
+```powershell
+.\gradlew.bat assembleBenchmark
+adb install -r app\build\outputs\apk\benchmark\app-benchmark.apk
+"EXERCISE","HEART_RATE","ACTIVE_CALORIES_BURNED","TOTAL_CALORIES_BURNED","STEPS","DISTANCE","WEIGHT","SLEEP","RESTING_HEART_RATE","HEART_RATE_VARIABILITY" | ForEach-Object { adb shell pm grant com.jaroszeek.gymtracker.benchmark "android.permission.health.WRITE_$_" }
+# sesja siłowa w podanym przedziale (epoch ms; bez parametrów ostatnie 50 min), spacer i 9 dni snu, tętna spoczynkowego, HRV, kroków i wagi
+adb shell am start -n com.jaroszeek.gymtracker.benchmark/com.jaroszeek.gymtracker.HealthSeedActivity --el start <ms> --el end <ms>
+adb logcat -d -s HealthSeed
+```
 
 ## Powiadomienie treningu i Now Bar (One UI)
 

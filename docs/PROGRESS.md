@@ -11,7 +11,7 @@
 | 4 | Aktywny trening | ✅ zakończony (2026-10-19) |
 | 5 | Powiadomienie, Live Update, przerwa w tle | ✅ zaakceptowany (2026-10-19), wyniki testu na telefonie jeszcze niezgłoszone |
 | 6 | Historia i postępy | ✅ zaakceptowany (2026-10-19), wydanie `preview-stage-6`, wyniki testu na telefonie jeszcze niezgłoszone |
-| 7 | Health Connect | — |
+| 7 | Health Connect | 🔄 PR otwarty (2026-10-19), wydanie `preview-stage-7`; czeka na test na telefonie i akceptację |
 | 8 | Start i Profil | — |
 | 9 | Ustawienia i kopia zapasowa | — |
 | 10 | Szlif, wydajność, QA | — |
@@ -19,6 +19,36 @@
 
 ## Bieżący stan
 
+- **Etap 7** (branch `feat/stage-7-health-connect`, PR otwarty, wydanie testowe `preview-stage-7`).
+  - Zrobione:
+    - import z HC do osobnej bazy z changes tokens: sesje, tętno, kalorie, kroki, dystans, pomiary ciała, sen, tętno spoczynkowe, HRV;
+    - synchronizacja przy starcie, ręczna, po nadaniu zgód i w tle;
+    - ekran Health Connect ze zgodami per funkcja, statusem, strefami tętna i rozłączeniem;
+    - polityka prywatności przez `activity-alias`;
+    - łączenie treningu z sesją z zegarka (propozycja, ręcznie, odłączanie) z tętnem, wykresem, strefami i kaloriami;
+    - zaimportowane sesje w historii;
+    - gotowość w `domain/` i na Start;
+    - opcjonalny zapis treningów do HC;
+    - generator danych testowych w buildzie `benchmark`;
+    - decyzje D-059…D-066.
+  - Sprawdzone na emulatorze (36.0, dane z generatora):
+    - zgody per funkcja, także „Częściowo”;
+    - import (2 sesje, 21 pomiarów, 9 nocy, 31 dni) i powtórna synchronizacja bez duplikatów;
+    - propozycja połączenia, połączenie, odłączenie i wybór z listy;
+    - tętno, wykres, strefy i kalorie przy treningu;
+    - historia z sesjami; ekran zaimportowanej sesji;
+    - gotowość „Niska” zgodna z danymi;
+    - zapis treningu widoczny w HC;
+    - zaplanowana praca w tle (bez wymuszonego uruchomienia: WorkManager nie odpala okresowej pracy przed czasem);
+    - polityka prywatności z ekranu uprawnień HC;
+    - rozłączenie;
+    - motyw ciemny i jasny.
+  - Testy: JVM 207/207, lint 0 błędów (1 znane ostrzeżenie o targetSdk 36).
+  - Poprawione po teście na emulatorze:
+    - navbar nie wracał po powrocie na Start/Profil;
+    - nagłówek karty tętna ściskał się przy długiej nazwie źródła;
+    - ekran po rozłączeniu dalej pokazywał „Połączono” (D-065).
+  - Otwarte: test na telefonie z prawdziwymi danymi z Samsung Health (instrukcja niżej).
 - **Etapy 1–6** zmergowane (PR #1–#6). D-038 (porzucony trening trafia do historii) zostaje jako domyślne, właściciel nie zgłosił zmiany.
 - **Etap 6** zaakceptowany przez właściciela bez wyników testu na telefonie. Wydanie testowe `preview-stage-6` (D-058); od teraz każdy etap dostaje takie wydanie razem z PR. Galeria komponentów bez ikony w launcherze (D-058).
   - Zrobione: zakładka Postępy (Historia, Ćwiczenia, Rutyny, Partie), szczegóły treningu z rekordami, edycja i usuwanie z przeliczeniem rekordów, e1RM (Epley, Brzycki), rekordy i tygodniowe serie w `domain/`, rekordy w trakcie treningu (glow i haptyka) i na podsumowaniu, wykres na Canvas z zakresami i przeciąganiem, wykres i rekordy w szczegółach ćwiczenia, postęp rutyny, agregaty w Room, generator danych w debug. Decyzje D-053…D-057.
@@ -30,7 +60,7 @@
   - Wydanie testowe `preview-stage-5` (pre-release z APK debug, D-051) na prośbę właściciela.
   - Otwarte: test na telefonie (instrukcja niżej). Chipa na pasku stanu nie dało się obejrzeć na emulatorze.
 - **Tryb pracy:** plan etapu nie czeka na akceptację (D-032), akceptacja na PR.
-- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-058).
+- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-066).
 - **Środowisko:**
   - Android Studio 2026.2.1 w `C:\Program Files\Android\Android Studio1` (JBR 25). Gdy `java` z PATH nie startuje, ustaw `$env:JAVA_HOME` na JBR.
   - `adb`: `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe`.
@@ -39,6 +69,24 @@
   - Na emulatorze: język aplikacji pl-PL i wyłączone pismo rysikiem.
   - Test UI: `.\gradlew.bat :app:connectedDebugAndroidTest` (D-042).
 - **vynox:** sklonowany do `%TEMP%\vynox-ref`, tylko do odczytu.
+
+## Etap 7 — test na telefonie (Samsung Health)
+
+1. Przygotowanie: Samsung Health ma zgodę na zapis do Health Connect i jest na górze listy priorytetów źródeł (README, sekcja „Health Connect”).
+2. Instalacja: APK z wydania `preview-stage-7` albo `.\gradlew.bat assembleDebug`, potem `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Log w osobnym oknie: `adb logcat -c; adb logcat -s HealthSync HealthConnect HealthWriter`.
+3. Bez zgód: Start pokazuje kartę „Gotowość do treningu” z „Połącz”. Profil → Health Connect: każda funkcja z „Połącz”. Trening i historia działają jak dotąd.
+4. „Treningi z zegarka” → Połącz → zgody. Status zmienia się na „Połączono”, a „Synchronizacja” na „Zaimportowano: …”. Postępy → Historia: sesje z zegarka jako „Zaimportowane”, z polską nazwą typu i źródłem „Samsung Health”. Tap otwiera tętno sesji.
+5. Trening nagrany też na zegarku (nowy albo z ostatnich 30 dni): szczegóły treningu → „Sesja z zegarka … To ten trening?” → Połącz. Sprawdź tętno średnie i maksymalne, wykres i kalorie. Strefy pojawią się po wpisaniu wieku w Profil → Health Connect → Strefy tętna. Potem „Odłącz sesję z zegarka” → „Połącz z sesją z zegarka” → wybór z listy.
+6. „Pomiary ciała”, „Aktywność”, „Regeneracja” → Połącz. Start: poziom gotowości i wartości snu, tętna spoczynkowego i HRV. Zanotuj, czego brakuje (Samsung może nie udostępniać tętna spoczynkowego i HRV).
+7. „Starsze dane” (jeśli jest) → Połącz: w historii pojawiają się starsze sesje.
+8. „Synchronizuj teraz” kilka razy: liczby w „Zaimportowano” stoją w miejscu (brak duplikatów). Usuń sesję w Samsung Health, zsynchronizuj zegarek i GymTracker: sesja znika z historii.
+9. „W tle” → zgoda. Po godzinie, bez otwierania aplikacji, „Ostatnio …” powinno się zmienić (bateria „Bez ograniczeń” pomaga na Samsungu).
+10. „Zapis treningów” → ostrzeżenie → Włącz → zgoda. Zakończ krótki trening. Health Connect → Dane i dostęp → Ćwiczenia: trening z „GymTracker Debug”.
+11. „Rozłącz i usuń dane”: komunikat o rozłączeniu. Zamknij aplikację (usuń z ostatnich) i otwórz ponownie: funkcje z „Połącz”, treningi zostały. Po ponownym połączeniu tętno w połączonym treningu wraca.
+12. Do raportu:
+    - zrzuty ekranu Health Connect w aplikacji, połączonego treningu i gotowości;
+    - lista tego, co z Samsung Health nie przyszło;
+    - log z punktu 2.
 
 ## Etap 6 — test na telefonie
 
@@ -68,5 +116,5 @@
 
 ## Następny krok
 
-- Etap 7 — Health Connect.
+- Akceptacja Etapu 7 po teście na telefonie (wyżej), potem Etap 8 — Start i Profil.
 - Wyniki testów Etapów 5 i 6 na telefonie (wyżej), gdy właściciel je przekaże.
