@@ -53,6 +53,7 @@ class HealthWriter @Inject constructor(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
+            // ponytail: not retried, the next change of the workout writes it again; a retry queue if writes fail in practice
             Log.e(TAG, "Writing workout $id to Health Connect failed", e)
         }
     }

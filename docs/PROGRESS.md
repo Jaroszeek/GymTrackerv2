@@ -43,7 +43,8 @@
     - polityka prywatności z ekranu uprawnień HC;
     - rozłączenie;
     - motyw ciemny i jasny.
-  - Testy: JVM 207/207, lint 0 błędów (1 znane ostrzeżenie o targetSdk 36).
+  - Testy: JVM 208/208, lint 0 błędów (1 znane ostrzeżenie o targetSdk 36).
+  - Poprawki po przeglądzie kodu (testy JVM, bez ponownego sprawdzenia na emulatorze): utrata dostępu w trakcie synchronizacji zostawia sesje do następnego przebiegu; prośba o synchronizację w trakcie przebiegu uruchamia kolejny; rozłączenie przerywa synchronizację i nie da się go zatrzymać wyjściem z ekranu; przełączniki „W tle” i „Zapis” idą za wynikiem okna zgód; ikona zegarka tylko przy zaimportowanej sesji; `health.db-journal` poza kopią; podsumowanie tętna liczone w ViewModelach.
   - Poprawione po teście na emulatorze:
     - navbar nie wracał po powrocie na Start/Profil;
     - nagłówek karty tętna ściskał się przy długiej nazwie źródła;

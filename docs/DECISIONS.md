@@ -459,7 +459,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
   - „Synchronizuj teraz”;
   - od razu po nadaniu nowych zgód;
   - co godzinę w tle (WorkManager, bateria nie jest słaba, tylko ze zgodą `READ_HEALTH_DATA_IN_BACKGROUND`).
-  Jeden przebieg naraz (mutex), na dispatcherze IO; UI nigdy na niego nie czeka.
+  Jeden przebieg naraz (mutex), na dispatcherze IO; UI nigdy na niego nie czeka. Prośba o synchronizację w trakcie przebiegu (np. po nadaniu kolejnej zgody) uruchamia jeszcze jeden przebieg zaraz po bieżącym.
 - **Jak:**
   - Każdy typ rekordu ma osobny changes token.
   - Bez tokenu, z tokenem odrzuconym albo wygasłym: pełny odczyt typu stronami po 1000 rekordów i uzgodnienie usunięć.
@@ -469,7 +469,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 - **Dni:** dni oznaczone do przeliczenia liczy `aggregateGroupByPeriod` (do 366 dni na wywołanie). Pełny import oznacza ostatnie 30 dni, a ze zgodą na starsze dane 365.
 - **Odporność:**
   - typ bez zgody jest pomijany;
-  - zgoda cofnięta w trakcie przebiegu (SecurityException) nie przerywa reszty: sesja zachowuje dotychczasowe tętno, a dni czekają na następny przebieg;
+  - utrata dostępu w trakcie przebiegu (SecurityException: zgoda cofnięta albo aplikacja zeszła z pierwszego planu bez zgody na odczyt w tle) nie przerywa reszty typów. Sesje i dni, których nie udało się odczytać, zostają z dotychczasowymi danymi do następnego przebiegu; sesja traci tętno dopiero wtedy, gdy zgody na nie już nie ma;
   - przy limicie zapytań to, co już zaimportowano, zostaje, a status mówi, że następny przebieg dokończy.
 - **Deduplikacja:**
   - z sesji tego samego typu z różnych aplikacji, nakładających się w co najmniej połowie krótszej, zostaje najdłuższa; tak samo z nocami snu;
@@ -478,13 +478,15 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 - **ponytail — znane ograniczenia:**
   - usunięcie rekordu kroków albo kalorii nie mówi, którego dnia dotyczyło, więc przeliczamy ostatnie 30 dni; starsze poprawi pełny import;
   - rekord kroków albo kalorii przesunięty w czasie oznacza tylko nowe dni;
-  - horyzont zgody na starsze dane to 365 dni.
+  - horyzont zgody na starsze dane to 365 dni;
+  - po ponad 30 dniach bez synchronizacji token wygasa, a pełny import przelicza ostatnie 30 dni (365 ze zgodą na starsze dane). Dni między ostatnią synchronizacją a tym okresem mogą zostać bez sum kroków i kalorii. Z synchronizacją w tle to nie występuje. Poprawka wymaga sprawdzenia, jak HC odpowiada na agregaty sprzed okna 30 dni bez zgody na starsze dane: gdyby rzucał wyjątek, dni zostałyby nieprzeliczone na stałe.
 
 ### D-062 Łączenie treningu z sesją z zegarka
 - **Propozycja:** sesja, która nakłada się z treningiem najdłużej, o ile wspólny czas to co najmniej połowa dłuższego z nich. Dzięki temu krótki spacer na siłownię nie pasuje. Pokazujemy ją tylko wtedy, gdy trening nie ma połączenia, a propozycji nie odrzucono („To nie ten”).
 - **Ręcznie:** do 6 sesji, które zaczęły się do 12 h od treningu, najbliższe pierwsze. Sesje połączone z innym treningiem są pominięte. Odłączenie odrzuca też propozycję, żeby nie wracała.
 - **Historia:**
   - połączona sesja nie jest osobnym wpisem, a trening dostaje ikonę zegarka;
+  - połączenie z sesją, której nie ma już w zaimportowanych danych (usunięta w swojej aplikacji albo po rozłączeniu), liczy się jak brak połączenia: bez ikony, a szczegóły pokazują propozycję i wybór sesji. Samo połączenie zostaje, więc wraca razem z sesją (D-065);
   - pozostałe sesje są w historii jako „Zaimportowane”, z polską nazwą typu (60 typów HC) i źródłem, i mają ekran tylko do odczytu.
 - **Szczegóły treningu:**
   - tętno średnie (ważone czasem) i maksymalne;
@@ -509,9 +511,13 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 - Trening połączony z sesją z zegarka nie dostaje kopii, a połączenie usuwa wcześniejszą. Przy wyłączonym zapisie zmiana treningu usuwa jego kopię, jeśli była.
 - Kolumna `workouts.hc_written_id` z D-005 okazała się niepotrzebna, bo kluczem jest `clientRecordId`.
 - Bez serii, tętna i kalorii; serie jako segmenty sesji są w `IDEAS.md`.
+- **ponytail — znane ograniczenia:**
+  - nieudany zapis albo usunięcie kopii (błąd HC) jest tylko logowany i poprawi go dopiero następna zmiana tego treningu; kolejka ponowień, jeśli zapis będzie zawodził w praktyce;
+  - trening połączony z sesją, którą potem usunięto w aplikacji źródłowej, dalej nie dostaje kopii, bo połączenie zostaje (D-062).
 
 ### D-065 Rozłączenie
 - „Rozłącz i usuń dane” cofa wszystkie zgody (`revokeAllPermissions`), kasuje `health.db` i wyłącza zapis oraz synchronizację w tle. Treningi i ich połączenia zostają, a po ponownym połączeniu tętno wraca.
+- Po potwierdzeniu rozłączenie kończy się także po wyjściu z ekranu. Trwająca synchronizacja zostaje przerwana, a nie zaczyna się czekania na jej koniec; to, co zdążyła zapisać, i tak jest kasowane.
 - Android cofa zgody dopiero po zakończeniu procesu aplikacji (`revokeSelfPermissionsOnKill`; sprawdzone na emulatorze). Do tego czasu aplikacja zachowuje się tak, jakby zgód nie było: nic nie czyta ani nie zapisuje. Ekran mówi, że połączyć się ponownie można po ponownym otwarciu aplikacji, bo ponowne połączenie wcześniej przepadłoby przy jej zamknięciu.
 
 ### D-066 Testy Etapu 7
@@ -522,7 +528,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
   Uprawnienia zapisu są tylko w `src/benchmark/AndroidManifest.xml`. Komendy są w README. Tego, co faktycznie przychodzi z Samsung Health, nie da się zasymulować, więc sprawdzi to test na telefonie (`PROGRESS.md`).
 - **Testy JVM:**
   - `FakeHealthConnectClient`: stronicowanie, changes tokens, wygasanie tokenów, agregaty;
-  - import, odświeżanie sesji, cofnięcie zgody w trakcie przebiegu, przesunięcie rekordu tętna;
+  - import, odświeżanie sesji, utrata dostępu w trakcie przebiegu (sesje czekają na następny), przesunięcie rekordu tętna;
   - repozytorium;
   - domena: strefy, gotowość, dopasowanie sesji;
   - migracja 3 → 4.
