@@ -206,6 +206,47 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 - **Wersja:** `versionName 0.1.0`, `versionCode 1`; od Etapu 11 wersja wynika z tagu.
 - **Lint:** jedyne ostrzeżenie to `OldTargetApi` (targetSdk 36 jest ustalony w CLAUDE.md).
 
+## 2026-10-19 — Etap 2 (ćwiczenia)
+
+### D-025 Dane ćwiczeń
+- **free-exercise-db** (Unlicense, 876 ćwiczeń) w `assets/exercises/free-exercise-db.json`, przypięty do commita `f00c92c7`; zdjęcia z `raw.githubusercontent.com` z tego samego commita, więc nie znikną po zmianach w repo źródłowym. Licencja w `assets/licenses/`, źródło pokazane w szczegółach ćwiczenia; pełna atrybucja w „O aplikacji” w Etapie 9.
+- **26 wariantów z programów Jeffa Nipparda** (lista zaakceptowana w planie) w `assets/exercises/nippard.json`, w formacie free-exercise-db, bez zdjęć.
+- **Polskie aliasy** dla 135 popularnych ćwiczeń (`aliases_pl.json`). Nazwy i instrukcje zostają po angielsku, jak w źródle.
+- **Uprawnienie `INTERNET`** w manifeście głównym — zgoda właściciela 2026-10-19. Bez sieci zostają placeholdery.
+
+### D-026 Schemat v1 i wyszukiwanie (zmiana względem D-005)
+- Tabele `exercises` i `exercise_muscles` (PK `exercise_id` + `muscle`, FK CASCADE); schemat w `app/schemas/.../1.json`.
+- **Bez kolumny `search_text`:** wyszukiwanie i filtry liczy w pamięci `ExerciseIndex` (domain, w pełni testowany). Teksty normalizowane raz na listę; każde słowo zapytania musi wystąpić w nazwie albo aliasie; nazwy zaczynające się od zapytania idą wyżej.
+- **Filtry:** 8 partii ciała (dopasowanie po mięśniach głównych) i 8 grup sprzętu (gryf łamany = sztanga, brak sprzętu = inne). W grupie chipów OR, między grupami AND.
+- Gdy źródło podaje mięsień jako główny i pomocniczy (9 ćwiczeń), zostaje główny.
+- **Ochrona usuwania** ćwiczeń użytych w rutynach/treningach (FK RESTRICT i komunikat) przechodzi do Etapu 3, razem z pierwszą tabelą, która się do nich odwołuje — w Etapie 2 nie ma czego chronić ani jak tego przetestować. Wbudowanych ćwiczeń nie da się usunąć (warunek w DAO).
+
+### D-027 Seed
+- Leniwie przy pierwszym użyciu listy (stan ładowania w UI), w jednej transakcji, tylko gdy w bazie nie ma ćwiczeń wbudowanych; Mutex chroni przed podwójnym uruchomieniem. Drugi start nie dubluje danych (test + sprawdzone na emulatorze: 902 po restarcie).
+- Dwa wsadowe inserty zamiast ok. 1800 pojedynczych: na emulatorze (debug) 8 s → 1,2 s; build z R8: 278 ms.
+
+### D-028 Testy bazy na JVM (zamyka pytanie z D-013)
+- Room 3 ma `inMemoryDatabaseBuilder` bez `Context`, a `androidx.sqlite:sqlite-bundled-jvm` 2.7.1 (tylko `testImplementation`) daje sterownik SQLite na JVM. Testy DAO, seeda i repozytorium są zwykłymi testami jednostkowymi i idą w CI — bez Robolectric i bez emulatora.
+- `unitTests.isReturnDefaultValues = true`, żeby `android.util.Log` w kodzie produkcyjnym nie wywracał testów JVM.
+- Testy migracji (`MigrationTestHelper`) zostają instrumentalne, gdy pojawi się v2.
+
+### D-029 Decyzje UI Etapu 2
+- **Tekst wyszukiwarki** trzymany w stanie Compose w ViewModelu, a nie w `StateFlow` stanu ekranu: pole zasilane asynchronicznym flow gubi znaki przy szybkim pisaniu. Wyszukiwarka ma wyłączoną autokorektę (polska autokorekta przerabiała angielskie nazwy).
+- **ViewModel na wpis nawigacji** (`rememberViewModelStoreNavEntryDecorator`), parametry przez Hilt assisted injection. Klucze nawigacji mają sufiks `Key` (`ExerciseDetailKey`), bo nazwy `*Route` są zajęte przez composable.
+- **Shared element** miniatura → zdjęcie w szczegółach (`SharedTransitionLayout` wokół `NavDisplay`).
+- **Szczegóły:** zdjęcia pozycji startowej i końcowej przenikają się co 1,5 s (statycznie przy ograniczeniu animacji); „Wideo” otwiera wyszukiwanie YouTube.
+- **Mięśnie w edytorze** ułożone wg partii ciała (`BodyPart.orderedMuscles`), nie alfabetycznie po angielsku.
+- **Przyciski Secondary w treści** mają nieprzezroczyste wypełnienie: w treści nie ma czego rozmywać, a półprzezroczysty przycisk nad przewijanym tekstem wyglądał jak błąd.
+- **„Ogranicz przezroczystość”** nie nagrywa już warstwy backdrop (nikt jej nie próbkuje).
+
+### D-030 Rozmiar
+- Release (R8, bez podpisu) 3,5 MB, rozmiar pobierania 2,0 MB (Etap 1: 2,0 MB).
+- Dex: Room + SQLite ok. 53 KB, Coil + OkHttp + Okio ok. 280 KB, kod aplikacji 97 KB; Compose urósł z 0,77 do 1,2 MB (więcej używanych komponentów). Assets ćwiczeń 1 MB przed kompresją.
+
+### D-031 Płynność listy
+- Na emulatorze lista i galeria mają w tych samych warunkach identyczne wyniki, a praca wątku UI na klatkę to mediana ok. 1,4 ms — lista nie dokłada nic ponad samo szkło. Emulator jest niestabilny (galeria: 28 ms p50 przy Etapie 1, 93 ms dziś po restarcie emulatora), więc liczby nie nadają się do oceny. Pomiar na telefonie razem z Etapem 1 (D-023).
+- Emulator: Gboard pokazywał samouczek rysika i przechwytywał tekst wpisywany przez `adb`; wyłączone `settings put secure stylus_handwriting_enabled 0` (tylko emulator).
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |
@@ -220,6 +261,8 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 | datastore-preferences | 1.2.1 | Apache-2.0 | 1 | ustawienia |
 | backdrop / shapes | 2.0.1 / 1.2.1 | Apache-2.0 | 1 | szkło (D-006) |
 | room3 / sqlite-framework | 3.0.3 / 2.7.1 | Apache-2.0 | 2 | baza (D-004) |
+| sqlite-bundled-jvm | 2.7.1 | Apache-2.0 | 2 | tylko testy: Room na JVM (D-028) |
+| hilt-lifecycle-viewmodel-compose / lifecycle-viewmodel-navigation3, lifecycle-runtime-compose | 1.4.0 / 2.11.0 | Apache-2.0 | 2 | ViewModele per wpis nawigacji, `collectAsStateWithLifecycle` |
 | Coil 3 + OkHttp | 3.6.3 / 5.5.0 | Apache-2.0 | 2 | zdjęcia ćwiczeń (D-012) |
 | reorderable (Calvin-LL), kandydat | 3.1.0 | Apache-2.0 | 3 | drag & drop; decyzja w Etapie 3 (alternatywa: własna implementacja) |
 | work-runtime-ktx / hilt-work | 2.12.0 / 1.4.0 | Apache-2.0 | 7 | synchronizacja HC w tle |

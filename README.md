@@ -3,6 +3,8 @@
 Natywna aplikacja na Androida do śledzenia treningów siłowych. Działa lokalnie, integruje się z Health Connect (dane z Samsung Health i Galaxy Watch) i ma design „liquid glass”: prawdziwe rozmycie tła pod pływającymi warstwami, ciemne tło z subtelną aurorą i duże, tabularne liczby.
 
 > Szkic. Projekt jest w budowie, etapami opisanymi w `PROMPT.md`. Stan prac: `docs/PROGRESS.md`.
+>
+> Gotowe: design system i nawigacja (Etap 1), baza ćwiczeń z wyszukiwarką, filtrami i własnymi ćwiczeniami (Etap 2).
 
 <p>
   <img src="docs/screenshots/stage1-app-trening-dark.png" width="240" alt="Zakładka Trening, motyw ciemny">
@@ -14,7 +16,7 @@ Natywna aplikacja na Androida do śledzenia treningów siłowych. Działa lokaln
 
 - Rutyny i szablony (Push/Pull/Legs, Upper/Lower, FBW), bloki z wariantami ćwiczeń.
 - Aktywny trening z timerem przerwy, powiadomieniem i Live Update (Now Bar w One UI).
-- Baza ok. 870 ćwiczeń ze zdjęciami (free-exercise-db) i własne ćwiczenia.
+- Baza 902 ćwiczeń: free-exercise-db (zdjęcia z CDN, cache na dysku) i warianty z programów Jeffa Nipparda; wyszukiwanie także po polskich nazwach, filtry partii ciała i sprzętu, własne ćwiczenia.
 - Historia, rekordy, szacowany 1RM, wykresy postępów.
 - Health Connect: tętno, sen, HRV, skład ciała, kroki. Dane zdrowotne nie opuszczają telefonu.
 - Kopia zapasowa do pliku i aktualizacje z GitHub Releases.
@@ -28,7 +30,9 @@ Natywna aplikacja na Androida do śledzenia treningów siłowych. Działa lokaln
 - Fonty: Geist (UI i liczby, cyfry tabularne) oraz Instrument Serif (duże nagłówki), obie na licencji OFL.
 - Ikony: Material Symbols Rounded jako vector drawable.
 
-Kolejne biblioteki (Room, DataStore, WorkManager, Coil, Health Connect) dochodzą w etapach, które ich potrzebują. Wersje: `gradle/libs.versions.toml`, uzasadnienia: `docs/DECISIONS.md`.
+- Room 3 (sterownik systemowego SQLite), Coil 3 z OkHttp.
+
+Kolejne biblioteki (DataStore, WorkManager, Health Connect) dochodzą w etapach, które ich potrzebują. Wersje: `gradle/libs.versions.toml`, uzasadnienia: `docs/DECISIONS.md`.
 
 ## Budowanie
 
@@ -70,6 +74,9 @@ app/src/main/java/com/jaroszeek/gymtracker/
   designsystem/theme/      tokeny: palety, typografia, odstępy, kształty, blur, ruch
   designsystem/component/  komponenty glass, navbar
   navigation/              zakładki i stosy Navigation 3
+  core/                    baza Room, DI
+  domain/                  czysta logika (modele, wyszukiwanie)
+  data/                    repozytoria, seed
   feature/                 ekrany funkcji
 app/src/debug/             galeria komponentów i sonda Live Update
 baselineprofile/           macrobenchmarki (w Etapie 10 także Baseline Profile)
@@ -78,4 +85,4 @@ docs/                      postęp, decyzje, pomysły, zrzuty ekranu
 
 ## Licencje
 
-Kod aplikacji: do ustalenia przed wydaniem. Fonty Geist i Instrument Serif: SIL Open Font License 1.1 (teksty licencji w `app/src/main/assets/licenses/`). Ikony Material Symbols: Apache-2.0.
+Kod aplikacji: do ustalenia przed wydaniem. Baza ćwiczeń: [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (Unlicense, domena publiczna). Fonty Geist i Instrument Serif: SIL Open Font License 1.1 (teksty licencji w `app/src/main/assets/licenses/`). Ikony Material Symbols: Apache-2.0.
