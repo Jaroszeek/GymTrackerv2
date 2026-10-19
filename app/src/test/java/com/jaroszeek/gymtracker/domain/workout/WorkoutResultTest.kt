@@ -1,5 +1,9 @@
 package com.jaroszeek.gymtracker.domain.workout
 
+import com.jaroszeek.gymtracker.domain.progress.PersonalBests
+import com.jaroszeek.gymtracker.domain.progress.RecordType
+import com.jaroszeek.gymtracker.domain.progress.RepBest
+import com.jaroszeek.gymtracker.domain.routine.PerformedSet
 import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
 import com.jaroszeek.gymtracker.domain.routine.SetType
 import org.junit.Assert.assertEquals
@@ -56,5 +60,46 @@ class WorkoutResultTest {
         val targets = RoutineTargets(3, 8, 12, weightKg = 10.0)
         val workout = workout(exercise(1, targets, set(11, null, 12), set(12, null, 10)))
         assertEquals(targets.copy(sets = 2), workout.targetChanges().single().new)
+    }
+
+    private val bests = PersonalBests(weightKg = 60.0, e1rmKg = 80.0, setVolumeKg = 600.0, sessionVolumeKg = 1_000.0, reps = listOf(RepBest(60.0, 10)))
+
+    private fun withBests(id: Long, bests: PersonalBests, vararg sets: WorkoutSet, exerciseId: Long = id * 100) =
+        WorkoutExercise(id, listOf(WorkoutVariant(exerciseId = exerciseId, bests = bests)), sets = sets.toList())
+
+    @Test
+    fun tickedOffSetsAreComparedWithTheBestsFromBeforeTheWorkout() {
+        val workout = workout(
+            withBests(1, bests, set(11, 60.0, 10), set(12, 62.5, 10), set(13, 70.0, 8, done = false)),
+            // No history: the first session sets no records
+            withBests(2, PersonalBests(), set(21, 100.0, 5)),
+        )
+        val all = setOf(RecordType.Weight, RecordType.E1rm, RecordType.SetVolume, RecordType.SessionVolume)
+        assertEquals(mapOf(12L to all), workout.records())
+        assertEquals(
+            listOf(
+                RecordHit(100, RecordType.Weight, PerformedSet(62.5, 10), 62.5),
+                RecordHit(100, RecordType.E1rm, PerformedSet(62.5, 10), 62.5 * (1 + 10 / 30.0)),
+                RecordHit(100, RecordType.SetVolume, PerformedSet(62.5, 10), 625.0),
+                RecordHit(100, RecordType.SessionVolume, PerformedSet(62.5, 10), 1_225.0),
+            ),
+            workout.recordHits(),
+        )
+    }
+
+    @Test
+    fun theSameExerciseTwiceIsOneSession() {
+        val workout = workout(
+            withBests(1, bests, set(11, 60.0, 10)),
+            withBests(2, bests, set(21, 60.0, 10), exerciseId = 100),
+        )
+        // 600 + 600 kg passes the best session of 1 000 kg on the second entry
+        assertEquals(mapOf(21L to setOf(RecordType.SessionVolume)), workout.records())
+    }
+
+    @Test
+    fun theBestHitOfEachTypeIsTheLastOne() {
+        val workout = workout(withBests(1, bests, set(11, 62.5, 5), set(12, 65.0, 3)))
+        assertEquals(65.0, workout.recordHits().single { it.type == RecordType.Weight }.valueKg!!, 0.0)
     }
 }

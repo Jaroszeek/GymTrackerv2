@@ -1,5 +1,6 @@
 package com.jaroszeek.gymtracker.domain.workout
 
+import com.jaroszeek.gymtracker.domain.progress.PersonalBests
 import com.jaroszeek.gymtracker.domain.routine.DoubleProgression
 import com.jaroszeek.gymtracker.domain.routine.PerformedSet
 import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
@@ -26,6 +27,8 @@ data class WorkoutVariant(
     val targets: RoutineTargets? = null,
     /** Sets of the last finished session with this exercise, captured when the workout starts. */
     val previous: List<PerformedSet> = emptyList(),
+    /** Bests from before the workout, captured with [previous]; ticked-off sets are compared with them. */
+    val bests: PersonalBests = PersonalBests(),
 ) {
     /** Double progression suggestion (D-036) for this session. */
     val progressionKg: Double? get() = targets?.let { DoubleProgression.nextWeight(it, previous) }
