@@ -84,8 +84,11 @@ fun ExercisesScreen(
     onClearFilters: () -> Unit,
     onRetry: () -> Unit,
     onOpen: (Long) -> Unit,
-    onAdd: () -> Unit,
+    onAdd: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    /** Picker mode (routine editor): a back button and the given title instead of the large header. */
+    pickerTitle: String? = null,
+    onBack: (() -> Unit)? = null,
 ) {
     val filter = (state as? ExercisesUiState.Content)?.filter ?: ExerciseFilter()
     val insets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal).asPaddingValues()
@@ -102,9 +105,15 @@ fun ExercisesScreen(
                     Modifier
                         .fillMaxWidth()
                         .padding(horizontal = GtSpacing.xl),
-                    verticalAlignment = Alignment.Bottom,
+                    verticalAlignment = if (pickerTitle != null) Alignment.CenterVertically else Alignment.Bottom,
+                    horizontalArrangement = Arrangement.spacedBy(GtSpacing.m),
                 ) {
-                    Text(stringResource(R.string.nav_exercises), Modifier.weight(1f), style = GtTheme.typography.display)
+                    if (pickerTitle != null) {
+                        if (onBack != null) GlassIconButton(R.drawable.ic_arrow_back, stringResource(R.string.action_back), onClick = onBack)
+                        Text(pickerTitle, Modifier.weight(1f), style = GtTheme.typography.headline)
+                    } else {
+                        Text(stringResource(R.string.nav_exercises), Modifier.weight(1f), style = GtTheme.typography.display)
+                    }
                     if (state is ExercisesUiState.Content) {
                         Text(
                             pluralStringResource(R.plurals.exercises_count, state.exercises.size, state.exercises.size),
@@ -149,16 +158,18 @@ fun ExercisesScreen(
                 }
             }
         }
-        GlassIconButton(
-            icon = R.drawable.ic_add,
-            contentDescription = stringResource(R.string.exercises_add),
-            onClick = onAdd,
-            style = GlassButtonStyle.Primary,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(navBarContentPadding())
-                .padding(end = GtSpacing.xl),
-        )
+        if (onAdd != null) {
+            GlassIconButton(
+                icon = R.drawable.ic_add,
+                contentDescription = stringResource(R.string.exercises_add),
+                onClick = onAdd,
+                style = GlassButtonStyle.Primary,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(navBarContentPadding())
+                    .padding(end = GtSpacing.xl),
+            )
+        }
     }
 }
 

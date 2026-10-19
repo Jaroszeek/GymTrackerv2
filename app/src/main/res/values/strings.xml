@@ -208,12 +208,6 @@
     <!-- Routines: templates -->
     <string name="templates_title">Szablony</string>
     <string name="template_add">Dodaj do moich rutyn</string>
-    <plurals name="template_added">
-        <item quantity="one">Dodano %1$d rutynę</item>
-        <item quantity="few">Dodano %1$d rutyny</item>
-        <item quantity="many">Dodano %1$d rutyn</item>
-        <item quantity="other">Dodano %1$d rutyny</item>
-    </plurals>
     <string name="template_ppl_description">Trzy dni: wyciskanie, przyciąganie i nogi. Klasyczny podział na 3 albo 6 treningów w tygodniu.</string>
     <string name="template_upper_lower_description">Dwa dni: góra i dół ciała. Dobre na 4 treningi w tygodniu.</string>
     <string name="template_fbw_description">Całe ciało na każdym treningu, A i B na zmianę. Dobry start na 3 treningi w tygodniu.</string>
