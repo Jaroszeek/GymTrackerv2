@@ -446,7 +446,6 @@
     <string name="health_complete">Uzupełnij zgody</string>
     <string name="health_connected">Połączono</string>
     <string name="health_partly">Częściowo</string>
-    <string name="health_not_connected">Nie połączono</string>
     <string name="health_denied">Bez zgody ta funkcja jest wyłączona. Jeśli okno zgód się nie pokazało, włączysz je w Health Connect.</string>
     <string name="health_workouts">Treningi z zegarka</string>
     <string name="health_workouts_text">Sesje ćwiczeń, tętno i kalorie. Przy treningu połączonym z sesją z zegarka zobaczysz tętno, strefy i kalorie, a pozostałe sesje trafią do historii.</string>
@@ -539,7 +538,6 @@
     <string name="link_unlink">Odłącz sesję z zegarka</string>
     <string name="link_sheet_title">Sesje z zegarka</string>
     <string name="link_sheet_empty">Brak sesji z 12 godzin przed i po tym treningu.</string>
-    <string name="link_linked_elsewhere">połączona z innym treningiem</string>
 
     <!-- Readiness (A6) -->
     <string name="readiness_title">Gotowość do treningu</string>

@@ -3,7 +3,6 @@ package com.jaroszeek.gymtracker.data.health
 import android.util.Log
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.aggregate.AggregateMetric
-import androidx.health.connect.client.changes.Change
 import androidx.health.connect.client.changes.DeletionChange
 import androidx.health.connect.client.changes.UpsertionChange
 import androidx.health.connect.client.permission.HealthPermission
@@ -130,7 +129,8 @@ internal class HealthImporter(
             }
             if (response.changesTokenExpired) return import(type, history)
             database.withWriteTransaction {
-                apply(type, response.changes)
+                val changes = response.changes
+                apply(type, changes.filterIsInstance<UpsertionChange>().map { it.record }, changes.filterIsInstance<DeletionChange>().map { it.recordId })
                 dao.saveToken(SyncTokenEntity(type.name, response.nextChangesToken))
             }
             if (!response.hasMore) return
@@ -144,11 +144,11 @@ internal class HealthImporter(
         if (type.stored) {
             val seen = mutableSetOf<String>()
             readAll(type.record) { records ->
-                database.withWriteTransaction { apply(type, records.map(::UpsertionChange)) }
+                database.withWriteTransaction { apply(type, records, deleted = emptyList()) }
                 records.mapTo(seen) { it.metadata.id }
             }
             val gone = localIds(type) - seen
-            if (gone.isNotEmpty()) database.withWriteTransaction { apply(type, gone.map(::DeletionChange)) }
+            if (gone.isNotEmpty()) database.withWriteTransaction { apply(type, upserted = emptyList(), deleted = gone.toList()) }
         } else {
             database.withWriteTransaction {
                 if (type != SyncedType.Steps && type != SyncedType.Distance) dao.markSessionsStaleSince(Long.MIN_VALUE)
@@ -158,9 +158,9 @@ internal class HealthImporter(
         dao.saveToken(SyncTokenEntity(type.name, token))
     }
 
-    private suspend fun apply(type: SyncedType, changes: List<Change>) {
-        val records = changes.filterIsInstance<UpsertionChange>().map { it.record }.filter { it.metadata.dataOrigin.packageName != ownPackage }
-        val deleted = changes.filterIsInstance<DeletionChange>().map { it.recordId }
+    /** [deleted] are record ids. */
+    private suspend fun apply(type: SyncedType, upserted: List<Record>, deleted: List<String>) {
+        val records = upserted.filter { it.metadata.dataOrigin.packageName != ownPackage }
         when (type) {
             SyncedType.Sessions -> {
                 val sessions = records.filterIsInstance<ExerciseSessionRecord>()
