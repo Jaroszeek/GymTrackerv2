@@ -527,6 +527,7 @@
     <string name="kcal_active">Kalorie aktywne</string>
     <string name="kcal_total">Kalorie łącznie</string>
     <string name="session_imported">Zaimportowane</string>
+    <string name="session_source">Źródło</string>
     <string name="session_not_found">Tej sesji już nie ma w Health Connect.</string>
     <string name="session_imported_text">Sesja z Health Connect. Zmienisz ją w aplikacji, która ją zapisała.</string>
     <string name="link_title">Sesja z zegarka</string>

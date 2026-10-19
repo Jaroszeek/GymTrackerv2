@@ -51,7 +51,10 @@ import com.jaroszeek.gymtracker.feature.exercises.ExerciseEditorViewModel
 import com.jaroszeek.gymtracker.feature.exercises.ExercisesRoute
 import com.jaroszeek.gymtracker.feature.health.HealthConnectEntry
 import com.jaroszeek.gymtracker.feature.health.HealthConnectRoute
+import com.jaroszeek.gymtracker.feature.health.ImportedSessionRoute
+import com.jaroszeek.gymtracker.feature.health.ImportedSessionViewModel
 import com.jaroszeek.gymtracker.feature.health.PrivacyPolicyScreen
+import com.jaroszeek.gymtracker.feature.health.ReadinessRoute
 import com.jaroszeek.gymtracker.feature.placeholder.PlaceholderScreen
 import com.jaroszeek.gymtracker.feature.routines.RoutineEditorRoute
 import com.jaroszeek.gymtracker.feature.routines.RoutineEditorViewModel
@@ -206,6 +209,13 @@ private fun entryProvider(navigator: TabNavigator): (NavKey) -> NavEntry<NavKey>
                 onOpenWorkout = { navigator.navigate(WorkoutDetailKey(it)) },
                 onOpenExercise = { navigator.navigate(ExerciseDetailKey(it)) },
                 onOpenRoutine = { navigator.navigate(RoutineProgressKey(it)) },
+                onOpenSession = { navigator.navigate(ImportedSessionKey(it)) },
+            )
+        }
+        is ImportedSessionKey -> NavEntry(key) {
+            ImportedSessionRoute(
+                viewModel = hiltViewModel<ImportedSessionViewModel, ImportedSessionViewModel.Factory> { it.create(key.id) },
+                onBack = navigator::back,
             )
         }
         is WorkoutDetailKey -> NavEntry(key) {
@@ -228,6 +238,11 @@ private fun entryProvider(navigator: TabNavigator): (NavKey) -> NavEntry<NavKey>
                 onBack = navigator::back,
                 onOpenWorkout = { navigator.navigate(WorkoutDetailKey(it)) },
             )
+        }
+        HomeKey -> NavEntry(key) {
+            PlaceholderScreen(TopLevelTab.Home) {
+                ReadinessRoute(onConnect = { navigator.open(TopLevelTab.Profile, HealthConnectKey) })
+            }
         }
         ProfileKey -> NavEntry(key) {
             PlaceholderScreen(TopLevelTab.Profile) {
