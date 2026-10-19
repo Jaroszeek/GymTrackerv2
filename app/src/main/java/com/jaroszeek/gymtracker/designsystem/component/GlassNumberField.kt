@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
@@ -24,7 +24,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.jaroszeek.gymtracker.R
 import com.jaroszeek.gymtracker.designsystem.theme.GtShapes
 import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
@@ -34,8 +33,6 @@ import java.text.DecimalFormatSymbols
 import java.util.Locale
 import kotlin.math.pow
 import kotlin.math.roundToLong
-
-private val FieldWidth = 112.dp
 
 /**
  * Large tabular number with −/+ steppers, for quick one-handed edits of weight and reps.
@@ -68,29 +65,37 @@ fun GlassNumberField(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(label, color = colors.textSecondary, style = GtTheme.typography.labelSmall)
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
+        BasicTextField(
+            value = text,
+            onValueChange = { input ->
+                if (NumberInput.isValidInput(input, decimals)) {
+                    text = input
+                    onValueChange(NumberInput.parse(input, decimals)?.coerceIn(range))
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = GtTheme.typography.numberL.copy(color = colors.textPrimary, textAlign = TextAlign.Center),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = if (decimals > 0) KeyboardType.Decimal else KeyboardType.Number,
+                imeAction = ImeAction.Done,
+            ),
+            singleLine = true,
+            cursorBrush = SolidColor(colors.accent),
+        )
+        // Steppers under the number: big thumb targets, and the field fits half the screen width
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             GlassIconButton(
                 icon = R.drawable.ic_remove,
                 contentDescription = stringResource(R.string.number_decrease, label),
                 onClick = { onValueChange(NumberInput.step(value, -step, decimals, range)) },
                 style = GlassButtonStyle.Ghost,
             )
-            BasicTextField(
-                value = text,
-                onValueChange = { input ->
-                    if (NumberInput.isValidInput(input, decimals)) {
-                        text = input
-                        onValueChange(NumberInput.parse(input, decimals)?.coerceIn(range))
-                    }
-                },
-                modifier = Modifier.width(FieldWidth),
-                textStyle = GtTheme.typography.numberL.copy(color = colors.textPrimary, textAlign = TextAlign.Center),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = if (decimals > 0) KeyboardType.Decimal else KeyboardType.Number,
-                    imeAction = ImeAction.Done,
-                ),
-                singleLine = true,
-                cursorBrush = SolidColor(colors.accent),
+            Text(
+                unit.orEmpty(),
+                Modifier.weight(1f),
+                color = colors.textSecondary,
+                style = GtTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
             )
             GlassIconButton(
                 icon = R.drawable.ic_add,
@@ -99,7 +104,6 @@ fun GlassNumberField(
                 style = GlassButtonStyle.Ghost,
             )
         }
-        if (unit != null) Text(unit, color = colors.textSecondary, style = GtTheme.typography.labelSmall)
     }
 }
 

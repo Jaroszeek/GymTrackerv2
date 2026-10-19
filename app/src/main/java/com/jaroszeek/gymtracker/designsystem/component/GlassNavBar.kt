@@ -203,7 +203,7 @@ private fun GlassNavBarPreview() {
                 GlassNavBar(
                     items = listOf(
                         GlassNavItem(R.string.nav_home, R.drawable.ic_home, R.drawable.ic_home_filled),
-                        GlassNavItem(R.string.nav_exercises, R.drawable.ic_fitness_center, R.drawable.ic_fitness_center_filled),
+                        GlassNavItem(R.string.nav_exercises, R.drawable.ic_menu_book, R.drawable.ic_menu_book_filled),
                         GlassNavItem(R.string.nav_workout, R.drawable.ic_exercise, R.drawable.ic_exercise_filled),
                         GlassNavItem(R.string.nav_progress, R.drawable.ic_monitoring, R.drawable.ic_monitoring_filled),
                         GlassNavItem(R.string.nav_profile, R.drawable.ic_person, R.drawable.ic_person_filled),

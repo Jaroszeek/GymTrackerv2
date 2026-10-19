@@ -29,7 +29,7 @@ enum class TopLevelTab(
     @param:DrawableRes val selectedIcon: Int,
 ) {
     Home(HomeRoute, R.string.nav_home, R.drawable.ic_home, R.drawable.ic_home_filled),
-    Exercises(ExercisesRoute, R.string.nav_exercises, R.drawable.ic_fitness_center, R.drawable.ic_fitness_center_filled),
+    Exercises(ExercisesRoute, R.string.nav_exercises, R.drawable.ic_menu_book, R.drawable.ic_menu_book_filled),
     Workout(WorkoutRoute, R.string.nav_workout, R.drawable.ic_exercise, R.drawable.ic_exercise_filled),
     Progress(ProgressRoute, R.string.nav_progress, R.drawable.ic_monitoring, R.drawable.ic_monitoring_filled),
     Profile(ProfileRoute, R.string.nav_profile, R.drawable.ic_person, R.drawable.ic_person_filled),
