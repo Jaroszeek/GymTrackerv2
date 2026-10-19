@@ -62,6 +62,7 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
 import com.jaroszeek.gymtracker.domain.exercise.Exercise
+import com.jaroszeek.gymtracker.domain.progress.RecordType
 import com.jaroszeek.gymtracker.domain.routine.PerformedSet
 import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
 import com.jaroszeek.gymtracker.domain.routine.SetType
@@ -73,11 +74,14 @@ import com.jaroszeek.gymtracker.domain.workout.WorkoutVariant
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseImage
 import com.jaroszeek.gymtracker.feature.exercises.ExercisePicker
 import com.jaroszeek.gymtracker.feature.exercises.ExercisesViewModel
+import com.jaroszeek.gymtracker.feature.progress.RecordBadges
 import com.jaroszeek.gymtracker.feature.routines.summary
 import com.jaroszeek.gymtracker.feature.routines.weightLabel
+import kotlinx.coroutines.delay
 
 private const val WEIGHT_STEP_KG = 2.5
 private const val MAX_REPS = 100.0
+private const val RECORD_HAPTIC_DELAY_MILLIS = 150L
 
 @Composable
 fun WorkoutRoute(viewModel: WorkoutViewModel, pickerViewModel: ExercisesViewModel, onClose: () -> Unit, onDiagnostics: () -> Unit) {
@@ -88,6 +92,15 @@ fun WorkoutRoute(viewModel: WorkoutViewModel, pickerViewModel: ExercisesViewMode
         onPauseOrDispose {}
     }
     LaunchedEffect(state.closed) { if (state.closed) onClose() }
+    val haptics = LocalHapticFeedback.current
+    LaunchedEffect(state.recordHit) {
+        if (state.recordHit) {
+            // After the tick's own haptic: a second, heavier pulse for the record
+            delay(RECORD_HAPTIC_DELAY_MILLIS)
+            haptics.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+            viewModel.onRecordShown()
+        }
+    }
     val finished = state.finished
     if (finished != null) {
         WorkoutSummaryScreen(
@@ -109,7 +122,7 @@ fun WorkoutRoute(viewModel: WorkoutViewModel, pickerViewModel: ExercisesViewMode
         if (actionsExercise != null && actionsSet != null) {
             SetActions(
                 number = actionsExercise.sets.indexOf(actionsSet) + 1,
-                set = actionsSet,
+                type = actionsSet.type,
                 lastSet = actionsExercise.sets.size == 1,
                 onType = viewModel::onSetType,
                 onDelete = viewModel::onDeleteSet,
@@ -203,6 +216,7 @@ private fun WorkoutContent(
                 onToggle = { viewModel.onToggleSet(exercise.id, it) },
                 onSetActions = { viewModel.onSetActions(exercise.id, it) },
                 onAddSet = { viewModel.onAddSet(exercise.id) },
+                records = state.records,
             )
         }
         item(key = "actions") {
@@ -274,6 +288,7 @@ fun ExerciseCard(
     onToggle: (setId: Long) -> Unit,
     onSetActions: (setId: Long) -> Unit,
     onAddSet: () -> Unit,
+    records: Map<Long, Set<RecordType>>,
     modifier: Modifier = Modifier,
 ) {
     val colors = GtTheme.colors
@@ -301,6 +316,7 @@ fun ExerciseCard(
                     number = index + 1,
                     set = set,
                     previous = exercise.previousFor(set),
+                    records = records[set.id],
                     expanded = set.id == expandedSetId,
                     onExpand = { onExpand(set.id) },
                     onWeightChange = { onWeightChange(set.id, it) },
@@ -323,6 +339,7 @@ private fun SetRow(
     number: Int,
     set: WorkoutSet,
     previous: PerformedSet?,
+    records: Set<RecordType>?,
     expanded: Boolean,
     onExpand: () -> Unit,
     onWeightChange: (Double?) -> Unit,
@@ -342,7 +359,8 @@ private fun SetRow(
         set.type.takeIf { it != SetType.Working }?.let { stringResource(it.label()) },
         previous?.let { stringResource(R.string.workout_previous, setValueLabel(it.weightKg, it.reps)) },
     ).joinToString(" • ")
-    Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+    val glow = rememberRecordGlow(records != null)
+    Column(Modifier.recordGlow(glow, colors.accent), verticalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
             SetBadge(number, set.done, onActions)
             Column(
@@ -352,6 +370,7 @@ private fun SetRow(
             ) {
                 Text(title, color = if (set.done || expanded) colors.textPrimary else colors.textSecondary, style = GtTheme.typography.label)
                 if (details.isNotEmpty()) Text(details, color = colors.textTertiary, style = GtTheme.typography.labelSmall)
+                if (records != null) RecordBadges(records, Modifier.padding(top = GtSpacing.xs))
             }
             GlassIconButton(
                 R.drawable.ic_check,
@@ -418,7 +437,7 @@ fun BackgroundIssuesCard(
 
 /** Set number; tapping it opens the set's type and delete options. */
 @Composable
-private fun SetBadge(number: Int, done: Boolean, onClick: () -> Unit) {
+internal fun SetBadge(number: Int, done: Boolean, onClick: () -> Unit) {
     val colors = GtTheme.colors
     val description = stringResource(R.string.workout_set_edit, number)
     Box(
@@ -442,11 +461,11 @@ private fun SetBadge(number: Int, done: Boolean, onClick: () -> Unit) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun SetActions(number: Int, set: WorkoutSet, lastSet: Boolean, onType: (SetType) -> Unit, onDelete: () -> Unit) {
+internal fun SetActions(number: Int, type: SetType, lastSet: Boolean, onType: (SetType) -> Unit, onDelete: () -> Unit) {
     Text(stringResource(R.string.workout_set_number, number), style = GtTheme.typography.headline)
     Text(stringResource(R.string.workout_set_type), color = GtTheme.colors.textSecondary, style = GtTheme.typography.label)
     FlowRow(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
-        SetType.entries.forEach { type -> GlassChip(stringResource(type.label()), selected = set.type == type, onClick = { onType(type) }) }
+        SetType.entries.forEach { option -> GlassChip(stringResource(option.label()), selected = type == option, onClick = { onType(option) }) }
     }
     GlassButton(
         stringResource(R.string.workout_set_delete),
@@ -480,7 +499,7 @@ private fun ExerciseCardPreview() {
                     exercises = emptyMap(),
                     expandedSetId = 3,
                     onSelectVariant = {}, onExpand = {}, onWeightChange = { _, _ -> }, onRepsChange = { _, _ -> }, onToggle = {},
-                    onSetActions = {}, onAddSet = {},
+                    onSetActions = {}, onAddSet = {}, records = mapOf(2L to setOf(RecordType.Weight, RecordType.E1rm)),
                 )
             }
         }

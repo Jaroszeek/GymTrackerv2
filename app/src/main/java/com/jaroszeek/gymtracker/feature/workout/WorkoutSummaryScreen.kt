@@ -16,9 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,9 +36,14 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
 import com.jaroszeek.gymtracker.domain.exercise.Exercise
+import com.jaroszeek.gymtracker.domain.progress.RecordType
 import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
+import com.jaroszeek.gymtracker.domain.workout.RecordHit
 import com.jaroszeek.gymtracker.domain.workout.TargetChange
 import com.jaroszeek.gymtracker.domain.workout.WorkoutSummary
+import com.jaroszeek.gymtracker.feature.progress.e1rmLabel
+import com.jaroszeek.gymtracker.feature.progress.label
+import com.jaroszeek.gymtracker.feature.progress.rememberKgLabel
 
 /** After the workout: time, volume and sets, then the sheet with changes against the routine. */
 @Composable
@@ -59,6 +67,48 @@ fun WorkoutSummaryScreen(
     ) {
         Text(stringResource(R.string.summary_title), style = GtTheme.typography.display)
         Text(state.name, color = GtTheme.colors.textSecondary, style = GtTheme.typography.title)
+        SummaryStats(summary)
+        if (state.records.isNotEmpty()) RecordsSummary(state.records, exercises)
+        GlassButton(stringResource(R.string.action_done), onClick = onDone, modifier = Modifier.fillMaxWidth())
+    }
+
+    GlassBottomSheet(visible = state.changesVisible, onDismissRequest = onChangesDone) {
+        TargetChanges(state.changes, state.apply, exercises, onChangeChoice, onChangesDone)
+    }
+}
+
+/** The records of the workout per exercise: "ciężar: 102,5 kg • e1RM: 116,7 kg". */
+@Composable
+private fun RecordsSummary(records: List<RecordHit>, exercises: Map<Long, Exercise>) {
+    val colors = GtTheme.colors
+    val kg = rememberKgLabel()
+    GlassCard(Modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+            Icon(painterResource(R.drawable.ic_trophy), contentDescription = null, tint = colors.accentText)
+            Text(stringResource(R.string.summary_records), style = GtTheme.typography.title)
+        }
+        records.groupBy { it.exerciseId }.forEach { (exerciseId, hits) ->
+            val values = hits.map { hit ->
+                val value = when (hit.type) {
+                    RecordType.Reps -> setValueLabel(hit.set.weightKg, hit.set.reps)
+                    RecordType.Weight -> hit.valueKg?.let(kg).orEmpty()
+                    RecordType.E1rm -> hit.valueKg?.let { stringResource(R.string.value_kg, e1rmLabel(it)) }.orEmpty()
+                    RecordType.SetVolume, RecordType.SessionVolume -> hit.valueKg?.let { stringResource(R.string.summary_volume_value, volumeLabel(it)) }.orEmpty()
+                }
+                stringResource(R.string.summary_record_value, stringResource(hit.type.label()), value)
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.xxs)) {
+                Text(exercises[exerciseId]?.name.orEmpty(), style = GtTheme.typography.label, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(values.joinToString(" • "), color = colors.textSecondary, style = GtTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+/** Duration, volume, working sets and exercises as four tiles. */
+@Composable
+internal fun SummaryStats(summary: WorkoutSummary, modifier: Modifier = Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
         Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
             Stat(stringResource(R.string.summary_duration), durationLabel(summary.durationMillis), Modifier.weight(1f))
             Stat(stringResource(R.string.summary_volume), stringResource(R.string.summary_volume_value, volumeLabel(summary.volumeKg)), Modifier.weight(1f))
@@ -67,11 +117,6 @@ fun WorkoutSummaryScreen(
             Stat(stringResource(R.string.summary_sets), "${summary.sets}", Modifier.weight(1f))
             Stat(stringResource(R.string.summary_exercises), "${summary.exercises}", Modifier.weight(1f))
         }
-        GlassButton(stringResource(R.string.action_done), onClick = onDone, modifier = Modifier.fillMaxWidth())
-    }
-
-    GlassBottomSheet(visible = state.changesVisible, onDismissRequest = onChangesDone) {
-        TargetChanges(state.changes, state.apply, exercises, onChangeChoice, onChangesDone)
     }
 }
 
