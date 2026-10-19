@@ -12,6 +12,7 @@ import com.jaroszeek.gymtracker.domain.routine.PerformedSet
 import com.jaroszeek.gymtracker.domain.routine.RoutineDraft
 import com.jaroszeek.gymtracker.domain.routine.SetType
 import com.jaroszeek.gymtracker.domain.workout.ActiveWorkout
+import com.jaroszeek.gymtracker.domain.workout.HealthLink
 import com.jaroszeek.gymtracker.domain.workout.LoggedSet
 import com.jaroszeek.gymtracker.domain.workout.WorkoutExercise
 import com.jaroszeek.gymtracker.domain.workout.WorkoutSet
@@ -23,6 +24,10 @@ import com.jaroszeek.gymtracker.testing.seeder
 import java.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -231,6 +236,58 @@ class WorkoutRepositoryTest {
         val middle = workouts.observeWorkout(ids[17]).first()!!
         assertBests(expected(17), workouts.bestsBefore(middle).getValue(bench))
         assertEquals(PersonalBests(), workouts.personalBests(exercise("Butterfly").id))
+    }
+
+    @Test
+    fun aWorkoutIsLinkedToAHealthSessionUnlinkedAndItsMatchDismissed() = runTest {
+        val id = saveSets(1_000, exercise("Butterfly").id, listOf(PerformedSet(30.0, 12)))
+        assertEquals(HealthLink(1_000, 1_000 + HOUR, sessionId = null, dismissed = false), workouts.observeHealthLink(id).first())
+
+        workouts.linkHealthSession(id, "hc-1")
+        assertEquals("hc-1", workouts.observeHealthLink(id).first()!!.sessionId)
+        assertEquals("hc-1", workouts.forHealth(id)!!.hcSessionId)
+
+        workouts.linkHealthSession(id, null)
+        workouts.dismissHealthMatch(id)
+        assertEquals(HealthLink(1_000, 1_000 + HOUR, sessionId = null, dismissed = true), workouts.observeHealthLink(id).first())
+        assertNull(workouts.observeHealthLink(id + 1).first())
+        assertNull(workouts.forHealth(id + 1))
+    }
+
+    @Test
+    fun linkedSessionsAreListedAndCarriedByTheHistory() = runTest {
+        val butterfly = exercise("Butterfly").id
+        val first = saveSets(1_000, butterfly, listOf(PerformedSet(30.0, 12)))
+        val second = saveSets(HOUR * 2, butterfly, listOf(PerformedSet(30.0, 10)))
+        val third = saveSets(HOUR * 4, butterfly, listOf(PerformedSet(30.0, 8)))
+        workouts.linkHealthSession(first, "hc-1")
+        workouts.linkHealthSession(second, "hc-2")
+        workouts.linkHealthSession(second, null)
+        workouts.linkHealthSession(third, "hc-3")
+
+        assertEquals(setOf("hc-1", "hc-3"), workouts.observeLinkedSessions().first())
+        assertEquals(listOf(third to "hc-3", second to null, first to "hc-1"), workouts.observeHistory().first().map { it.id to it.healthSessionId })
+    }
+
+    @Test
+    fun changedEmitsTheWorkoutsHealthConnectGetsACopyOf() = runTest {
+        val emitted = mutableListOf<Long>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { workouts.changed.toList(emitted) }
+        val butterfly = exercise("Butterfly").id
+
+        val first = saveSets(1_000, butterfly, listOf(PerformedSet(30.0, 12)))
+        val second = saveSets(HOUR, butterfly, listOf(PerformedSet(30.0, 10)))
+        val saved = workouts.observeWorkout(first).first()!!
+        workouts.update(saved.copy(name = "Pull"))
+        workouts.linkHealthSession(second, "hc-1")
+        // Not changes: a dismissed match, a save without sets and an edit without existing exercises
+        workouts.dismissHealthMatch(first)
+        assertNull(workouts.save(ActiveWorkout(null, "Push", 0, 0), endedAt = 1))
+        assertFalse(workouts.update(saved.removeExercise(saved.exercises.single().id).addExercise(999_999)))
+        workouts.delete(second)
+        advanceUntilIdle()
+
+        assertEquals(listOf(first, second, first, second, second), emitted)
     }
 
     private fun assertBests(expected: PersonalBests, actual: PersonalBests) {

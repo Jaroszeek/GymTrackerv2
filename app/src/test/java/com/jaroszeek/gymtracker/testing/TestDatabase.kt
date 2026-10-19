@@ -3,6 +3,7 @@ package com.jaroszeek.gymtracker.testing
 import androidx.room3.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.jaroszeek.gymtracker.core.database.GtDatabase
+import com.jaroszeek.gymtracker.core.database.HealthDatabase
 import com.jaroszeek.gymtracker.data.exercise.ExerciseSeedParser
 import com.jaroszeek.gymtracker.data.exercise.ExerciseSeeder
 import java.io.File
@@ -10,6 +11,10 @@ import kotlinx.coroutines.Dispatchers
 
 /** In-memory database on the bundled SQLite driver: Room tests run on the JVM and in CI. */
 fun inMemoryDatabase(): GtDatabase = Room.inMemoryDatabaseBuilder<GtDatabase>()
+    .setDriver(BundledSQLiteDriver())
+    .build()
+
+fun inMemoryHealthDatabase(): HealthDatabase = Room.inMemoryDatabaseBuilder<HealthDatabase>()
     .setDriver(BundledSQLiteDriver())
     .build()
 

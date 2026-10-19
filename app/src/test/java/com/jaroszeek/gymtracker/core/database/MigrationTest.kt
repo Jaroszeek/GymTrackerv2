@@ -11,6 +11,7 @@ import com.jaroszeek.gymtracker.domain.routine.PerformedSet
 import com.jaroszeek.gymtracker.domain.routine.RoutineDraft
 import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
 import com.jaroszeek.gymtracker.domain.workout.ActiveWorkout
+import com.jaroszeek.gymtracker.domain.workout.HealthLink
 import com.jaroszeek.gymtracker.domain.workout.WorkoutVariant
 import com.jaroszeek.gymtracker.testing.seeder
 import java.io.File
@@ -97,6 +98,42 @@ class MigrationTest {
         val workouts = WorkoutRepository(current, Dispatchers.IO)
         workouts.save(workout, endedAt = 1)
         assertEquals(listOf(PerformedSet(30.0, 6)), workouts.lastSession(1))
+    }
+
+    @Test
+    fun version3MigratesKeepingWorkouts() = runTest {
+        createFromSchema(version = 3).run {
+            execSQL(
+                """INSERT INTO exercises (id, external_id, name, aliases_pl, category, instructions, images, source)
+                   VALUES (1, NULL, 'Landmine Press', '[]', 'strength', '[]', '[]', 'custom')""",
+            )
+            execSQL("INSERT INTO exercise_muscles (exercise_id, muscle, is_primary) VALUES (1, 'shoulders', 1)")
+            execSQL("INSERT INTO routines (id, name, created_at, updated_at) VALUES (1, 'Shoulders', 0, 0)")
+            execSQL("INSERT INTO routine_blocks (id, routine_id, position) VALUES (1, 1, 0)")
+            execSQL(
+                """INSERT INTO routine_variants (id, block_id, exercise_id, position, target_sets, reps_min, reps_max, target_weight_kg, rest_seconds)
+                   VALUES (1, 1, 1, 0, 4, 6, 10, 30.0, 90)""",
+            )
+            execSQL("INSERT INTO workouts (id, routine_id, name, started_at, ended_at) VALUES (1, 1, 'Shoulders', 1000, 2000)")
+            execSQL("INSERT INTO workout_exercises (id, workout_id, exercise_id, position, routine_variant_id) VALUES (1, 1, 1, 0, 1)")
+            execSQL("INSERT INTO workout_sets (id, workout_exercise_id, position, type, weight_kg, reps) VALUES (1, 1, 0, 'working', 30.0, 8)")
+            close()
+        }
+
+        val current = Room.databaseBuilder<GtDatabase>(file.path).setDriver(BundledSQLiteDriver()).build().also { database = it }
+        val workouts = WorkoutRepository(current, Dispatchers.IO)
+        assertEquals(listOf(PerformedSet(30.0, 8)), workouts.lastSession(1))
+        val migrated = workouts.forHealth(1)!!
+        assertEquals(
+            listOf(1L, "Shoulders", 1_000L, 2_000L, null, false),
+            listOf(migrated.routineId, migrated.name, migrated.startedAt, migrated.endedAt, migrated.hcSessionId, migrated.hcMatchDismissed),
+        )
+
+        // The columns added in version 4 work
+        workouts.linkHealthSession(1, "hc-session")
+        workouts.dismissHealthMatch(1)
+        assertEquals(HealthLink(1_000, 2_000, "hc-session", dismissed = true), workouts.observeHealthLink(1).first())
+        assertEquals(listOf("hc-session"), workouts.observeHistory().first().map { it.healthSessionId })
     }
 
     private fun createFromSchema(version: Int): SQLiteConnection {
