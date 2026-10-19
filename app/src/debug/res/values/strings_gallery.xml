@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Debug-only texts: component gallery and Live Update probe -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pl">
     <string name="gallery_launcher_label">GT Galeria</string>
     <string name="gallery_title">Galeria komponentów</string>
 
