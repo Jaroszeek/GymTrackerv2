@@ -9,7 +9,7 @@
 | 2 | Ćwiczenia | ✅ zakończony (2026-10-19) |
 | 3 | Rutyny i szablony | ✅ zakończony (2026-10-19) |
 | 4 | Aktywny trening | ✅ zakończony (2026-10-19) |
-| 5 | Powiadomienie, Live Update, przerwa w tle | 🚧 w toku, czeka na test na telefonie |
+| 5 | Powiadomienie, Live Update, przerwa w tle | ✅ zaakceptowany (2026-10-19), wyniki testu na telefonie jeszcze niezgłoszone |
 | 6 | Historia i postępy | — |
 | 7 | Health Connect | — |
 | 8 | Start i Profil | — |
@@ -19,12 +19,12 @@
 
 ## Bieżący stan
 
-- **Etapy 1–4** zmergowane (PR #1–#4). D-038 (porzucony trening trafia do historii) zostaje jako domyślne, właściciel nie zgłosił zmiany.
-- **Etap 5** na branchu `feat/stage-5-live-update`.
+- **Etapy 1–5** zmergowane (PR #1–#5). D-038 (porzucony trening trafia do historii) zostaje jako domyślne, właściciel nie zgłosił zmiany.
+- **Etap 5** zaakceptowany przez właściciela bez wyników testu na telefonie (Now Bar i chip z zegarem niepotwierdzone na telefonie); jeśli test coś pokaże, poprawki osobnym PR. Uprawnienia z D-045 zaakceptowane razem z etapem.
   - Zrobione: `WorkoutService` (foreground `specialUse`, start tylko z pierwszego planu), powiadomienie jako Live Update (ProgressStyle, chronometr, chip na pasku stanu z zegarem treningu, a w przerwie z odliczaniem, akcje „Ukończ serię” i „Pomiń przerwę”), budzenie na koniec przerwy (exact alarm albo blokada uśpienia) z wibracją, prośba o zgodę przy pierwszym starcie (DataStore), karta „Trening w tle” na ekranie treningu, ekran „Diagnostyka powiadomień na żywo”, sekcja One UI w README, decyzje D-044…D-050.
   - Sprawdzone na emulatorze (D-050): promocja `FLAG_PROMOTED_ONGOING` na 36.1, akcje z panelu, wibracja na koniec przerwy przy wygaszonym ekranie (także w Doze), odliczanie na ekranie blokady, brak osieroconych powiadomień po `kill -9`, odtworzenie po powrocie. Testy: JVM 99/99, UI 4/4 (36.0), test powiadomienia 3/3 (36.1), lint 0 błędów.
   - Wydanie testowe `preview-stage-5` (pre-release z APK debug, D-051) na prośbę właściciela.
-  - Czeka: test na telefonie (instrukcja niżej) — etap zamykamy, gdy trening jest w Now Bar albo przyczyna braku jest udokumentowana diagnostyką. Chipa na pasku stanu nie dało się obejrzeć na emulatorze.
+  - Otwarte: test na telefonie (instrukcja niżej). Chipa na pasku stanu nie dało się obejrzeć na emulatorze.
 - **Tryb pracy:** plan etapu nie czeka na akceptację (D-032), akceptacja na PR.
 - **Decyzje:** `docs/DECISIONS.md` (D-001 … D-052).
 - **Środowisko:**
@@ -52,5 +52,5 @@
 
 ## Następny krok
 
-- Test Etapu 5 na telefonie (wyżej), potem PR i akceptacja.
-- Potem Etap 6 — historia i postępy.
+- Etap 6 — historia i postępy.
+- Wyniki testu Etapu 5 na telefonie (wyżej), gdy właściciel je przekaże.

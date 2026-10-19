@@ -332,7 +332,7 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 - API: według `api-versions.xml` z SDK 37 `canPostPromotedNotifications()`, `hasPromotableCharacteristics()` i `FLAG_PROMOTED_ONGOING` są od API 36, a samo promowanie działa od Androida 16 QPR1 (36.1; D-022). `Settings.ACTION_MANAGE_APP_PROMOTED_NOTIFICATIONS` z dokumentacji i A7 w SDK nie istnieje; używamy `ACTION_APP_NOTIFICATION_PROMOTION_SETTINGS`.
 - One UI 8.5 (wiedza z raportów, nie z dokumentacji Samsunga): Live Updates trafiają do Now Bar i na AOD; część wersji One UI 8 wpuszcza aplikacje spoza listy Samsunga dopiero po włączeniu opcji programisty „Live notifications for all apps”; w One UI 8.5 ma być przełącznik powiadomień na żywo per aplikacja; spełnienie wymagań Androida nie gwarantuje promocji (OEM może dodać własne kryteria). Dlatego ekran diagnostyki (D-049) i sekcja README.
 
-### D-045 Nowe uprawnienia w manifeście (do potwierdzenia przez właściciela)
+### D-045 Nowe uprawnienia w manifeście (zaakceptowane z Etapem 5)
 CLAUDE.md wymaga zgody na nowe uprawnienia. Wszystkie wynikają wprost z A7 i A5.4 w PROMPT.md, więc dodałem je i zgłaszam w raporcie:
 - `POST_NOTIFICATIONS` (runtime) i `POST_PROMOTED_NOTIFICATIONS` (zwykłe) — przeniesione z manifestu debug do głównego;
 - `FOREGROUND_SERVICE` i `FOREGROUND_SERVICE_SPECIAL_USE` (zwykłe) — serwis typu `specialUse` z `PROPERTY_SPECIAL_USE_FGS_SUBTYPE`;
