@@ -92,7 +92,10 @@ fun WorkoutDetailScreen(
             // Room for the floating buttons
             Box(Modifier.padding(top = GtSpacing.huge))
             when (state) {
-                is WorkoutDetailUiState.Content -> WorkoutDetails(state.workout, state.exercises, state.records)
+                is WorkoutDetailUiState.Content -> {
+                    if (state.deleteFailed) Text(stringResource(R.string.workout_delete_failed), color = GtTheme.colors.danger, style = GtTheme.typography.bodySmall)
+                    WorkoutDetails(state.workout, state.exercises, state.records)
+                }
                 WorkoutDetailUiState.NotFound, WorkoutDetailUiState.Deleted -> Message(stringResource(R.string.workout_detail_not_found))
                 WorkoutDetailUiState.Error -> Message(stringResource(R.string.progress_error))
                 WorkoutDetailUiState.Loading -> Unit

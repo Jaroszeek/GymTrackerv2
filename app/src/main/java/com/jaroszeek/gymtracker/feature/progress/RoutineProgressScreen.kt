@@ -77,7 +77,7 @@ fun RoutineProgressScreen(
             when {
                 state.loading -> Unit
                 state.error || state.name == null -> GlassCard(Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.progress_error), color = colors.textSecondary, style = GtTheme.typography.body)
+                    Text(stringResource(if (state.error) R.string.progress_error else R.string.routine_progress_not_found), color = colors.textSecondary, style = GtTheme.typography.body)
                 }
                 else -> RoutineCharts(state, onRange, onOpenWorkout)
             }

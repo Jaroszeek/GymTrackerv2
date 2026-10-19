@@ -374,6 +374,9 @@
     <string name="progress_week_previous">Poprzedni tydzień</string>
     <string name="progress_week_next">Następny tydzień</string>
     <string name="progress_week_total">Serie robocze w tygodniu: %1$d</string>
+    <!-- "13–19 paź"; across months "27 paź – 2 lis" -->
+    <string name="week_range_days">%1$d–%2$s</string>
+    <string name="week_range">%1$s – %2$s</string>
     <string name="progress_week_hint">Bez rozgrzewek. Seria liczy się dla partii, do których należą mięśnie główne ćwiczenia.</string>
 
     <!-- Workout from history -->
@@ -381,6 +384,7 @@
     <string name="workout_detail_time">%1$s–%2$s</string>
     <string name="delete_workout_title">Usunąć trening?</string>
     <string name="delete_workout_text">Trening zniknie z historii, a rekordy i wykresy przeliczą się bez niego.</string>
+    <string name="workout_delete_failed">Nie udało się usunąć treningu. Spróbuj ponownie.</string>
     <string name="record_badge_weight">Rekord ciężaru</string>
     <string name="record_badge_e1rm">Rekord e1RM</string>
     <string name="record_badge_reps">Rekord powtórzeń</string>
@@ -416,4 +420,5 @@
     <string name="routine_progress_volume">Objętość treningu</string>
     <string name="routine_progress_max_weight">Najcięższa seria</string>
     <string name="routine_progress_sessions">Treningi</string>
+    <string name="routine_progress_not_found">Tej rutyny już nie ma.</string>
 </resources>

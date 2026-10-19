@@ -2,8 +2,10 @@ package com.jaroszeek.gymtracker.feature.progress
 
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import com.jaroszeek.gymtracker.R
 import com.jaroszeek.gymtracker.designsystem.component.NumberInput
 import com.jaroszeek.gymtracker.domain.progress.RecordType
@@ -47,14 +49,16 @@ fun timeLabel(millis: Long, zone: ZoneId = ZoneId.systemDefault()): String = for
 fun monthLabel(month: YearMonth): String = formatter("LLLL yyyy").format(month).replaceFirstChar { it.titlecase(Locale.getDefault()) }
 
 /** "13–19 paź", or "27 paź – 2 lis" across months. */
+@Composable
+@ReadOnlyComposable
 fun weekLabel(week: Week, zone: ZoneId = ZoneId.systemDefault()): String {
     val start = week.monday
     val end = start.plusDays(6)
-    val year = if (end.thisYear(zone)) "" else " yyyy"
+    val last = formatter(if (end.thisYear(zone)) "d MMM" else "d MMM yyyy").format(end)
     return if (start.month == end.month) {
-        "${start.dayOfMonth}–${formatter("d MMM$year").format(end)}"
+        stringResource(R.string.week_range_days, start.dayOfMonth, last)
     } else {
-        "${formatter("d MMM").format(start)} – ${formatter("d MMM$year").format(end)}"
+        stringResource(R.string.week_range, formatter("d MMM").format(start), last)
     }
 }
 

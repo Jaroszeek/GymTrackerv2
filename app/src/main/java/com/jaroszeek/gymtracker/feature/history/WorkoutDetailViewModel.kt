@@ -36,6 +36,7 @@ sealed interface WorkoutDetailUiState {
         /** Per set id the records it set when it was done. */
         val records: Map<Long, Set<RecordType>>,
         val confirmDelete: Boolean = false,
+        val deleteFailed: Boolean = false,
     ) : WorkoutDetailUiState
 
     /** Deleted from this screen; the screen leaves. */
@@ -51,16 +52,17 @@ class WorkoutDetailViewModel @AssistedInject constructor(
 
     private val confirmDelete = MutableStateFlow(false)
     private val deleting = MutableStateFlow(false)
+    private val deleteFailed = MutableStateFlow(false)
 
     // Records are worked out against the history before the workout, so an edit of an older one shows here too
     private val detail = workouts.observeWorkout(id).map { workout -> workout?.let { it to it.records(workouts.bestsBefore(it)) } }
 
     val state: StateFlow<WorkoutDetailUiState> =
-        combine(detail, exercises.observeAll(), confirmDelete, deleting) { detail, exercises, confirm, deleting ->
+        combine(detail, exercises.observeAll(), confirmDelete, deleting, deleteFailed) { detail, exercises, confirm, deleting, failed ->
             when {
                 detail == null && deleting -> WorkoutDetailUiState.Deleted
                 detail == null -> WorkoutDetailUiState.NotFound
-                else -> WorkoutDetailUiState.Content(detail.first, exercises.associateBy { it.id }, detail.second, confirm)
+                else -> WorkoutDetailUiState.Content(detail.first, exercises.associateBy { it.id }, detail.second, confirm, failed)
             }
         }
             .catch { e ->
@@ -75,6 +77,7 @@ class WorkoutDetailViewModel @AssistedInject constructor(
 
     fun onDeleteConfirm() {
         confirmDelete.update { false }
+        deleteFailed.update { false }
         deleting.update { true }
         viewModelScope.launch {
             try {
@@ -83,6 +86,7 @@ class WorkoutDetailViewModel @AssistedInject constructor(
                 if (e is CancellationException) throw e
                 Log.e(TAG, "Deleting workout $id failed", e)
                 deleting.update { false }
+                deleteFailed.update { true }
             }
         }
     }
