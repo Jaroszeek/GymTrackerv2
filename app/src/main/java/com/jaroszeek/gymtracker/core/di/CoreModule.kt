@@ -9,6 +9,8 @@ import androidx.room3.Room
 import androidx.sqlite.driver.AndroidSQLiteDriver
 import com.jaroszeek.gymtracker.core.database.ExerciseDao
 import com.jaroszeek.gymtracker.core.database.GtDatabase
+import com.jaroszeek.gymtracker.core.database.HealthDao
+import com.jaroszeek.gymtracker.core.database.HealthDatabase
 import com.jaroszeek.gymtracker.core.database.RoutineDao
 import com.jaroszeek.gymtracker.data.workout.ActiveWorkoutStore
 import dagger.Module
@@ -61,6 +63,16 @@ object CoreModule {
 
     @Provides
     fun routineDao(database: GtDatabase): RoutineDao = database.routineDao()
+
+    @Provides
+    @Singleton
+    fun healthDatabase(@ApplicationContext context: Context): HealthDatabase =
+        Room.databaseBuilder<HealthDatabase>(context, HealthDatabase.NAME)
+            .setDriver(AndroidSQLiteDriver())
+            .build()
+
+    @Provides
+    fun healthDao(database: HealthDatabase): HealthDao = database.healthDao()
 
     @Provides
     fun clock(): Clock = Clock.systemUTC()

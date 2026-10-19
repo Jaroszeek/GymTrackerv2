@@ -6,11 +6,14 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 /** Small app flags; the settings of Etap 9 join them here. */
@@ -26,9 +29,49 @@ class AppPreferences @Inject constructor(private val store: DataStore<Preference
     /** Whether the explanation before the notification permission request was shown (first start). */
     val notificationPromptShown: Flow<Boolean> = data.map { it[NOTIFICATION_PROMPT_SHOWN] == true }
 
-    suspend fun setNotificationPromptShown() {
+    suspend fun setNotificationPromptShown() = set(NOTIFICATION_PROMPT_SHOWN, true)
+
+    // Health Connect (A6)
+
+    /** Sync when the app opens; on unless turned off. */
+    val healthSyncOnOpen: Flow<Boolean> = flag(HEALTH_SYNC_ON_OPEN, default = true)
+
+    val healthBackgroundSync: Flow<Boolean> = flag(HEALTH_BACKGROUND_SYNC, default = false)
+
+    val healthWriteWorkouts: Flow<Boolean> = flag(HEALTH_WRITE_WORKOUTS, default = false)
+
+    /** Epoch millis of the last finished sync. */
+    val healthLastSync: Flow<Long?> = data.map { it[HEALTH_LAST_SYNC] }.distinctUntilChanged()
+
+    /** Whether the data older than 30 days was imported, which the history permission allows. */
+    val healthHistoryImported: Flow<Boolean> = flag(HEALTH_HISTORY_IMPORTED, default = false)
+
+    /** For the age-based maximum heart rate; the age the user enters, kept as a year so it grows. */
+    val birthYear: Flow<Int?> = data.map { it[BIRTH_YEAR] }.distinctUntilChanged()
+
+    /** Entered by the user; overrides the age-based estimate. */
+    val maxHeartRate: Flow<Int?> = data.map { it[MAX_HEART_RATE] }.distinctUntilChanged()
+
+    suspend fun setHealthSyncOnOpen(value: Boolean) = set(HEALTH_SYNC_ON_OPEN, value)
+
+    suspend fun setHealthBackgroundSync(value: Boolean) = set(HEALTH_BACKGROUND_SYNC, value)
+
+    suspend fun setHealthWriteWorkouts(value: Boolean) = set(HEALTH_WRITE_WORKOUTS, value)
+
+    suspend fun setHealthLastSync(value: Long?) = set(HEALTH_LAST_SYNC, value)
+
+    suspend fun setHealthHistoryImported(value: Boolean) = set(HEALTH_HISTORY_IMPORTED, value)
+
+    suspend fun setBirthYear(value: Int?) = set(BIRTH_YEAR, value)
+
+    suspend fun setMaxHeartRate(value: Int?) = set(MAX_HEART_RATE, value)
+
+    private fun flag(key: Preferences.Key<Boolean>, default: Boolean) = data.map { it[key] ?: default }.distinctUntilChanged()
+
+    /** Null removes the value. */
+    private suspend fun <T> set(key: Preferences.Key<T>, value: T?) {
         try {
-            store.edit { it[NOTIFICATION_PROMPT_SHOWN] = true }
+            store.edit { if (value == null) it.remove(key) else it[key] = value }
         } catch (e: IOException) {
             Log.e(TAG, "Saving preferences failed", e)
         }
@@ -37,5 +80,12 @@ class AppPreferences @Inject constructor(private val store: DataStore<Preference
     private companion object {
         const val TAG = "Preferences"
         val NOTIFICATION_PROMPT_SHOWN = booleanPreferencesKey("notification_prompt_shown")
+        val HEALTH_SYNC_ON_OPEN = booleanPreferencesKey("health_sync_on_open")
+        val HEALTH_BACKGROUND_SYNC = booleanPreferencesKey("health_background_sync")
+        val HEALTH_WRITE_WORKOUTS = booleanPreferencesKey("health_write_workouts")
+        val HEALTH_LAST_SYNC = longPreferencesKey("health_last_sync")
+        val HEALTH_HISTORY_IMPORTED = booleanPreferencesKey("health_history_imported")
+        val BIRTH_YEAR = intPreferencesKey("birth_year")
+        val MAX_HEART_RATE = intPreferencesKey("max_heart_rate")
     }
 }

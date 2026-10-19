@@ -12,6 +12,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.jaroszeek.gymtracker.core.notifications.WorkoutService
+import com.jaroszeek.gymtracker.data.health.HealthSync
 import com.jaroszeek.gymtracker.data.workout.ActiveWorkoutManager
 import com.jaroszeek.gymtracker.designsystem.component.GlassScaffold
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
@@ -28,6 +29,8 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
 
     @Inject lateinit var workouts: ActiveWorkoutManager
+
+    @Inject lateinit var healthSync: HealthSync
 
     /** Bumped by every tap on the workout notification; the root then opens the workout. */
     private var openWorkoutRequests by mutableIntStateOf(0)
@@ -57,6 +60,12 @@ class MainActivity : ComponentActivity() {
                 GymTrackerRoot(openWorkoutRequests)
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Sync on open (A6); the privacy policy alone, opened by Health Connect, does not count
+        if (intent?.action != Intent.ACTION_VIEW_PERMISSION_USAGE) healthSync.onAppStart()
     }
 
     companion object {
