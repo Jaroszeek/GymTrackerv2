@@ -499,6 +499,24 @@ class HealthImporterTest {
         assertEquals(1_000L, days()[today]?.steps)
     }
 
+    @Test
+    fun aHeartRateRecordMovedToAnotherSessionLeavesTheOldOne() = runTest {
+        client.upsert(
+            exercise("morning", WATCH, at(yesterday, 8), at(yesterday, 9)),
+            exercise("evening", WATCH, at(yesterday, 18), at(yesterday, 19)),
+            heartRate("hr", WATCH, at(yesterday, 8), at(yesterday, 9), bpm = 120, every = Duration.ofMinutes(1)),
+        )
+        val all = granted(SyncedType.Sessions, SyncedType.HeartRate)
+        importer.run(all)
+        assertTrue(heartRateOf("morning").isNotEmpty())
+
+        client.upsert(heartRate("hr", WATCH, at(yesterday, 18), at(yesterday, 19), bpm = 140, every = Duration.ofMinutes(1)))
+        importer.run(all)
+
+        assertTrue(heartRateOf("morning").isEmpty())
+        assertEquals(setOf(140), heartRateOf("evening").map { it.bpm }.toSet())
+    }
+
     private companion object {
         const val OWN = "com.jaroszeek.gymtracker"
         const val WATCH = "com.example.watch"

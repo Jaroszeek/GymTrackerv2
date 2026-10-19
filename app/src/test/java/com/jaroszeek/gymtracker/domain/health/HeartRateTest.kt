@@ -79,6 +79,18 @@ class HeartRateTest {
     }
 
     @Test
+    fun theMaximumEnteredByHandWinsOverTheAgeWhenPlausible() {
+        assertEquals(195, resolveMaxHeartRate(manual = 195, age = 30))
+        assertEquals(187, resolveMaxHeartRate(manual = null, age = 30))
+        // Half typed, or out of range: as if not entered
+        assertEquals(187, resolveMaxHeartRate(manual = 19, age = 30))
+        assertEquals(187, resolveMaxHeartRate(manual = 240, age = 30))
+        assertEquals(100, resolveMaxHeartRate(manual = 100, age = null))
+        assertNull(resolveMaxHeartRate(manual = null, age = 3))
+        assertNull(resolveMaxHeartRate(manual = null, age = null))
+    }
+
+    @Test
     fun downsampleKeepsTheFirstSampleThenOneEveryFiveSecondsInTimeOrder() {
         val samples = listOf(30_000L, 7_000, 0, 4_999, 1_000, 10_500, 5_000, 11_000).map { HeartRateSample(it, 120) }
         assertEquals(listOf(0L, 5_000, 10_500, 30_000), samples.downsample { it.time }.map { it.time })

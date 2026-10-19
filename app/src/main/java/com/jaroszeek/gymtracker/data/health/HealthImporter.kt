@@ -170,7 +170,8 @@ internal class HealthImporter(
             }
             SyncedType.HeartRate -> {
                 records.mapNotNull { it.span() }.forEach { (start, end) -> dao.markSessionsStale(start.toEpochMilli(), end.toEpochMilli()) }
-                deleted.chunked(CHUNK).forEach { dao.markStaleByHeartRate(it) }
+                // A record moved in time leaves the session that held its samples too
+                (records.map { it.metadata.id } + deleted).chunked(CHUNK).forEach { dao.markStaleByHeartRate(it) }
             }
             SyncedType.ActiveCalories, SyncedType.TotalCalories, SyncedType.Steps, SyncedType.Distance -> {
                 val sessions = type == SyncedType.ActiveCalories || type == SyncedType.TotalCalories
@@ -178,7 +179,8 @@ internal class HealthImporter(
                     if (sessions) dao.markSessionsStale(start.toEpochMilli(), end.toEpochMilli())
                     markDays(day(start), day(end))
                 }
-                // ponytail: a deletion names no time, so the last 30 days are summed again; older ones wait for a full import
+                // ponytail: a deletion names no time, so the last 30 days are summed again; older ones wait for a full import.
+                // A record moved in time marks only its new days: keeping every record's span would cover the old ones
                 if (deleted.isNotEmpty()) {
                     val since = today().minusDays(RECENT_DAYS)
                     if (sessions) dao.markSessionsStaleSince(since.atStartOfDay(zone).toInstant().toEpochMilli())
@@ -205,18 +207,23 @@ internal class HealthImporter(
 
     /** Heart rate and calories of the sessions marked stale, newest first, a limited number per run. */
     private suspend fun refreshSessions(granted: Set<String>) {
-        val heartRate = SyncedType.HeartRate.permission in granted
-        val metrics = buildSet<AggregateMetric<*>> {
+        var heartRate = SyncedType.HeartRate.permission in granted
+        var metrics = buildSet<AggregateMetric<*>> {
             if (SyncedType.ActiveCalories.permission in granted) add(ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL)
             if (SyncedType.TotalCalories.permission in granted) add(TotalCaloriesBurnedRecord.ENERGY_TOTAL)
         }
         dao.staleSessions(MAX_SESSION_REFRESHES).forEach { session ->
             val range = TimeRangeFilter.between(Instant.ofEpochMilli(session.startTime), Instant.ofEpochMilli(session.endTime))
-            val samples = if (heartRate) heartRate(session, range) else emptyList()
-            val calories = if (metrics.isEmpty()) null else client.aggregate(AggregateRequest(metrics, range))
+            // Without access, revoked even during this run, a session keeps the heart rate it has
+            val samples = if (heartRate) readOrNull("heart rate") { heartRate(session, range) } else null
+            if (samples == null) heartRate = false
+            val calories = if (metrics.isEmpty()) null else readOrNull("calories") { client.aggregate(AggregateRequest(metrics, range)) }
+            if (calories == null) metrics = emptySet()
             database.withWriteTransaction {
-                dao.deleteHeartRate(session.id)
-                dao.insertHeartRate(samples)
+                if (samples != null) {
+                    dao.deleteHeartRate(session.id)
+                    dao.insertHeartRate(samples)
+                }
                 dao.setRefreshed(
                     session.id,
                     calories?.get(ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL)?.inKilocalories,
@@ -224,6 +231,14 @@ internal class HealthImporter(
                 )
             }
         }
+    }
+
+    /** Null when the access is gone, e.g. revoked during the run; the next run reads it again. */
+    private suspend fun <T> readOrNull(what: String, read: suspend () -> T): T? = try {
+        read()
+    } catch (e: SecurityException) {
+        Log.w(TAG, "No access to $what", e)
+        null
     }
 
     /** The app that recorded the session first; another app's heart rate only when that one wrote none. */
@@ -258,7 +273,9 @@ internal class HealthImporter(
                 emptyList()
             } else {
                 val range = TimeRangeFilter.between(LocalDate.ofEpochDay(from).atStartOfDay(), LocalDate.ofEpochDay(to + 1).atStartOfDay())
-                client.aggregateGroupByPeriod(AggregateGroupByPeriodRequest(metrics, range, Period.ofDays(1))).mapNotNull { bucket ->
+                // The days stay dirty for the next run
+                val buckets = readOrNull("daily totals") { client.aggregateGroupByPeriod(AggregateGroupByPeriodRequest(metrics, range, Period.ofDays(1))) } ?: return
+                buckets.mapNotNull { bucket ->
                     val result = bucket.result
                     DailyActivityEntity(
                         day = bucket.startTime.toLocalDate().toEpochDay(),
