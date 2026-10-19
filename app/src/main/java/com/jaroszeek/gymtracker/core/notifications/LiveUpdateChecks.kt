@@ -99,7 +99,12 @@ fun Context.openSettings(screen: SystemSettings) {
         }
         SystemSettings.Battery -> Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, app)
         SystemSettings.ExactAlarms -> Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, app)
-        SystemSettings.Developer -> Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+        // Closes at once while developer options are off; "About phone" has the build number that turns them on
+        SystemSettings.Developer -> if (Settings.Global.getInt(contentResolver, Settings.Global.DEVELOPMENT_SETTINGS_ENABLED, 0) != 0) {
+            Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+        } else {
+            Intent(Settings.ACTION_DEVICE_INFO_SETTINGS)
+        }
     }
     try {
         startActivity(intent)

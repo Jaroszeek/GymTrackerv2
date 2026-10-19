@@ -326,7 +326,7 @@
     <string name="diagnostics_battery_optimized">Optymalizowana</string>
     <string name="diagnostics_battery_restricted">Ograniczona</string>
     <string name="diagnostics_samsung_title">One UI (Samsung)</string>
-    <string name="diagnostics_samsung_text">Now Bar pokazuje tylko aplikacje dopuszczone w Ustawienia → Ekran blokady i AOD → Now Bar. Na części wersji One UI trzeba też włączyć w Opcjach programisty „Live notifications for all apps”. Szczegóły w README.</string>
+    <string name="diagnostics_samsung_text">Now Bar pokazuje tylko aplikacje dopuszczone w Ustawienia → Ekran blokady i AOD → Now Bar. Na części wersji One UI trzeba też włączyć w Opcjach programisty „Live notifications for all apps”. Opcje programisty włączysz, stukając 7 razy w „Numer wersji” (Informacje o telefonie → Informacje o oprogramowaniu); przycisk niżej otwiera ten ekran, dopóki są wyłączone.</string>
     <string name="diagnostics_open_notifications">Ustawienia powiadomień</string>
     <string name="diagnostics_open_live_updates">Powiadomienia na żywo</string>
     <string name="diagnostics_open_battery">Bateria (informacje o aplikacji)</string>
