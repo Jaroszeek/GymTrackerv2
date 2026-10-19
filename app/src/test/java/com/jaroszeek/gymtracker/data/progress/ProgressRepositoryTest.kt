@@ -83,6 +83,7 @@ class ProgressRepositoryTest {
         val records = progress.observeExercise(squat).first().records()
         assertEquals(Dated(102.5, HOUR * 2), records.weight)
         assertEquals(Dated(100.0 * (1 + 5 / 30.0), 1_000L), records.e1rm)
+        assertEquals(RepBest(100.0, 5), records.e1rmFrom)
         assertEquals(Dated(720.0, 1_000L), records.setVolume)
         assertEquals(Dated(1_220.0, 1_000L), records.sessionVolume)
         assertEquals(listOf(Dated(RepBest(102.5, 3), HOUR * 2), Dated(RepBest(100.0, 5), 1_000L), Dated(RepBest(90.0, 8), 1_000L), Dated(RepBest(null, 15), HOUR)), records.reps)

@@ -21,6 +21,8 @@ data class Dated<T>(val value: T, val time: Long)
 data class ExerciseRecords(
     val weight: Dated<Double>?,
     val e1rm: Dated<Double>?,
+    /** The set behind [e1rm], for the Brzycki comparison. */
+    val e1rmFrom: RepBest?,
     val setVolume: Dated<Double>?,
     val sessionVolume: Dated<Double>?,
     val reps: List<Dated<RepBest>>,
@@ -36,9 +38,13 @@ data class ExerciseProgress(val sessions: List<ExerciseSession>, val repsDone: L
         fun best(value: (ExerciseSession) -> Double?) =
             sessions.mapNotNull { session -> value(session)?.let { Dated(it, session.time) } }.maxByOrNull { it.value }
         val first = repsDone.groupBy { it.best }.mapValues { (_, done) -> done.minOf { it.firstTime } }
+        // The best estimate, first reached earliest; the same value as the sessions' best e1RM
+        val e1rm = first.mapNotNull { (best, time) -> best.weightKg?.let { OneRepMax.epley(it, best.reps) }?.let { Triple(best, it, time) } }
+            .minWithOrNull(compareByDescending<Triple<RepBest, Double, Long>> { it.second }.thenBy { it.third })
         return ExerciseRecords(
             weight = best { it.maxWeightKg },
-            e1rm = best { it.e1rmKg },
+            e1rm = e1rm?.let { Dated(it.second, it.third) },
+            e1rmFrom = e1rm?.first,
             setVolume = best { it.bestSetVolumeKg },
             sessionVolume = best { session -> session.volumeKg.takeIf { it > 0 } },
             reps = first.keys.toList().frontier().map { Dated(it, first.getValue(it)) },
