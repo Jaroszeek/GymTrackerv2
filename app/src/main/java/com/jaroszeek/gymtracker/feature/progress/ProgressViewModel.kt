@@ -5,10 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jaroszeek.gymtracker.data.progress.ProgressRepository
 import com.jaroszeek.gymtracker.data.workout.WorkoutRepository
-import com.jaroszeek.gymtracker.domain.exercise.BodyPart
 import com.jaroszeek.gymtracker.domain.progress.ExerciseHistory
 import com.jaroszeek.gymtracker.domain.progress.RoutineHistory
 import com.jaroszeek.gymtracker.domain.progress.Week
+import com.jaroszeek.gymtracker.domain.progress.WeekSets
 import com.jaroszeek.gymtracker.domain.workout.WorkoutListItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
@@ -35,7 +35,7 @@ data class ProgressUiState(
     val exercises: List<ExerciseHistory> = emptyList(),
     val routines: List<RoutineHistory> = emptyList(),
     val week: Week = Week.of(LocalDate.now()),
-    val weekSets: Map<BodyPart, Int> = emptyMap(),
+    val weekSets: WeekSets = WeekSets(),
     /** No week after the current one. */
     val isCurrentWeek: Boolean = true,
 )
@@ -48,14 +48,20 @@ class ProgressViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val zone = ZoneId.systemDefault()
-    private val currentWeek = Week.of(LocalDate.now(zone))
     private val tab = MutableStateFlow(ProgressTab.History)
-    private val week = MutableStateFlow(currentWeek)
 
-    private val weekSets = week.flatMapLatest { week -> progress.observeWeek(week, zone).map { week to it } }
+    /** The week picked with the arrows; null follows the current one. */
+    private val week = MutableStateFlow<Week?>(null)
+
+    // The current week is looked up on every subscription, so a screen kept overnight moves on to a new week
+    private val weekSets = week.flatMapLatest { picked ->
+        val current = currentWeek()
+        val shown = picked ?: current
+        progress.observeWeek(shown, zone).map { Triple(shown, it, shown == current) }
+    }
 
     val state: StateFlow<ProgressUiState> =
-        combine(tab, workouts.observeHistory(), progress.observeExercises(), progress.observeRoutines(), weekSets) { tab, history, exercises, routines, (week, sets) ->
+        combine(tab, workouts.observeHistory(), progress.observeExercises(), progress.observeRoutines(), weekSets) { tab, history, exercises, routines, (week, sets, isCurrent) ->
             ProgressUiState(
                 tab = tab,
                 loading = false,
@@ -64,7 +70,7 @@ class ProgressViewModel @Inject constructor(
                 routines = routines,
                 week = week,
                 weekSets = sets,
-                isCurrentWeek = week == currentWeek,
+                isCurrentWeek = isCurrent,
             )
         }
             .catch { e ->
@@ -75,9 +81,11 @@ class ProgressViewModel @Inject constructor(
 
     fun onTab(tab: ProgressTab) = this.tab.update { tab }
 
-    fun onPreviousWeek() = week.update { it.previous() }
+    fun onPreviousWeek() = week.update { (it ?: currentWeek()).previous() }
 
-    fun onNextWeek() = week.update { if (it == currentWeek) it else it.next() }
+    fun onNextWeek() = week.update { it?.next()?.takeIf { next -> next.monday < currentWeek().monday } }
+
+    private fun currentWeek() = Week.of(LocalDate.now(zone))
 
     private companion object {
         const val TAG = "Progress"

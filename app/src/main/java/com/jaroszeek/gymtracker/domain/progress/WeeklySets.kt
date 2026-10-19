@@ -22,11 +22,15 @@ data class Week(val monday: LocalDate) {
     }
 }
 
+/** Working sets of a week: [total] counts each set once, [perPart] once for every body part it works. */
+data class WeekSets(val total: Int = 0, val perPart: Map<BodyPart, Int> = emptyMap())
+
 /**
  * Working sets per body part (A5.7). Each element is one non-warm-up set, given as the primary muscles
  * of its exercise; a set counts once for every body part those muscles belong to, so a row (lats and
  * middle back) is one set for the back. Secondary muscles do not count.
  */
-fun setsPerBodyPart(sets: List<Set<Muscle>>): Map<BodyPart, Int> = BodyPart.entries.associateWith { part ->
-    sets.count { muscles -> muscles.any { it in part.muscles } }
-}
+fun weekSets(sets: List<Set<Muscle>>) = WeekSets(
+    total = sets.count { it.isNotEmpty() },
+    perPart = BodyPart.entries.associateWith { part -> sets.count { muscles -> muscles.any { it in part.muscles } } },
+)

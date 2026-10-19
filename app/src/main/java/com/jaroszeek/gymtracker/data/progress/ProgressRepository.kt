@@ -4,7 +4,6 @@ import com.jaroszeek.gymtracker.core.database.ExerciseSessionRow
 import com.jaroszeek.gymtracker.core.database.GtDatabase
 import com.jaroszeek.gymtracker.core.database.RepsRow
 import com.jaroszeek.gymtracker.core.di.IoDispatcher
-import com.jaroszeek.gymtracker.domain.exercise.BodyPart
 import com.jaroszeek.gymtracker.domain.exercise.Muscle
 import com.jaroszeek.gymtracker.domain.progress.ExerciseHistory
 import com.jaroszeek.gymtracker.domain.progress.ExerciseProgress
@@ -14,7 +13,8 @@ import com.jaroszeek.gymtracker.domain.progress.RepsDone
 import com.jaroszeek.gymtracker.domain.progress.RoutineHistory
 import com.jaroszeek.gymtracker.domain.progress.RoutineSession
 import com.jaroszeek.gymtracker.domain.progress.Week
-import com.jaroszeek.gymtracker.domain.progress.setsPerBodyPart
+import com.jaroszeek.gymtracker.domain.progress.WeekSets
+import com.jaroszeek.gymtracker.domain.progress.weekSets
 import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -49,9 +49,9 @@ class ProgressRepository @Inject constructor(
         .map { rows -> rows.map { RoutineSession(it.workoutId, it.startedAt, it.volumeKg, it.maxWeightKg) } }
         .flowOn(io)
 
-    /** Working sets per body part of the workouts started in [week] in [zone]. */
-    fun observeWeek(week: Week, zone: ZoneId): Flow<Map<BodyPart, Int>> = dao.observeMuscleSets(week.startMillis(zone), week.endMillis(zone))
-        .map { rows -> setsPerBodyPart(rows.groupBy { it.setId }.values.map { set -> set.map { Muscle.fromKey(it.muscle) }.toSet() }) }
+    /** Working sets of the workouts started in [week] in [zone]. */
+    fun observeWeek(week: Week, zone: ZoneId): Flow<WeekSets> = dao.observeMuscleSets(week.startMillis(zone), week.endMillis(zone))
+        .map { rows -> weekSets(rows.groupBy { it.setId }.values.map { set -> set.map { Muscle.fromKey(it.muscle) }.toSet() }) }
         .flowOn(io)
 }
 

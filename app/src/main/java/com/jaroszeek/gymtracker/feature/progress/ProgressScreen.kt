@@ -234,7 +234,7 @@ private fun HistoryCard(title: String, value: String?, meta: String, onClick: ()
 @Composable
 private fun WeekCard(state: ProgressUiState, onPrevious: () -> Unit, onNext: () -> Unit) {
     val colors = GtTheme.colors
-    val most = remember(state.weekSets) { state.weekSets.values.maxOrNull()?.coerceAtLeast(1) ?: 1 }
+    val most = remember(state.weekSets) { state.weekSets.perPart.values.maxOrNull()?.coerceAtLeast(1) ?: 1 }
     GlassCard(Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             GlassIconButton(R.drawable.ic_chevron_left, stringResource(R.string.progress_week_previous), onClick = onPrevious, style = GlassButtonStyle.Ghost)
@@ -247,9 +247,9 @@ private fun WeekCard(state: ProgressUiState, onPrevious: () -> Unit, onNext: () 
                 enabled = !state.isCurrentWeek,
             )
         }
-        Text(stringResource(R.string.progress_week_total, state.weekSets.values.sum()), color = colors.textSecondary, style = GtTheme.typography.label)
+        Text(stringResource(R.string.progress_week_total, state.weekSets.total), color = colors.textSecondary, style = GtTheme.typography.label)
         BodyPart.entries.forEach { part ->
-            val sets = state.weekSets[part] ?: 0
+            val sets = state.weekSets.perPart[part] ?: 0
             Column(Modifier.padding(top = GtSpacing.xs), verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
                 Row {
                     Text(stringResource(part.label), style = GtTheme.typography.label, modifier = Modifier.weight(1f))

@@ -38,7 +38,10 @@ class WeeklySetsTest {
             setOf(Muscle.Quadriceps, Muscle.Glutes),
             emptySet(),
         )
-        val counts = setsPerBodyPart(sets)
+        val week = weekSets(sets)
+        // Each set once in the total, though the press and the squat count for more than one body part
+        assertEquals(4, week.total)
+        val counts = week.perPart
         assertEquals(1, counts[BodyPart.Back])
         assertEquals(2, counts[BodyPart.Chest])
         assertEquals(1, counts[BodyPart.Shoulders])

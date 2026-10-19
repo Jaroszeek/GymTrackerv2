@@ -120,12 +120,13 @@ class ProgressRepositoryTest {
         save(start - HOUR, bench.id to listOf(PerformedSet(60.0, 10)))
         save(week.endMillis(zone), bench.id to listOf(PerformedSet(60.0, 10)))
 
-        val counts = progress.observeWeek(week, zone).first()
+        val sets = progress.observeWeek(week, zone).first()
         val expected = BodyPart.entries.associateWith { part ->
             listOf(bench, bench, row).count { exercise -> exercise.primaryMuscles.any { it in part.muscles } }
         }
-        assertEquals(expected, counts)
-        assertEquals(2, counts[BodyPart.Chest])
+        assertEquals(expected, sets.perPart)
+        assertEquals(2, sets.perPart[BodyPart.Chest])
+        assertEquals(3, sets.total)
     }
 
     private companion object {
