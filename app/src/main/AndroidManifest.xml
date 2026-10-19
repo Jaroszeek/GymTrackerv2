@@ -4,6 +4,15 @@
     <!-- Exercise photos from the free-exercise-db CDN (owner consent 2026-10-19) -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Workout notification, Live Update and the rest in the background (A7, A5.4; D-044) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <application
         android:name=".GymTrackerApp"
         android:allowBackup="true"
@@ -22,6 +31,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".core.notifications.WorkoutService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Active strength workout started by the user: session clock, set progress and rest countdown, shown as a Live Update" />
+        </service>
+
+        <receiver
+            android:name=".core.notifications.RestAlarmReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>
