@@ -5,8 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jaroszeek.gymtracker.data.exercise.DeleteResult
 import com.jaroszeek.gymtracker.data.exercise.ExerciseRepository
+import com.jaroszeek.gymtracker.data.progress.ProgressRepository
 import com.jaroszeek.gymtracker.data.workout.ActiveWorkoutManager
+import com.jaroszeek.gymtracker.designsystem.component.ChartRange
 import com.jaroszeek.gymtracker.domain.exercise.Exercise
+import com.jaroszeek.gymtracker.domain.progress.ExerciseProgress
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -20,6 +23,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/** What the exercise's chart shows. */
+enum class ExerciseMetric { Weight, E1rm, Reps }
+
 sealed interface ExerciseDetailUiState {
     data object Loading : ExerciseDetailUiState
 
@@ -32,29 +38,40 @@ sealed interface ExerciseDetailUiState {
         val confirmDelete: Boolean = false,
         /** Delete was refused because a routine uses the exercise. */
         val inUse: Boolean = false,
+        val progress: ExerciseProgress = ExerciseProgress(emptyList(), emptyList()),
+        /** Null until the user picks one: e1RM, or the weight or reps when there is no estimate. */
+        val metric: ExerciseMetric? = null,
+        val range: ChartRange = ChartRange.ThreeMonths,
     ) : ExerciseDetailUiState
 
     /** The exercise was deleted from this screen; the screen leaves. */
     data object Deleted : ExerciseDetailUiState
 }
 
+private data class Local(
+    val confirmDelete: Boolean = false,
+    val deleting: Boolean = false,
+    val inUse: Boolean = false,
+    val metric: ExerciseMetric? = null,
+    val range: ChartRange = ChartRange.ThreeMonths,
+)
+
 @HiltViewModel(assistedFactory = ExerciseDetailViewModel.Factory::class)
 class ExerciseDetailViewModel @AssistedInject constructor(
     @Assisted private val id: Long,
     private val repository: ExerciseRepository,
+    progress: ProgressRepository,
     private val workouts: ActiveWorkoutManager,
 ) : ViewModel() {
 
-    private val confirmDelete = MutableStateFlow(false)
-    private val deleting = MutableStateFlow(false)
-    private val inUse = MutableStateFlow(false)
+    private val local = MutableStateFlow(Local())
 
-    val state: StateFlow<ExerciseDetailUiState> = combine(repository.observe(id), confirmDelete, deleting, inUse) { exercise, confirm, deleting, inUse ->
+    val state: StateFlow<ExerciseDetailUiState> = combine(repository.observe(id), progress.observeExercise(id), local) { exercise, history, local ->
         when {
             // Leave only once the row is really gone, so the screen never flashes "not found"
-            exercise == null && deleting -> ExerciseDetailUiState.Deleted
+            exercise == null && local.deleting -> ExerciseDetailUiState.Deleted
             exercise == null -> ExerciseDetailUiState.NotFound
-            else -> ExerciseDetailUiState.Content(exercise, confirm, inUse)
+            else -> ExerciseDetailUiState.Content(exercise, local.confirmDelete, local.inUse, history, local.metric, local.range)
         }
     }
         .catch { e ->
@@ -63,23 +80,25 @@ class ExerciseDetailViewModel @AssistedInject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), ExerciseDetailUiState.Loading)
 
-    fun onDeleteRequest() = confirmDelete.update { true }
+    fun onMetric(metric: ExerciseMetric) = local.update { it.copy(metric = metric) }
 
-    fun onDeleteDismiss() = confirmDelete.update { false }
+    fun onRange(range: ChartRange) = local.update { it.copy(range = range) }
+
+    fun onDeleteRequest() = local.update { it.copy(confirmDelete = true) }
+
+    fun onDeleteDismiss() = local.update { it.copy(confirmDelete = false) }
 
     fun onDeleteConfirm() {
-        confirmDelete.update { false }
-        deleting.update { true }
+        local.update { it.copy(confirmDelete = false, deleting = true) }
         viewModelScope.launch {
             // The running workout is not in the database yet, so it is asked separately
             if (workouts.uses(id) || repository.deleteCustom(id) == DeleteResult.InUse) {
-                deleting.update { false }
-                inUse.update { true }
+                local.update { it.copy(deleting = false, inUse = true) }
             }
         }
     }
 
-    fun onInUseDismiss() = inUse.update { false }
+    fun onInUseDismiss() = local.update { it.copy(inUse = false) }
 
     @AssistedFactory
     interface Factory {
