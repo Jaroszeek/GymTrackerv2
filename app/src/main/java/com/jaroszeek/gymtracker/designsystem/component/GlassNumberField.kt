@@ -2,6 +2,7 @@ package com.jaroszeek.gymtracker.designsystem.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -48,6 +49,8 @@ fun GlassNumberField(
     decimals: Int = 0,
     unit: String? = null,
     range: ClosedFloatingPointRange<Double> = 0.0..9999.0,
+    /** Shown dimmed while the field is empty, e.g. "—" for no weight. */
+    placeholder: String? = null,
 ) {
     val colors = GtTheme.colors
     val separator = remember { DecimalFormatSymbols.getInstance(Locale.getDefault()).decimalSeparator }
@@ -81,6 +84,14 @@ fun GlassNumberField(
             ),
             singleLine = true,
             cursorBrush = SolidColor(colors.accent),
+            decorationBox = { field ->
+                Box(contentAlignment = Alignment.Center) {
+                    if (text.isEmpty() && placeholder != null) {
+                        Text(placeholder, color = colors.textTertiary, style = GtTheme.typography.numberL)
+                    }
+                    field()
+                }
+            },
         )
         // Steppers under the number: big thumb targets, and the field fits half the screen width
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {

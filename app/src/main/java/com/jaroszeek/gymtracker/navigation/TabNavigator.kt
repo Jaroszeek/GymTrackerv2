@@ -40,6 +40,18 @@ class TabNavigator(
         stacks.getValue(currentTab).add(key)
     }
 
+    /** Selects [tab] and puts [key] on top of its stack, moving it up when it is deeper (the running workout). */
+    fun open(tab: TopLevelTab, key: NavKey) {
+        currentTab = tab
+        val stack = stacks.getValue(tab)
+        if (stack.lastOrNull() == key) return
+        stack.remove(key)
+        stack.add(key)
+    }
+
+    /** Whether [key] is the screen shown now. */
+    fun isOnTop(key: NavKey): Boolean = stacks.getValue(currentTab).lastOrNull() == key
+
     fun back() {
         val stack = stacks.getValue(currentTab)
         when {

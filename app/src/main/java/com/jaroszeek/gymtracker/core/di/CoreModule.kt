@@ -6,16 +6,20 @@ import androidx.sqlite.driver.AndroidSQLiteDriver
 import com.jaroszeek.gymtracker.core.database.ExerciseDao
 import com.jaroszeek.gymtracker.core.database.GtDatabase
 import com.jaroszeek.gymtracker.core.database.RoutineDao
+import com.jaroszeek.gymtracker.data.workout.ActiveWorkoutStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import java.io.File
 import java.time.Clock
 import javax.inject.Qualifier
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
@@ -24,6 +28,11 @@ annotation class IoDispatcher
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class DefaultDispatcher
+
+/** Lives as long as the process: work that must outlast screens, e.g. the active workout. */
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class ApplicationScope
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -51,4 +60,16 @@ object CoreModule {
 
     @Provides
     fun clock(): Clock = Clock.systemUTC()
+
+    @Provides
+    @Singleton
+    @ApplicationScope
+    fun applicationScope(@DefaultDispatcher dispatcher: CoroutineDispatcher): CoroutineScope = CoroutineScope(SupervisorJob() + dispatcher)
+
+    @Provides
+    @Singleton
+    fun activeWorkoutStore(@ApplicationContext context: Context): ActiveWorkoutStore =
+        ActiveWorkoutStore(File(context.filesDir, ACTIVE_WORKOUT_FILE))
+
+    private const val ACTIVE_WORKOUT_FILE = "active_workout.json"
 }

@@ -48,6 +48,7 @@ Gdy polecenie w sesji jest sprzeczne z tym plikiem albo z PROMPT.md, wskaż konf
 - Najczęstsze komendy:
   - build: `.\gradlew.bat assembleDebug`
   - testy: `.\gradlew.bat testDebugUnitTest`
+  - testy UI (emulator): `.\gradlew.bat :app:connectedDebugAndroidTest`
   - lint: `.\gradlew.bat lintDebug`
   - instalacja: `adb install -r app\build\outputs\apk\debug\app-debug.apk`
   - logi: `adb logcat -s <TAG>`

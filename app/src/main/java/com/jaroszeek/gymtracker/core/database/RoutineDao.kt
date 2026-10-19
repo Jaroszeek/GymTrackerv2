@@ -49,4 +49,10 @@ interface RoutineDao {
 
     @Query("DELETE FROM routine_variants WHERE id IN (:ids)")
     suspend fun deleteVariants(ids: Collection<Long>)
+
+    @Query(
+        """UPDATE routine_variants SET target_sets = :sets, reps_min = :repsMin, reps_max = :repsMax,
+               target_weight_kg = :weightKg, rest_seconds = :restSeconds WHERE id = :id""",
+    )
+    suspend fun updateTargets(id: Long, sets: Int, repsMin: Int, repsMax: Int, weightKg: Double?, restSeconds: Int?)
 }

@@ -46,11 +46,11 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 |---|---|
 | v1 / Etap 2 | `exercises` (external_id UNIQUE, name, aliases_pl, search_text bez diakrytyków, category, equipment, force, level, mechanic, instructions JSON, images JSON, source), `exercise_muscles` (exercise_id, muscle, is_primary) |
 | v2 / Etap 3 | `routines`, `routine_blocks` (routine_id, position), `routine_variants` (block_id, exercise_id RESTRICT, target_sets, reps_min, reps_max, target_weight_kg, rest_seconds NULL = domyślna) |
-| v3 / Etap 4 | `workouts` (routine_id SET NULL, name, started_at, ended_at NULL = trwa, updated_at, rest_ends_at), `workout_exercises` (workout_id, exercise_id RESTRICT, routine_variant_id SET NULL, position), `workout_sets` (type, weight_kg, reps, completed, completed_at) |
+| v3 / Etap 4 | `workouts` (routine_id SET NULL, name, started_at, ended_at), `workout_exercises` (workout_id, exercise_id RESTRICT, routine_variant_id SET NULL, position), `workout_sets` (type, weight_kg, reps) — tylko zakończone treningi (D-038) |
 | v4 / Etap 6 | `personal_records`: cache przeliczany po zakończeniu, edycji i usunięciu treningu; unikalność na (exercise_id, type, weight_kg) |
 | v5 / Etap 7 | `hc_exercise_sessions` (hc_id PK i podsumowanie tętna, stref oraz kcal), `workouts.hc_session_id` UNIQUE (łączenie 1:1), `workouts.hc_written_id`, `body_measurements` (type, value, measured_at, source, hc_id UNIQUE), `sleep_sessions`, `vital_samples` (RHR, HRV), `hc_sync_tokens` |
 
-- **Aktywny trening:** wiersz `workouts` z `ended_at = NULL`, zapisywany z debounce. Porzucony ponad 24 h (według `updated_at`) jest usuwany przy starcie aplikacji. Dzięki temu nie ma osobnego snapshotu.
+- **Aktywny trening:** ~~wiersz `workouts` z `ended_at = NULL`~~ — zmienione w D-038: plik JSON z debounce, w bazie tylko zakończone treningi.
 - **Ochrona ćwiczeń używanych w historii:** zapewnia FK `RESTRICT` w bazie, a nie kod aplikacji.
 - **Wyszukiwanie:** `LIKE` na `search_text`. Przy ok. 900 wierszach wystarcza, więc FTS nie jest potrzebne.
 - **Szablony rutyn:** JSON w assets, przy kopiowaniu zapisywany do tabel rutyn.
@@ -277,6 +277,47 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 - `sh.calvin.reorderable:reorderable` 3.1.0 (Apache-2.0, kandydat z planu Etapu 0): drag & drop w `LazyColumn` z autoscrollem; zależy od Compose 1.7, BOM 1.12 wygrywa. Rozmiar: ok. 17 KB dexu. Alternatywa: własna implementacja gestów (ok. 150 linii trudnej logiki).
 - Release: 3,7 MB, rozmiar pobierania 2,1 MB.
 
+## 2026-10-19 — Etap 4 (aktywny trening)
+
+### D-038 Trwający trening w pliku, w bazie tylko zakończone (zmienia D-005)
+- Trwający trening to `ActiveWorkout` (domain, `@Serializable`) w `files/active_workout.json`, zapisywany atomowo (plik tymczasowy, potem rename) z debounce 500 ms. Start, zakończenie i odrzucenie zapisują od razu. Po zabiciu procesu menedżer odtwarza go, zanim cokolwiek z niego skorzysta (`ready`).
+- W bazie (schemat v3, migracja automatyczna 2 → 3 z testem na JVM) są tylko zakończone treningi i tylko odhaczone serie: `workouts` (routine_id SET NULL, name jako kopia, started_at, ended_at), `workout_exercises` (exercise_id RESTRICT, routine_variant_id SET NULL — wybrany wariant), `workout_sets` (type, weight_kg NULL = masa ciała, reps). Kolumny `completed`, `rest_ends_at`, `updated_at` z planu D-005 nie są potrzebne.
+- Powód: historia (Etap 6) nie musi odfiltrowywać trwającego treningu; cały stan w jednym pliku jest prostszy niż różnicowanie wierszy przy każdej zmianie i trzyma razem przerwę oraz podpowiedzi z poprzedniej sesji.
+- Rutyna, wariant albo ćwiczenie usunięte w trakcie treningu: zapis pomija zerwane powiązanie zamiast się wywrócić. Ćwiczenia z trwającego treningu nie da się usunąć (osobne sprawdzenie w menedżerze, bo trwającego treningu nie ma w bazie).
+- **Porzucony ponad 24 h** (licząc od ostatniej zmiany) nie wraca, ale jego odhaczone serie trafiają do historii, z końcem w chwili ostatniej zmiany. D-005 zakładał usunięcie; wybrałem zapis, żeby zapomniany „Zakończ” nie kasował treningu. Do potwierdzenia przez właściciela.
+- Znane ograniczenie: śmierć procesu dokładnie między zapisem do bazy a usunięciem pliku przywróci trening jeszcze raz (komentarz `ponytail:` w kodzie).
+
+### D-039 Menedżer aktywnego treningu
+- `ActiveWorkoutManager` (singleton w DI, `@ApplicationScope`) to jedno źródło prawdy: `StateFlow<ActiveWorkout?>` i `ready`. Zmiany są czystymi funkcjami `ActiveWorkout` (domain, testy); menedżer dokłada czas, zapis i koniec przerwy. W Etapie 5 czyta go serwis.
+- Przerwa opiera się na absolutnych `startsAt` i `endsAt`. Kończy ją menedżer (czeka do `endsAt`, po −15 s / +30 s od nowa), więc działa też bez otwartego ekranu. Długość: cel z rutyny, inaczej 90 s (stała do Etapu 9).
+- Drugi start przy trwającym treningu jest odrzucany, a dialog prowadzi do trwającego.
+
+### D-040 Planowanie serii i ekran treningu
+- **Serie na start:** liczba z rutyny (bez rutyny: jak ostatnio, inaczej 3). Ciężar: propozycja progresji, inaczej seria z poprzedniej sesji na tej samej pozycji, inaczej cel. Powtórzenia: dół zakresu przy progresji, inaczej poprzednie, inaczej dół zakresu. Rozgrzewki dopasowują się do rozgrzewek.
+- **Otwarta jest jedna seria** (pierwsza nieodhaczona albo stuknięta) z dużymi polami; pozostałe to jedna linia z wartościami, którą można od razu odhaczyć. Bez powtórzeń nie da się odhaczyć.
+- **Nowy ciężar spływa w dół** do nieodhaczonych serii tego samego rodzaju, które miały ten sam ciężar: zmiana ciężaru roboczego to jeden wpis.
+- Usunięcie ostatniej serii usuwa ćwiczenie z treningu (bez osobnej akcji). Typ i usuwanie serii są w arkuszu pod numerem serii.
+- Wariant można zmienić w trakcie; dopóki żadna seria nie jest odhaczona, serie planują się od nowa dla nowego wariantu.
+- Haptyka: `Confirm` przy odhaczeniu, `ToggleOff` przy cofnięciu.
+- **Nakładka przerwy** to pełnoekranowe szkło; zamknięta zostawia w nagłówku przycisk „Przerwa m:ss”. Po ponownym wejściu na ekran w trakcie przerwy pokazuje się znowu.
+- **Mini-pasek** nad navbarem, gdy trening trwa, a jego ekran nie jest na wierzchu: nazwa, czas (w przerwie odliczanie) i postęp serii. Gdy navbar się chowa, pasek opada na dół; treść ekranów dostaje dodatkowy dolny padding.
+- Start z karty rutyny albo „Pusty trening”; ćwiczenia dochodzą z tej samej listy wyboru co w edytorze rutyn (`ExercisePicker`).
+
+### D-041 Zakończenie
+- Zapisują się tylko odhaczone serie; trening bez odhaczonych serii się nie zapisuje (dialog to mówi).
+- Podsumowanie: czas, objętość i liczba serii **bez rozgrzewek** (objętość = suma ciężar × powtórzenia), liczba ćwiczeń. Nowe rekordy dochodzą w Etapie 6.
+- Zmiany celów, tylko dla ćwiczeń z rutyny: serie = odhaczone serie robocze (robocze i do upadku), ciężar = najcięższy roboczy; zakres powtórzeń i przerwa zostają. Domyślnie „Zostaw stare”; rutyna zmienia się dopiero po wyborze „Zastosuj jako nowe cele” i „Gotowe”.
+
+### D-042 Test UI i zależności testowe
+- `ui-test-junit4` i `ui-test-manifest` (z BOM, `ui-test-manifest` dokłada pustą aktywność tylko do manifestu debug), `androidx.test:runner` 1.7.0, `androidx.test.ext:junit` 1.3.0. Apache-2.0, tylko testy, nie trafiają do release.
+- `WorkoutFlowTest` (instrumentacyjny): prawdziwe repozytoria na bazie w pamięci i prawdziwy seed; przebieg od karty rutyny przez serie, przerwę (+30 s, pomiń, zamknij), zakończenie i nowe cele do historii. Komenda: `.\gradlew.bat :app:connectedDebugAndroidTest`.
+- CI nie ma emulatora, więc test UI nie idzie w CI (testy JVM, w tym menedżer i migracja, idą). Alternatywy: Robolectric (kolejna zależność, szkło renderuje się tam niepełnie), emulator w CI (ok. +10 min na build).
+- Sam `connectedDebugAndroidTest` (bez `:app:`) uruchamia też macrobenchmarki w wariancie debug, które tam nie przechodzą; benchmark ma własną komendę (`connectedBenchmarkAndroidTest`).
+
+### D-043 Design system
+- Nowe: `GlassProgressRing` (łuk w `accentText`, bo żywy akcent ginie na jasnym tle), `GlassMiniBar`, `GlassFullScreenOverlay`; placeholder w `GlassNumberField`; `GlassChip` ucina długi tekst. Wszystko w galerii (sekcje „Nakładki” i „Postęp i trening”).
+- Release: 3,6 MB.
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |
@@ -298,7 +339,7 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 | work-runtime-ktx / hilt-work | 2.12.0 / 1.4.0 | Apache-2.0 | 7 | synchronizacja HC w tle |
 | health connect-client | 1.1.0 | Apache-2.0 | 7 | Health Connect (D-011) |
 | profileinstaller / baselineprofile / benchmark-macro | 1.4.1 / 1.5.0 / 1.5.0 | Apache-2.0 | 1 (pomiar), 10 | Baseline Profile, pomiary |
-| JUnit / coroutines-test / androidx.test runner, ext-junit / room3-testing | 4.13.2 / 1.11.0 / 1.7.0, 1.3.0 / 3.0.3 | EPL-1.0 / Apache-2.0 | 1–2 | testy |
+| JUnit / coroutines-test / androidx.test runner, ext-junit / compose ui-test-junit4, ui-test-manifest | 4.13.2 / 1.11.0 / 1.7.0, 1.3.0 / BOM | EPL-1.0 / Apache-2.0 | 1–4 | testy (D-042) |
 | benchmark-macro-junit4 / uiautomator | 1.5.0 / 2.4.0 | Apache-2.0 | 1 | macrobenchmark w `:baselineprofile` (nie trafia do APK) |
 | Fonty Geist, Instrument Serif | 1.8.1 / — | OFL-1.1 | 1 | typografia (D-007), ok. 650 KB TTF |
 | free-exercise-db | — | Unlicense | 2 | baza ćwiczeń (atrybucja w „O aplikacji”) |

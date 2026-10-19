@@ -18,16 +18,25 @@ import kotlinx.serialization.json.Json
         RoutineEntity::class,
         RoutineBlockEntity::class,
         RoutineVariantEntity::class,
+        WorkoutEntity::class,
+        WorkoutExerciseEntity::class,
+        WorkoutSetEntity::class,
     ],
-    version = 2,
-    // 1 -> 2: routine tables (Etap 3)
-    autoMigrations = [AutoMigration(from = 1, to = 2)],
+    version = 3,
+    autoMigrations = [
+        // 1 -> 2: routine tables (Etap 3)
+        AutoMigration(from = 1, to = 2),
+        // 2 -> 3: workout tables (Etap 4)
+        AutoMigration(from = 2, to = 3),
+    ],
 )
 @ColumnTypeConverters(StringListConverter::class)
 abstract class GtDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
 
     abstract fun routineDao(): RoutineDao
+
+    abstract fun workoutDao(): WorkoutDao
 
     companion object {
         const val NAME = "gymtracker.db"

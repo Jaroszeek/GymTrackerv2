@@ -50,6 +50,24 @@ class TabNavigatorTest {
     }
 
     @Test
+    fun openBringsTheWorkoutToTheTopFromAnyTab() {
+        val navigator = navigator()
+        navigator.select(TopLevelTab.Workout)
+        navigator.navigate(ActiveWorkoutKey)
+        navigator.navigate(Detail)
+        navigator.select(TopLevelTab.Exercises)
+
+        navigator.open(TopLevelTab.Workout, ActiveWorkoutKey)
+
+        assertEquals(TopLevelTab.Workout, navigator.currentTab)
+        assertEquals(listOf(WorkoutKey, Detail, ActiveWorkoutKey), navigator.stacks.getValue(TopLevelTab.Workout))
+        assertEquals(true, navigator.isOnTop(ActiveWorkoutKey))
+        // Opening it again changes nothing
+        navigator.open(TopLevelTab.Workout, ActiveWorkoutKey)
+        assertEquals(listOf(WorkoutKey, Detail, ActiveWorkoutKey), navigator.stacks.getValue(TopLevelTab.Workout))
+    }
+
+    @Test
     fun tabsKeepTheirStacks() {
         val navigator = navigator()
         navigator.select(TopLevelTab.Exercises)

@@ -4,7 +4,7 @@ Natywna aplikacja na Androida do śledzenia treningów siłowych. Działa lokaln
 
 > Szkic. Projekt jest w budowie, etapami opisanymi w `PROMPT.md`. Stan prac: `docs/PROGRESS.md`.
 >
-> Gotowe: design system i nawigacja (Etap 1), baza ćwiczeń z wyszukiwarką, filtrami i własnymi ćwiczeniami (Etap 2), rutyny z wariantami, drag & drop i gotowymi szablonami (Etap 3).
+> Gotowe: design system i nawigacja (Etap 1), baza ćwiczeń z wyszukiwarką, filtrami i własnymi ćwiczeniami (Etap 2), rutyny z wariantami, drag & drop i gotowymi szablonami (Etap 3), aktywny trening z przerwą, podsumowaniem i podpowiedzią progresji (Etap 4).
 
 <p>
   <img src="docs/screenshots/stage1-app-trening-dark.png" width="240" alt="Zakładka Trening, motyw ciemny">
@@ -41,6 +41,7 @@ Wymagania: Android Studio 2026.2 lub nowsze (JBR 25), Android SDK z platformą 3
 ```powershell
 .\gradlew.bat assembleDebug          # APK debug: app\build\outputs\apk\debug
 .\gradlew.bat testDebugUnitTest      # testy jednostkowe
+.\gradlew.bat :app:connectedDebugAndroidTest  # testy UI na emulatorze
 .\gradlew.bat lintDebug              # lint
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```

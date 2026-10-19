@@ -51,7 +51,10 @@ import com.jaroszeek.gymtracker.designsystem.component.GlassButtonStyle
 import com.jaroszeek.gymtracker.designsystem.component.GlassCard
 import com.jaroszeek.gymtracker.designsystem.component.GlassChip
 import com.jaroszeek.gymtracker.designsystem.component.GlassDialog
+import com.jaroszeek.gymtracker.designsystem.component.GlassFullScreenOverlay
 import com.jaroszeek.gymtracker.designsystem.component.GlassIconButton
+import com.jaroszeek.gymtracker.designsystem.component.GlassMiniBar
+import com.jaroszeek.gymtracker.designsystem.component.GlassProgressRing
 import com.jaroszeek.gymtracker.designsystem.component.GlassNavBar
 import com.jaroszeek.gymtracker.designsystem.component.GlassNavItem
 import com.jaroszeek.gymtracker.designsystem.component.GlassNumberField
@@ -96,6 +99,7 @@ fun GalleryScreen(settings: ThemeSettings, onSettingsChange: (ThemeSettings) -> 
     var navIndex by remember { mutableIntStateOf(2) }
     var dialog by remember { mutableStateOf(false) }
     var sheet by remember { mutableStateOf(false) }
+    var fullScreen by remember { mutableStateOf(false) }
     val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + GtSizes.TopBarHeight
 
     GlassScaffold(
@@ -127,6 +131,18 @@ fun GalleryScreen(settings: ThemeSettings, onSettingsChange: (ThemeSettings) -> 
                 Text(stringResource(R.string.gallery_sheet_text), color = GtTheme.colors.textSecondary)
                 GlassButton(stringResource(R.string.action_close), onClick = { sheet = false }, modifier = Modifier.fillMaxWidth())
             }
+            GlassFullScreenOverlay(visible = fullScreen, onDismissRequest = { fullScreen = false }) {
+                Column(
+                    Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(GtSpacing.xl),
+                ) {
+                    GlassProgressRing(0.65f, Modifier.size(GtSizes.RestRing)) {
+                        Text(stringResource(R.string.gallery_sample_timer), style = GtTheme.typography.numberXL)
+                    }
+                    GlassButton(stringResource(R.string.action_close), onClick = { fullScreen = false })
+                }
+            }
         },
     ) {
         LazyColumn(
@@ -151,6 +167,18 @@ fun GalleryScreen(settings: ThemeSettings, onSettingsChange: (ThemeSettings) -> 
                 Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
                     GlassButton(stringResource(R.string.gallery_show_dialog), onClick = { dialog = true }, style = GlassButtonStyle.Secondary)
                     GlassButton(stringResource(R.string.gallery_show_sheet), onClick = { sheet = true }, style = GlassButtonStyle.Secondary)
+                    GlassButton(stringResource(R.string.gallery_show_fullscreen), onClick = { fullScreen = true }, style = GlassButtonStyle.Secondary)
+                }
+            }
+            section(R.string.gallery_section_progress) {
+                Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.l), verticalAlignment = Alignment.CenterVertically) {
+                        GlassProgressRing(0.3f, Modifier.size(GtSizes.MiniRing), strokeWidth = GtSizes.MiniRingStroke)
+                        GlassProgressRing(0.75f, Modifier.size(GtSizes.Thumbnail)) {
+                            Text(stringResource(R.string.gallery_sample_reps), style = GtTheme.typography.label)
+                        }
+                    }
+                    GlassMiniBar(stringResource(R.string.nav_workout), stringResource(R.string.gallery_minibar_subtitle), 0.28f, onClick = {})
                 }
             }
             section(R.string.gallery_section_live_update) { LiveUpdateProbeCard() }

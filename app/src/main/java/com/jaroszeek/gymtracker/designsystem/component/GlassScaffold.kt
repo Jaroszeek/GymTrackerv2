@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
@@ -24,6 +25,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.jaroszeek.gymtracker.designsystem.theme.GtSizes
 import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
@@ -94,9 +96,12 @@ private fun StatusBarScrim() {
     )
 }
 
-/** Bottom padding that keeps scrolled content clear of the floating navbar. */
+/** Height of chrome floating above the navbar (the workout mini bar); [navBarContentPadding] adds it. */
+val LocalChromeAboveNavBar = compositionLocalOf { 0.dp }
+
+/** Bottom padding that keeps scrolled content clear of the floating navbar (and what floats above it). */
 @Composable
 fun navBarContentPadding(): PaddingValues {
     val system = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    return PaddingValues(bottom = system + GtSizes.NavBarHeight + GtSizes.NavBarGap * 2 + GtSpacing.s)
+    return PaddingValues(bottom = system + GtSizes.NavBarHeight + GtSizes.NavBarGap * 2 + GtSpacing.s + LocalChromeAboveNavBar.current)
 }

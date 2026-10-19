@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jaroszeek.gymtracker.data.exercise.DeleteResult
 import com.jaroszeek.gymtracker.data.exercise.ExerciseRepository
+import com.jaroszeek.gymtracker.data.workout.ActiveWorkoutManager
 import com.jaroszeek.gymtracker.domain.exercise.Exercise
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -41,6 +42,7 @@ sealed interface ExerciseDetailUiState {
 class ExerciseDetailViewModel @AssistedInject constructor(
     @Assisted private val id: Long,
     private val repository: ExerciseRepository,
+    private val workouts: ActiveWorkoutManager,
 ) : ViewModel() {
 
     private val confirmDelete = MutableStateFlow(false)
@@ -69,7 +71,8 @@ class ExerciseDetailViewModel @AssistedInject constructor(
         confirmDelete.update { false }
         deleting.update { true }
         viewModelScope.launch {
-            if (repository.deleteCustom(id) == DeleteResult.InUse) {
+            // The running workout is not in the database yet, so it is asked separately
+            if (workouts.uses(id) || repository.deleteCustom(id) == DeleteResult.InUse) {
                 deleting.update { false }
                 inUse.update { true }
             }
