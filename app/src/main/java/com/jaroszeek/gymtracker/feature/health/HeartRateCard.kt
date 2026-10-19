@@ -45,9 +45,10 @@ fun HeartRateCard(session: HealthSession, samples: List<HeartRateSample>, maxHea
     GlassCard(modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
             Icon(painterResource(R.drawable.ic_favorite), contentDescription = null, Modifier.size(GtSizes.IconSmall), tint = colors.accentText)
-            Text(stringResource(R.string.hr_title), Modifier.weight(1f), style = GtTheme.typography.title)
-            Text(stringResource(R.string.hr_source, sourceLabel(session.origin)), color = colors.textSecondary, style = GtTheme.typography.labelSmall)
+            Text(stringResource(R.string.hr_title), style = GtTheme.typography.title)
         }
+        // Its own line: an app without a known name shows its package, which can be long
+        Text(stringResource(R.string.hr_source, sourceLabel(session.origin)), color = colors.textSecondary, style = GtTheme.typography.labelSmall)
         if (summary == null) {
             Text(stringResource(R.string.hr_empty), color = colors.textSecondary, style = GtTheme.typography.bodySmall)
         } else {
