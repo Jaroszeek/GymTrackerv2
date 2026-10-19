@@ -45,7 +45,7 @@ android {
         named("benchmark") {
             kotlin.directories += "src/debug/java"
             res.directories += "src/debug/res"
-            manifest.srcFile("src/debug/AndroidManifest.xml")
+            // Its own manifest (src/benchmark): the debug one plus the Health Connect test data writer
         }
     }
     compileOptions {
