@@ -22,11 +22,11 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -94,9 +94,9 @@ class WorkoutService : Service() {
                 .collect { all -> names.value = all.associate { it.id to it.name } }
         }
         scope.launch {
-            combine(manager.workout, names) { workout, byId -> workout to byId }.collect { (workout, byId) ->
-                if (workout == null) stop() else if (!dismissed) post(workout, byId)
-            }
+            combine(manager.workout, names) { workout, byId -> workout?.let { notifications.content(it, byId) } }
+                .distinctUntilChanged()
+                .collect { content -> if (content == null) stop() else if (!dismissed) post(content) }
         }
         scope.launch {
             manager.workout.map { it?.rest?.endsAt }.distinctUntilChanged().collect { restAlarm.schedule(it) }
@@ -127,10 +127,10 @@ class WorkoutService : Service() {
         }
     }
 
-    private fun post(workout: ActiveWorkout, names: Map<Long, String>) {
+    private fun post(content: WorkoutNotificationContent) {
         // Without the permission the notification shows only in the task manager; the service still runs
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
-        getSystemService(NotificationManager::class.java).notify(WorkoutNotifications.NOTIFICATION_ID, notifications.build(workout, names))
+        getSystemService(NotificationManager::class.java).notify(WorkoutNotifications.NOTIFICATION_ID, notifications.build(content))
     }
 
     private fun stop() {
