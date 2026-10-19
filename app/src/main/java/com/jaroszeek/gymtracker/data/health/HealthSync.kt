@@ -31,6 +31,8 @@ import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -61,6 +63,13 @@ class HealthSync @Inject constructor(
     @ApplicationScope private val scope: CoroutineScope,
 ) {
     private val mutex = Mutex()
+
+    @Volatile
+    private var rerun = false
+
+    @Volatile
+    private var running: Job? = null
+
     private val _status = MutableStateFlow(SyncStatus())
     val status: StateFlow<SyncStatus> = _status.asStateFlow()
 
@@ -92,13 +101,21 @@ class HealthSync @Inject constructor(
         work.enqueueUniquePeriodicWork(WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, request)
     }
 
-    /** Skipped while another run is on; a background run needs the background permission to read anything. */
+    /**
+     * One run at a time: asked for meanwhile, e.g. right after new permissions, it runs once more when the
+     * current one ends. A background run needs the background permission to read anything.
+     */
     suspend fun sync(background: Boolean) {
-        if (!mutex.tryLock()) return
-        try {
-            withContext(io) { run(background) }
-        } finally {
-            mutex.unlock()
+        rerun = true
+        while (rerun && mutex.tryLock()) {
+            try {
+                rerun = false
+                // Its own job, so disconnecting can stop it
+                withContext(io) { launch { run(background) }.also { running = it }.join() }
+            } finally {
+                running = null
+                mutex.unlock()
+            }
         }
     }
 
@@ -132,28 +149,29 @@ class HealthSync @Inject constructor(
 
     /**
      * Revokes every permission and deletes everything imported; workouts and their links to sessions
-     * stay, so reconnecting brings the heart rate back. Waits for a running sync.
+     * stay, so reconnecting brings the heart rate back. Once confirmed it goes to the end even if the
+     * screen closes, and a running sync stops for it.
      */
-    suspend fun disconnect() {
+    suspend fun disconnect() = withContext(NonCancellable + io) {
+        health.revokeAll()
+        // From here every run finds no permissions
+        running?.cancel()
         mutex.withLock {
-            withContext(io) {
-                health.revokeAll()
-                val dao = database.healthDao()
-                database.withWriteTransaction {
-                    dao.deleteAllSessions()
-                    dao.deleteAllMeasurements()
-                    dao.deleteAllSleep()
-                    dao.deleteAllDays()
-                    dao.deleteAllDirtyDays()
-                    dao.deleteTokens()
-                }
-                preferences.setHealthLastSync(null)
-                preferences.setHealthHistoryImported(false)
-                preferences.setHealthBackgroundSync(false)
-                preferences.setHealthWriteWorkouts(false)
-                schedule(false)
-                _status.update { SyncStatus() }
+            val dao = database.healthDao()
+            database.withWriteTransaction {
+                dao.deleteAllSessions()
+                dao.deleteAllMeasurements()
+                dao.deleteAllSleep()
+                dao.deleteAllDays()
+                dao.deleteAllDirtyDays()
+                dao.deleteTokens()
             }
+            preferences.setHealthLastSync(null)
+            preferences.setHealthHistoryImported(false)
+            preferences.setHealthBackgroundSync(false)
+            preferences.setHealthWriteWorkouts(false)
+            schedule(false)
+            _status.update { SyncStatus() }
         }
     }
 
