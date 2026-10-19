@@ -78,6 +78,20 @@ class PersonalBestsTest {
     }
 
     @Test
+    fun theFirstSessionWithAddedWeightOnlySetsItsBaseline() {
+        // After bodyweight only, the weighted sets have nothing of their kind to beat, the bodyweight one has
+        val records = bestsOf(set(null, 12)).sessionRecords(listOf(set(10.0, 6), set(12.5, 5), set(12.5, 6), set(null, 13)))
+        assertEquals(listOf(emptySet(), emptySet(), emptySet(), setOf(Reps)), records)
+    }
+
+    @Test
+    fun theFirstSessionWithAnE1rmOnlySetsItsBaseline() {
+        // 60 × 15 has no estimate, so 85 × 8 beating 80 × 8 is no e1RM record yet; weight and volume are
+        val records = bestsOf(set(60.0, 15)).sessionRecords(listOf(set(80.0, 8), set(85.0, 8)))
+        assertEquals(listOf(setOf(Weight), setOf(Weight, SessionVolume)), records)
+    }
+
+    @Test
     fun overTwelveRepsThereIsNoE1rmRecord() {
         // 60 × 20 would be an Epley of 100, above 80 × 5 (93.3), but over 12 reps there is no estimate
         val bests = bestsOf(set(80.0, 5))

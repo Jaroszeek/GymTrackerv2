@@ -13,7 +13,8 @@ data class RepBest(val weightKg: Double?, val reps: Int)
 
 /**
  * Best results of one exercise so far. Warm-ups never count, and a weight of 0 counts as bodyweight.
- * A record needs a previous best to beat, so the first session with an exercise only sets the baseline.
+ * A record needs a result of its kind from an earlier session to beat, so the first session with an
+ * exercise, the first with added weight and the first with an e1RM only set the baseline.
  */
 @Serializable
 data class PersonalBests(
@@ -71,17 +72,24 @@ data class PersonalBests(
      * passes the old best.
      */
     fun sessionRecords(sets: List<PerformedSet>): List<Set<RecordType>> {
-        // Every set done adds to reps, so none means no history: the first session only sets the baseline
-        if (reps.isEmpty()) return sets.map { emptySet() }
         var bests = this
         var volume = 0.0
         return sets.map { set ->
-            val records = bests.recordsOf(set)
+            val records = bests.recordsOf(set).filterTo(mutableSetOf()) { hasBaseline(it, set.weight) }
             bests = bests.plus(set)
             val before = volume
             if (set.type != SetType.Warmup) volume += set.volumeKg
             if (sessionVolumeKg != null && before <= sessionVolumeKg && volume > sessionVolumeKg) records + RecordType.SessionVolume else records
         }
+    }
+
+    /** Whether earlier sessions left a result of [type] to beat; bodyweight and weighted reps are apart. */
+    private fun hasBaseline(type: RecordType, weight: Double?): Boolean = when (type) {
+        RecordType.Weight -> weightKg != null
+        RecordType.E1rm -> e1rmKg != null
+        RecordType.SetVolume -> setVolumeKg != null
+        RecordType.SessionVolume -> sessionVolumeKg != null
+        RecordType.Reps -> reps.any { (it.weightKg == null) == (weight == null) }
     }
 }
 
