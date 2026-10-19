@@ -58,6 +58,13 @@ import com.jaroszeek.gymtracker.feature.workout.NotificationPrompt
 import com.jaroszeek.gymtracker.feature.workout.WorkoutBarViewModel
 import com.jaroszeek.gymtracker.feature.workout.WorkoutMiniBar
 import com.jaroszeek.gymtracker.feature.workout.WorkoutRoute
+import com.jaroszeek.gymtracker.feature.history.WorkoutDetailRoute
+import com.jaroszeek.gymtracker.feature.history.WorkoutDetailViewModel
+import com.jaroszeek.gymtracker.feature.history.WorkoutEditorRoute
+import com.jaroszeek.gymtracker.feature.history.WorkoutEditorViewModel
+import com.jaroszeek.gymtracker.feature.progress.ProgressRoute
+import com.jaroszeek.gymtracker.feature.progress.RoutineProgressRoute
+import com.jaroszeek.gymtracker.feature.progress.RoutineProgressViewModel
 
 private val NavItems = TopLevelTab.entries.map { GlassNavItem(it.label, it.icon, it.selectedIcon) }
 
@@ -191,6 +198,34 @@ private fun entryProvider(navigator: TabNavigator): (NavKey) -> NavEntry<NavKey>
             )
         }
         TemplatesKey -> NavEntry(key) { TemplatesRoute(onBack = navigator::back) }
+        ProgressKey -> NavEntry(key) {
+            ProgressRoute(
+                onOpenWorkout = { navigator.navigate(WorkoutDetailKey(it)) },
+                onOpenExercise = { navigator.navigate(ExerciseDetailKey(it)) },
+                onOpenRoutine = { navigator.navigate(RoutineProgressKey(it)) },
+            )
+        }
+        is WorkoutDetailKey -> NavEntry(key) {
+            WorkoutDetailRoute(
+                viewModel = hiltViewModel<WorkoutDetailViewModel, WorkoutDetailViewModel.Factory> { it.create(key.id) },
+                onBack = navigator::back,
+                onEdit = { navigator.navigate(WorkoutEditorKey(it)) },
+            )
+        }
+        is WorkoutEditorKey -> NavEntry(key) {
+            WorkoutEditorRoute(
+                viewModel = hiltViewModel<WorkoutEditorViewModel, WorkoutEditorViewModel.Factory> { it.create(key.id) },
+                pickerViewModel = hiltViewModel(key = "exercisePicker"),
+                onClose = navigator::back,
+            )
+        }
+        is RoutineProgressKey -> NavEntry(key) {
+            RoutineProgressRoute(
+                viewModel = hiltViewModel<RoutineProgressViewModel, RoutineProgressViewModel.Factory> { it.create(key.id) },
+                onBack = navigator::back,
+                onOpenWorkout = { navigator.navigate(WorkoutDetailKey(it)) },
+            )
+        }
         else -> NavEntry(key) { PlaceholderScreen(TopLevelTab.entries.first { it.root == key }) }
     }
 }

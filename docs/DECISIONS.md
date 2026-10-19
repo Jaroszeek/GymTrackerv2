@@ -182,7 +182,7 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 - **Rozmiar:** release z R8 (bez podpisu) ma 2,0 MB; Backdrop + Shapes to ok. 12 KB dexu.
 
 ### D-020 Galeria komponentów i build `benchmark`
-- **Decyzja:** galeria to osobna aktywność w source secie `debug` z własną ikoną „GT Galeria”. To narzędzie deweloperskie, więc nie łamie zasady single-activity aplikacji. Motyw można ustawić przez extras intencji (skrypty zrzutów).
+- **Decyzja:** galeria to osobna aktywność w source secie `debug` z własną ikoną „GT Galeria” (od Etapu 6 bez ikony, D-058). To narzędzie deweloperskie, więc nie łamie zasady single-activity aplikacji. Motyw można ustawić przez extras intencji (skrypty zrzutów).
 - Build type `benchmark` (`initWith(release)`, podpis debug, sufiks `.benchmark`) kompiluje źródła i manifest `debug`, żeby macrobenchmark przewijał galerię na kodzie po R8. W AGP 9 źródła Kotlina dodaje się przez `kotlin.directories`, nie `java.directories`.
 - **Alternatywy:** galeria w `main` wycinana przez R8 (kod galerii trafiałby do kompilacji release).
 
@@ -384,6 +384,52 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 - Na prośbę właściciela (2026-10-19) dopisany do A5.10 i Etapu 9: v2 wczytuje kopię zapasową z pierwszej wersji. Z repo `Jaroszeek/GymTracker` bierzemy tylko format pliku kopii, i to dopiero w Etapie 9; kodu, UI ani funkcji v1 nie przenosimy.
 - Domyślnie import kopii v1 zastępuje dane v2 jak zwykły import (poprzednia baza zostaje w kopii). Łączenie z danymi v2 wymagałoby deduplikacji ćwiczeń i treningów — do decyzji właściciela w planie Etapu 9.
 - Test na syntetycznej kopii w formacie v1; prawdziwa kopia właściciela nie trafia do repo (dane zdrowotne).
+
+### D-053 Historia i postępy: układ (Etap 6)
+- Zakładka Postępy ma cztery segmenty: Historia, Ćwiczenia, Rutyny, Partie. Historia mieszka w Postępach, bo navbar ma stałe pięć zakładek (A3). Lista treningów jest pogrupowana po miesiącach.
+- Szczegóły treningu pokazują wszystkie serie z odznakami rekordów. Edycja jest osobnym ekranem: nazwa, czas trwania w minutach, ciężar, powtórzenia i typ serii, dodawanie i usuwanie serii oraz ćwiczeń, pytanie o odrzucenie zmian. Usunięcie wymaga potwierdzenia.
+- Edycja nie zmienia daty ani godziny startu; czas trwania przesuwa koniec (zmiana daty w `IDEAS.md`).
+- Szczegóły ćwiczenia: wykres (ciężar, e1RM, a przy ćwiczeniach z masą ciała powtórzenia) z zakresami i lista rekordów z datami, przy e1RM porównanie z Brzyckim.
+- Postęp rutyny: zakres, wykres objętości treningu, wykres najcięższej serii i lista sesji prowadząca do szczegółów.
+
+### D-054 Rekordy i e1RM: reguły
+- e1RM liczymy wzorem Epleya (jedno powtórzenie = ciężar), a Brzyckiego tylko do porównania na liście rekordów. Liczą się serie 1–12 powtórzeń z ciężarem większym od 0, bez rozgrzewkowych.
+- Rekord wymaga wcześniejszego wyniku: pierwszy trening ćwiczenia tylko ustala punkt odniesienia. Inaczej pierwszy trening z każdym ćwiczeniem byłby samymi rekordami. Tak samo dla każdego typu rekordu osobno: po samej masie ciała pierwszy trening z dodatkowym ciężarem, a po samych seriach powyżej 12 powtórzeń pierwszy trening z e1RM tylko ustalają punkt odniesienia (poprawka po przeglądzie kodu).
+- Ciężar, e1RM i objętość serii: rekordem jest wynik wyższy od najlepszego z wcześniejszych treningów (równy nie). Powtórzenia: więcej niż kiedykolwiek przy tym samym lub większym ciężarze; masa ciała porównywana tylko z masą ciała. Objętość treningu: odznakę dostaje seria, która przekroczyła poprzedni najlepszy wynik.
+- To samo ćwiczenie dwa razy w treningu to jedna sesja.
+- Rekordy liczymy przy odczycie historii, nie zapisujemy ich. Edycja i usunięcie treningu przeliczają je bez dodatkowego kodu i bez migracji (baza zostaje w wersji 3). Data rekordu to pierwszy trening, w którym padł.
+- Lista „najwięcej powtórzeń” pomija wyniki, które przebija cięższa seria z co najmniej taką samą liczbą powtórzeń.
+- W trakcie treningu rekordy liczą się względem historii z chwili dodania ćwiczenia. Edycja albo usunięcie treningu w historii w trakcie treningu nie zmienia ich do końca treningu; potem historia przelicza je sama. Odświeżanie w locie odrzucone: przypadek rzadki, a dokładałoby obserwację historii do aktywnego treningu.
+
+### D-055 Tygodniowe serie na partię
+- Tydzień zaczyna się w poniedziałek w strefie urządzenia. Liczą się serie bez rozgrzewkowych. Seria liczy się raz dla każdej partii, do której należą mięśnie główne ćwiczenia; pomocnicze się nie liczą. Suma „Serie robocze w tygodniu” liczy każdą serię raz, także gdy seria liczy się dla kilku partii.
+- Odrzucone: pół serii dla mięśni pomocniczych. Trudniej to wyjaśnić w jednym zdaniu pod wykresem, a liczby w bazie ćwiczeń są do tego zbyt zgrubne.
+
+### D-056 Komponenty: wykres, segmenty, pasek, odznaki rekordów
+- `GlassLineChart` na Canvas:
+  - linia monotoniczna (Fritsch–Carlson), która nie wychodzi ponad ani poniżej punktów, więc nie pokazuje wartości, których nie było;
+  - oś czasu proporcjonalna, okrągłe podziałki (1, 2, 2,5 lub 5 × 10ⁿ);
+  - gradient od linii w dół i glow jako rozmyta kopia linii (`BlurEffect`);
+  - animacja odsłaniania, wyłączona przy ograniczeniu animacji;
+  - tap i przeciąganie wybierają najbliższy punkt z tyknięciem haptycznym; wybrany punkt zostaje w nagłówku do zmiany zakresu;
+  - kropki do 24 punktów; czytnik ekranu dostaje liczbę punktów oraz pierwszą i ostatnią wartość.
+- `GlassSegmentedControl` (wskaźnik `LiquidSpan` jak w navbarze, `Role.Tab`) i `GlassBar` (pasek serii na partię). Wszystkie trzy są w galerii.
+- Odrzucone: biblioteka wykresów (Vico, MPAndroidChart). Własny komponent to ok. 300 linii, daje pełną kontrolę nad estetyką glass i nie dodaje zależności.
+- Odznaki rekordów: osobna na każdy typ, zawijane. Jedna długa odznaka ucinała się przy trzech rekordach w wierszu serii.
+
+### D-057 Wydajność i dane testowe
+- Agregaty liczy SQLite (zapytania w `WorkoutDao`): najlepsze wyniki każdej sesji, pierwsze wystąpienie każdej pary ciężar × powtórzenia i tygodniowe serie. e1RM w SQL korzysta z tych samych stałych co domena, a test JVM porównuje wyniki SQL z domeną na losowych danych.
+- Generator w debug (`DebugData`, galeria z `--ei seedWorkouts 300`): kopiuje szablon PPL i dodaje treningi co dwa dni wstecz z rosnącymi ciężarami. Tylko dodaje wiersze; dane usuwa wyczyszczenie danych aplikacji. Jest też w buildzie `benchmark` (źródła debug).
+- Pomiar na emulatorze (build `benchmark` z R8, 300 treningów, `dumpsys gfxinfo`):
+  - przewijanie historii: p50 20–25 ms, p90 28–48 ms, jank 1–10%;
+  - przeciąganie po wykresie ze 100 punktami: p50 26 ms, p90 32 ms, jank 7,5%;
+  - punkt odniesienia z Etapu 1 (galeria z blurem na tym samym emulatorze): p50 28 ms, p90 42 ms, jank 28%.
+  Nowe ekrany nie są wolniejsze od reszty aplikacji na emulatorze. Miarodajny pomiar będzie na telefonie.
+- Bez nowych zależności. Release: 4,04 MB (było 3,88 MB; +0,16 MB).
+
+### D-058 Wydanie testowe po każdym etapie, galeria bez ikony
+- Na polecenie właściciela (2026-10-19) każdy etap dostaje wydanie testowe `preview-stage-<nr>` na zasadach z D-051 (pre-release, APK debug zbudowany lokalnie). Etap 6 dostał je po merge'u, z `main`. Kolejne etapy dostaną je razem z PR, żeby dało się je sprawdzić na telefonie przed akceptacją.
+- Galeria komponentów nie ma już ikony w launcherze, bo właściciel nie chce jej na telefonie. Zostaje jako narzędzie deweloperskie, bo CLAUDE.md wymaga galerii dla każdego komponentu. Otwiera ją `adb shell am start -n …` (README) i macrobenchmark, który startuje ją po nazwie.
 
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 

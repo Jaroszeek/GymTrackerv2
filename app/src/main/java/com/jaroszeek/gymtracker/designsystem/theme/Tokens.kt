@@ -35,6 +35,7 @@ object GtBlur {
     val Panel = 28.dp
     val RefractionHeight = 20.dp
     val RefractionAmount = 28.dp
+    val ChartGlow = 6.dp
 }
 
 /** Soft, wide shadows; color comes from [GtColors.shadow]. */
@@ -68,12 +69,25 @@ object GtSizes {
     val MiniRing = 32.dp
     val MiniRingStroke = 3.dp
     val SetBadge = 32.dp
+    val ChartHeight = 180.dp
+    val ChartEmptyHeight = 96.dp
+    val ChartStroke = 2.5.dp
+    val ChartDot = 4.dp
+    val ChartHalo = 11.dp
+    val ChartGutter = 8.dp
+    val SegmentInset = 3.dp
+    val BarHeight = 8.dp
 }
 
 object GtAlpha {
     /** Accent tint behind accent text or icons (badges, droplet, icon wells). */
     const val ACCENT_WASH = 0.16f
     const val DISABLED = 0.4f
+    const val CHART_FILL = 0.28f
+    const val CHART_GLOW = 0.55f
+
+    /** Accent light behind a set that set a record, at full strength. */
+    const val RECORD_GLOW = 0.32f
 }
 
 object GtMotion {
@@ -87,6 +101,9 @@ object GtMotion {
     /** Overlays (dialog, sheet) and general enter/exit. */
     val Standard = spring<Float>(dampingRatio = 0.85f, stiffness = 380f)
     val Slide = spring(dampingRatio = 0.85f, stiffness = 420f, visibilityThreshold = IntOffset.VisibilityThreshold)
+
+    /** A chart line drawing itself from the left. */
+    val Reveal = spring<Float>(dampingRatio = 1f, stiffness = 120f)
 
     const val PRESSED_SCALE = 0.96f
     const val NAV_PRESSED_SCALE = 0.88f

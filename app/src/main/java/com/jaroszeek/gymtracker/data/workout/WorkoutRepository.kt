@@ -5,13 +5,25 @@ import com.jaroszeek.gymtracker.core.database.GtDatabase
 import com.jaroszeek.gymtracker.core.database.WorkoutEntity
 import com.jaroszeek.gymtracker.core.database.WorkoutExerciseEntity
 import com.jaroszeek.gymtracker.core.database.WorkoutSetEntity
+import com.jaroszeek.gymtracker.core.database.WorkoutWithExercises
 import com.jaroszeek.gymtracker.core.di.IoDispatcher
+import com.jaroszeek.gymtracker.data.progress.toDomain
+import com.jaroszeek.gymtracker.domain.progress.ExerciseProgress
+import com.jaroszeek.gymtracker.domain.progress.PersonalBests
 import com.jaroszeek.gymtracker.domain.routine.PerformedSet
 import com.jaroszeek.gymtracker.domain.routine.SetType
 import com.jaroszeek.gymtracker.domain.workout.ActiveWorkout
+import com.jaroszeek.gymtracker.domain.workout.LoggedExercise
+import com.jaroszeek.gymtracker.domain.workout.LoggedSet
+import com.jaroszeek.gymtracker.domain.workout.LoggedWorkout
+import com.jaroszeek.gymtracker.domain.workout.WorkoutListItem
+import com.jaroszeek.gymtracker.domain.workout.WorkoutSummary
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 @Singleton
@@ -26,16 +38,25 @@ class WorkoutRepository @Inject constructor(
         dao.lastSession(exerciseId).map { PerformedSet(it.weightKg, it.reps, SetType.fromKey(it.type)) }
     }
 
+    /** Bests of [exerciseId] so far, which the sets of a new workout are compared with. */
+    suspend fun personalBests(exerciseId: Long): PersonalBests = withContext(io) { progress(exerciseId).bestsBefore(Long.MAX_VALUE) }
+
+    /** Each exercise's bests from before [workout], for its record badges. */
+    suspend fun bestsBefore(workout: LoggedWorkout): Map<Long, PersonalBests> = withContext(io) {
+        workout.exercises.map { it.exerciseId }.distinct().associateWith { progress(it).bestsBefore(workout.startedAt) }
+    }
+
     /**
      * Saves the ticked-off sets as a finished workout; returns its id, or null when nothing was ticked off.
      * A routine, variant or exercise deleted while the workout ran is dropped instead of failing the save.
      */
     suspend fun save(workout: ActiveWorkout, endedAt: Long): Long? = database.withWriteTransaction {
-        val done = workout.exercises.mapNotNull { exercise -> exercise.sets.filter { it.done }.takeIf { it.isNotEmpty() }?.let { exercise to it } }
-        val exerciseIds = dao.existingExercises(done.map { it.first.variant.exerciseId }).toSet()
-        val kept = done.filter { it.first.variant.exerciseId in exerciseIds }
+        val done = workout.exercises.mapNotNull { exercise ->
+            val sets = exercise.sets.filter { it.done }.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+            LoggedExercise(0, exercise.variant.exerciseId, exercise.variant.routineVariantId, sets.map { LoggedSet(0, it.type, it.weightKg, it.reps ?: 0) })
+        }
+        val kept = existing(done)
         if (kept.isEmpty()) return@withWriteTransaction null
-        val variantIds = dao.existingVariants(kept.mapNotNull { it.first.variant.routineVariantId }).toSet()
         val workoutId = dao.insertWorkout(
             WorkoutEntity(
                 routineId = workout.routineId?.takeIf { dao.routineExists(it) },
@@ -44,18 +65,67 @@ class WorkoutRepository @Inject constructor(
                 endedAt = endedAt,
             ),
         )
-        kept.forEachIndexed { position, (exercise, sets) ->
-            val variant = exercise.variant
-            val rowId = dao.insertExercise(
-                WorkoutExerciseEntity(
-                    workoutId = workoutId,
-                    exerciseId = variant.exerciseId,
-                    position = position,
-                    routineVariantId = variant.routineVariantId?.takeIf { it in variantIds },
-                ),
-            )
-            dao.insertSets(sets.mapIndexed { index, set -> WorkoutSetEntity(0, rowId, index, set.type.key, set.weightKg, set.reps ?: 0) })
-        }
+        insertExercises(workoutId, kept)
         workoutId
     }
+
+    fun observeHistory(): Flow<List<WorkoutListItem>> = dao.observeHistory()
+        .map { rows ->
+            rows.map { WorkoutListItem(it.id, it.name, it.startedAt, WorkoutSummary(it.endedAt - it.startedAt, it.volumeKg, it.sets, it.exercises)) }
+        }
+        .flowOn(io)
+
+    fun observeWorkout(id: Long): Flow<LoggedWorkout?> = dao.observeWorkout(id).map { it?.toDomain() }.flowOn(io)
+
+    /**
+     * Replaces the workout's name, end and sets with the edited ones; false when none of its exercises
+     * exists any more, in which case nothing changes.
+     */
+    suspend fun update(workout: LoggedWorkout): Boolean = database.withWriteTransaction {
+        val kept = existing(workout.exercises)
+        if (kept.isEmpty()) return@withWriteTransaction false
+        dao.updateWorkout(workout.id, workout.name.trim(), workout.endedAt)
+        dao.deleteExercises(workout.id)
+        insertExercises(workout.id, kept)
+        true
+    }
+
+    suspend fun delete(id: Long) = withContext(io) { dao.deleteWorkout(id) }
+
+    private suspend fun progress(exerciseId: Long) =
+        ExerciseProgress(dao.exerciseSessions(exerciseId).map { it.toDomain() }, dao.repsDone(exerciseId).map { it.toDomain() })
+
+    /** Exercises that still exist, linked only to routine variants that still exist. */
+    private suspend fun existing(exercises: List<LoggedExercise>): List<LoggedExercise> {
+        val exerciseIds = dao.existingExercises(exercises.map { it.exerciseId }).toSet()
+        val variantIds = dao.existingVariants(exercises.mapNotNull { it.routineVariantId }).toSet()
+        return exercises
+            .filter { it.exerciseId in exerciseIds && it.sets.isNotEmpty() }
+            .map { exercise -> exercise.copy(routineVariantId = exercise.routineVariantId?.takeIf { it in variantIds }) }
+    }
+
+    private suspend fun insertExercises(workoutId: Long, exercises: List<LoggedExercise>) {
+        exercises.forEachIndexed { position, exercise ->
+            val rowId = dao.insertExercise(
+                WorkoutExerciseEntity(workoutId = workoutId, exerciseId = exercise.exerciseId, position = position, routineVariantId = exercise.routineVariantId),
+            )
+            dao.insertSets(exercise.sets.mapIndexed { index, set -> WorkoutSetEntity(0, rowId, index, set.type.key, set.weightKg, set.reps) })
+        }
+    }
 }
+
+private fun WorkoutWithExercises.toDomain() = LoggedWorkout(
+    id = workout.id,
+    routineId = workout.routineId,
+    name = workout.name,
+    startedAt = workout.startedAt,
+    endedAt = workout.endedAt,
+    exercises = exercises.sortedBy { it.exercise.position }.map { row ->
+        LoggedExercise(
+            id = row.exercise.id,
+            exerciseId = row.exercise.exerciseId,
+            routineVariantId = row.exercise.routineVariantId,
+            sets = row.sets.sortedBy { it.position }.map { LoggedSet(it.id, SetType.fromKey(it.type), it.weightKg, it.reps) },
+        )
+    },
+)

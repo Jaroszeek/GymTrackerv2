@@ -1,0 +1,94 @@
+package com.jaroszeek.gymtracker.feature.progress
+
+import android.util.Log
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.jaroszeek.gymtracker.data.progress.ProgressRepository
+import com.jaroszeek.gymtracker.data.workout.WorkoutRepository
+import com.jaroszeek.gymtracker.domain.progress.ExerciseHistory
+import com.jaroszeek.gymtracker.domain.progress.RoutineHistory
+import com.jaroszeek.gymtracker.domain.progress.Week
+import com.jaroszeek.gymtracker.domain.progress.WeekSets
+import com.jaroszeek.gymtracker.domain.workout.WorkoutListItem
+import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
+import java.time.ZoneId
+import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+
+enum class ProgressTab { History, Exercises, Routines, Muscles }
+
+data class ProgressUiState(
+    val tab: ProgressTab = ProgressTab.History,
+    val loading: Boolean = true,
+    val error: Boolean = false,
+    val history: List<WorkoutListItem> = emptyList(),
+    val exercises: List<ExerciseHistory> = emptyList(),
+    val routines: List<RoutineHistory> = emptyList(),
+    val week: Week = Week.of(LocalDate.now()),
+    val weekSets: WeekSets = WeekSets(),
+    /** No week after the current one. */
+    val isCurrentWeek: Boolean = true,
+)
+
+@OptIn(ExperimentalCoroutinesApi::class)
+@HiltViewModel
+class ProgressViewModel @Inject constructor(
+    workouts: WorkoutRepository,
+    progress: ProgressRepository,
+) : ViewModel() {
+
+    private val zone = ZoneId.systemDefault()
+    private val tab = MutableStateFlow(ProgressTab.History)
+
+    /** The week picked with the arrows; null follows the current one. */
+    private val week = MutableStateFlow<Week?>(null)
+
+    // The current week is looked up on every subscription, so a screen kept overnight moves on to a new week
+    private val weekSets = week.flatMapLatest { picked ->
+        val current = currentWeek()
+        val shown = picked ?: current
+        progress.observeWeek(shown, zone).map { Triple(shown, it, shown == current) }
+    }
+
+    val state: StateFlow<ProgressUiState> =
+        combine(tab, workouts.observeHistory(), progress.observeExercises(), progress.observeRoutines(), weekSets) { tab, history, exercises, routines, (week, sets, isCurrent) ->
+            ProgressUiState(
+                tab = tab,
+                loading = false,
+                history = history,
+                exercises = exercises,
+                routines = routines,
+                week = week,
+                weekSets = sets,
+                isCurrentWeek = isCurrent,
+            )
+        }
+            .catch { e ->
+                Log.e(TAG, "Loading progress failed", e)
+                emit(ProgressUiState(tab = tab.value, loading = false, error = true))
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), ProgressUiState())
+
+    fun onTab(tab: ProgressTab) = this.tab.update { tab }
+
+    fun onPreviousWeek() = week.update { (it ?: currentWeek()).previous() }
+
+    fun onNextWeek() = week.update { it?.next()?.takeIf { next -> next.monday < currentWeek().monday } }
+
+    private fun currentWeek() = Week.of(LocalDate.now(zone))
+
+    private companion object {
+        const val TAG = "Progress"
+        const val STOP_TIMEOUT_MILLIS = 5_000L
+    }
+}

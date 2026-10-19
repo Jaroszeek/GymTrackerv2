@@ -78,6 +78,20 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.ui.platform.LocalResources
+import com.jaroszeek.gymtracker.designsystem.component.ChartPoint
+import com.jaroszeek.gymtracker.designsystem.component.ChartRange
+import com.jaroszeek.gymtracker.designsystem.component.ChartRangeSelector
+import com.jaroszeek.gymtracker.designsystem.component.GlassBar
+import com.jaroszeek.gymtracker.designsystem.component.GlassLineChart
+import com.jaroszeek.gymtracker.designsystem.component.GlassSegmentedControl
+import com.jaroszeek.gymtracker.designsystem.component.within
+import com.jaroszeek.gymtracker.feature.routines.weightLabel
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import kotlin.math.sin
 
 private val NavItems = listOf(
     GlassNavItem(R.string.nav_home, R.drawable.ic_home, R.drawable.ic_home_filled),
@@ -88,6 +102,8 @@ private val NavItems = listOf(
 )
 
 private const val FILLER_CARDS = 12
+private const val SAMPLE_SESSIONS = 120
+private const val SAMPLE_GAP_MILLIS = 3 * 86_400_000L
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -181,6 +197,7 @@ fun GalleryScreen(settings: ThemeSettings, onSettingsChange: (ThemeSettings) -> 
                     GlassMiniBar(stringResource(R.string.nav_workout), stringResource(R.string.gallery_minibar_subtitle), 0.28f, onClick = {})
                 }
             }
+            section(R.string.gallery_section_charts) { Charts() }
             section(R.string.gallery_section_live_update) { LiveUpdateProbeCard() }
             section(R.string.gallery_section_scroll) {}
             items(FILLER_CARDS) { index -> FillerCard(index + 1) }
@@ -351,6 +368,43 @@ private fun Inputs() {
         }
         GlassCard(Modifier.fillMaxWidth()) {
             SwitchRow(stringResource(R.string.gallery_switch_label), switch) { switch = it }
+        }
+    }
+}
+
+@Composable
+private fun Charts() {
+    val now = remember { Instant.now() }
+    // A year of sessions every three days: steady growth with a wobble
+    val points = remember(now) {
+        List(SAMPLE_SESSIONS) { i ->
+            ChartPoint(now.toEpochMilli() - (SAMPLE_SESSIONS - 1 - i) * SAMPLE_GAP_MILLIS, 92.5 + i * 0.22 + sin(i / 5.0) * 2.5)
+        }
+    }
+    var range by remember { mutableStateOf(ChartRange.ThreeMonths) }
+    var tab by remember { mutableIntStateOf(0) }
+    val zone = ZoneId.systemDefault()
+    val dates = remember(zone) { DateTimeFormatter.ofPattern("d MMM", Locale.getDefault()).withZone(zone) }
+    val resources = LocalResources.current
+    Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
+        GlassSegmentedControl(
+            options = listOf(R.string.progress_history, R.string.progress_exercises, R.string.progress_routines, R.string.progress_muscles).map { stringResource(it) },
+            selectedIndex = tab,
+            onSelect = { tab = it },
+        )
+        GlassCard(Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.gallery_chart_title), style = GtTheme.typography.title)
+            GlassLineChart(
+                points = points.within(range, now, zone),
+                valueLabel = { resources.getString(R.string.value_kg, weightLabel(it)) },
+                dateLabel = { dates.format(Instant.ofEpochMilli(it)) },
+                emptyText = stringResource(R.string.chart_range_empty),
+                axisLabel = { weightLabel(it) },
+            )
+            ChartRangeSelector(range, onSelect = { range = it })
+        }
+        GlassCard(Modifier.fillMaxWidth()) {
+            listOf(0.15f, 0.6f, 1f).forEach { GlassBar(it) }
         }
     }
 }

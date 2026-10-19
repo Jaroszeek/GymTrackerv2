@@ -9,10 +9,14 @@ import com.jaroszeek.gymtracker.data.exercise.ExerciseRepository
 import com.jaroszeek.gymtracker.data.routine.RoutineRepository
 import com.jaroszeek.gymtracker.data.workout.ActiveWorkoutManager
 import com.jaroszeek.gymtracker.domain.exercise.Exercise
+import com.jaroszeek.gymtracker.domain.progress.RecordType
 import com.jaroszeek.gymtracker.domain.routine.SetType
 import com.jaroszeek.gymtracker.domain.workout.ActiveWorkout
+import com.jaroszeek.gymtracker.domain.workout.RecordHit
 import com.jaroszeek.gymtracker.domain.workout.TargetChange
 import com.jaroszeek.gymtracker.domain.workout.WorkoutSummary
+import com.jaroszeek.gymtracker.domain.workout.recordHits
+import com.jaroszeek.gymtracker.domain.workout.records
 import com.jaroszeek.gymtracker.domain.workout.summary
 import com.jaroszeek.gymtracker.domain.workout.targetChanges
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,6 +41,7 @@ data class FinishState(
     val name: String,
     val summary: WorkoutSummary,
     val changes: List<TargetChange>,
+    val records: List<RecordHit> = emptyList(),
     /** Routine variants whose new targets the user chose to apply. */
     val apply: Set<Long> = emptySet(),
     val changesVisible: Boolean = changes.isNotEmpty(),
@@ -57,6 +62,10 @@ data class WorkoutUiState(
     val exercises: Map<Long, Exercise> = emptyMap(),
     /** Set opened for editing per workout exercise when the user picked one; otherwise the first unticked set is open. */
     val expanded: Map<Long, Long> = emptyMap(),
+    /** Per ticked-off set id the records it set (A5.7). */
+    val records: Map<Long, Set<RecordType>> = emptyMap(),
+    /** A set just ticked off set a record: one haptic pulse, then [WorkoutViewModel.onRecordShown]. */
+    val recordHit: Boolean = false,
     val restVisible: Boolean = false,
     val setActions: SetRef? = null,
     val picker: Boolean = false,
@@ -84,6 +93,7 @@ private data class Local(
     val finished: FinishState? = null,
     val issues: BackgroundIssues = BackgroundIssues(),
     val issuesHidden: Boolean = false,
+    val recordHit: Boolean = false,
 )
 
 @HiltViewModel
@@ -112,6 +122,8 @@ class WorkoutViewModel @Inject constructor(
             workout = workout,
             exercises = byId.orEmpty(),
             expanded = local.expanded,
+            records = workout?.records().orEmpty(),
+            recordHit = local.recordHit,
             restVisible = workout?.rest != null && workout.rest.startsAt != local.hiddenRest,
             setActions = local.setActions,
             picker = local.picker,
@@ -148,9 +160,12 @@ class WorkoutViewModel @Inject constructor(
     fun onToggleSet(exerciseId: Long, setId: Long) {
         val set = manager.workout.value?.exercises?.firstOrNull { it.id == exerciseId }?.sets?.firstOrNull { it.id == setId } ?: return
         if (set.done) manager.uncompleteSet(exerciseId, setId) else manager.completeSet(exerciseId, setId)
+        val record = !set.done && manager.workout.value?.records()?.containsKey(setId) == true
         // The next unticked set opens
-        local.update { it.copy(expanded = it.expanded - exerciseId) }
+        local.update { it.copy(expanded = it.expanded - exerciseId, recordHit = it.recordHit || record) }
     }
+
+    fun onRecordShown() = local.update { it.copy(recordHit = false) }
 
     fun onExpandSet(exerciseId: Long, setId: Long) = local.update { it.copy(expanded = it.expanded + (exerciseId to setId)) }
 
@@ -202,7 +217,7 @@ class WorkoutViewModel @Inject constructor(
             try {
                 val finished = manager.finish()
                 val state = finished?.let { (workout, endedAt) ->
-                    workout.summary(endedAt).takeUnless { it.isEmpty }?.let { FinishState(workout.name, it, workout.targetChanges()) }
+                    workout.summary(endedAt).takeUnless { it.isEmpty }?.let { FinishState(workout.name, it, workout.targetChanges(), workout.recordHits()) }
                 }
                 local.update { it.copy(finishing = false, finished = state) }
             } catch (e: Exception) {

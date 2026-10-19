@@ -39,6 +39,16 @@ data object ActiveWorkoutKey : NavKey
 @Serializable
 data object LiveUpdateDiagnosticsKey : NavKey
 
+/** A finished workout from history, on the Postępy stack. */
+@Serializable
+data class WorkoutDetailKey(val id: Long) : NavKey
+
+@Serializable
+data class WorkoutEditorKey(val id: Long) : NavKey
+
+@Serializable
+data class RoutineProgressKey(val id: Long) : NavKey
+
 /** [id] null creates a new custom exercise. */
 @Serializable
 data class ExerciseEditorKey(val id: Long?) : NavKey

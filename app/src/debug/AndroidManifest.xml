@@ -6,17 +6,12 @@
         <!-- Lets macrobenchmarks trace the release-like benchmark build -->
         <profileable android:shell="true" />
 
+        <!-- No launcher icon: started by adb and the macrobenchmark by its name (D-020) -->
         <activity
             android:name=".designsystem.gallery.GalleryActivity"
             android:exported="true"
             android:label="@string/gallery_launcher_label"
-            android:taskAffinity="com.jaroszeek.gymtracker.gallery">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:taskAffinity="com.jaroszeek.gymtracker.gallery" />
     </application>
 
 </manifest>

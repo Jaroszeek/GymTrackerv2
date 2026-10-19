@@ -35,6 +35,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jaroszeek.gymtracker.R
 import com.jaroszeek.gymtracker.designsystem.component.BadgeTone
+import com.jaroszeek.gymtracker.designsystem.component.ChartRange
 import com.jaroszeek.gymtracker.designsystem.component.GlassBadge
 import com.jaroszeek.gymtracker.designsystem.component.GlassButton
 import com.jaroszeek.gymtracker.designsystem.component.GlassButtonStyle
@@ -73,6 +74,8 @@ fun ExerciseDetailRoute(viewModel: ExerciseDetailViewModel, onBack: () -> Unit, 
         onDeleteDismiss = viewModel::onDeleteDismiss,
         onDeleteConfirm = viewModel::onDeleteConfirm,
         onInUseDismiss = viewModel::onInUseDismiss,
+        onMetric = viewModel::onMetric,
+        onRange = viewModel::onRange,
     )
 }
 
@@ -86,6 +89,8 @@ fun ExerciseDetailScreen(
     onDeleteDismiss: () -> Unit,
     onDeleteConfirm: () -> Unit,
     onInUseDismiss: () -> Unit,
+    onMetric: (ExerciseMetric) -> Unit,
+    onRange: (ChartRange) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val exercise = (state as? ExerciseDetailUiState.Content)?.exercise
@@ -102,7 +107,7 @@ fun ExerciseDetailScreen(
             // Room for the floating back button
             Box(Modifier.padding(top = GtSpacing.huge))
             when (state) {
-                is ExerciseDetailUiState.Content -> ExerciseDetails(state.exercise)
+                is ExerciseDetailUiState.Content -> ExerciseDetails(state, onMetric, onRange)
                 ExerciseDetailUiState.NotFound, ExerciseDetailUiState.Deleted -> Message(stringResource(R.string.detail_not_found))
                 ExerciseDetailUiState.Error -> Message(stringResource(R.string.exercises_error))
                 ExerciseDetailUiState.Loading -> Unit
@@ -144,7 +149,8 @@ fun ExerciseDetailScreen(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ExerciseDetails(exercise: Exercise) {
+private fun ExerciseDetails(state: ExerciseDetailUiState.Content, onMetric: (ExerciseMetric) -> Unit, onRange: (ChartRange) -> Unit) {
+    val exercise = state.exercise
     val colors = GtTheme.colors
     val uriHandler = LocalUriHandler.current
     val videoQuery = stringResource(R.string.detail_video_query, exercise.name)
@@ -182,9 +188,8 @@ private fun ExerciseDetails(exercise: Exercise) {
             }
         }
     }
-    // Filled in Etap 6 (charts and records)
-    PlaceholderCard(stringResource(R.string.detail_chart_title), stringResource(R.string.detail_chart_empty))
-    PlaceholderCard(stringResource(R.string.detail_records_title), stringResource(R.string.detail_records_empty))
+    ExerciseChartCard(state.progress, state.metric, state.range, onMetric, onRange)
+    ExerciseRecordsCard(state.progress)
     Text(
         stringResource(R.string.detail_source, stringResource(exercise.source.label)),
         color = colors.textTertiary,
@@ -232,14 +237,6 @@ private fun MuscleSection(title: String, muscles: Set<Muscle>, tone: BadgeTone) 
 }
 
 @Composable
-private fun PlaceholderCard(title: String, text: String) {
-    GlassCard(Modifier.fillMaxWidth()) {
-        Text(title, style = GtTheme.typography.title)
-        Text(text, color = GtTheme.colors.textSecondary, style = GtTheme.typography.bodySmall)
-    }
-}
-
-@Composable
 private fun Message(text: String) {
     GlassCard(Modifier.fillMaxWidth()) {
         Text(text, color = GtTheme.colors.textSecondary, style = GtTheme.typography.body)
@@ -258,7 +255,7 @@ private fun ExerciseDetailScreenPreview() {
     )
     GymTrackerTheme {
         GlassScaffold {
-            ExerciseDetailScreen(ExerciseDetailUiState.Content(exercise), {}, {}, {}, {}, {}, {})
+            ExerciseDetailScreen(ExerciseDetailUiState.Content(exercise), {}, {}, {}, {}, {}, {}, {}, {})
         }
     }
 }

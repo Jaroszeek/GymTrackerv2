@@ -4,7 +4,7 @@ Natywna aplikacja na Androida do śledzenia treningów siłowych. Działa lokaln
 
 > Szkic. Projekt jest w budowie, etapami opisanymi w `PROMPT.md`. Stan prac: `docs/PROGRESS.md`.
 >
-> Gotowe: design system i nawigacja (Etap 1), baza ćwiczeń z wyszukiwarką, filtrami i własnymi ćwiczeniami (Etap 2), rutyny z wariantami, drag & drop i gotowymi szablonami (Etap 3), aktywny trening z przerwą, podsumowaniem i podpowiedzią progresji (Etap 4), powiadomienie treningu z Live Update i przerwą w tle (Etap 5).
+> Gotowe: design system i nawigacja (Etap 1), baza ćwiczeń z wyszukiwarką, filtrami i własnymi ćwiczeniami (Etap 2), rutyny z wariantami, drag & drop i gotowymi szablonami (Etap 3), aktywny trening z przerwą, podsumowaniem i podpowiedzią progresji (Etap 4), powiadomienie treningu z Live Update i przerwą w tle (Etap 5), historia z edycją, rekordy, e1RM i wykresy postępów (Etap 6).
 
 <p>
   <img src="docs/screenshots/stage1-app-trening-dark.png" width="240" alt="Zakładka Trening, motyw ciemny">
@@ -52,7 +52,7 @@ Wariant debug ma identyfikator `com.jaroszeek.gymtracker.debug`, więc instaluje
 
 ### Galeria komponentów (tylko debug)
 
-W launcherze pojawia się osobna ikona „GT Galeria” ze wszystkimi komponentami i przełącznikami motywu. Motyw można też ustawić z linii poleceń, np. do zrzutów ekranu:
+Galeria ze wszystkimi komponentami i przełącznikami motywu nie ma ikony w launcherze (D-058). Otwiera się ją z linii poleceń, a parametrami można od razu ustawić motyw, np. do zrzutów ekranu:
 
 ```powershell
 adb shell am start -n com.jaroszeek.gymtracker.debug/com.jaroszeek.gymtracker.designsystem.gallery.GalleryActivity --es palette onyx --ez reduceTransparency true
