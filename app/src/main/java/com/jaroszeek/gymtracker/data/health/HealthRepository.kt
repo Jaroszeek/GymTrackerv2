@@ -2,6 +2,7 @@ package com.jaroszeek.gymtracker.data.health
 
 import com.jaroszeek.gymtracker.core.database.HealthDatabase
 import com.jaroszeek.gymtracker.core.database.HealthSessionEntity
+import com.jaroszeek.gymtracker.core.datastore.AppPreferences
 import com.jaroszeek.gymtracker.core.di.IoDispatcher
 import com.jaroszeek.gymtracker.domain.health.BASELINE_DAYS
 import com.jaroszeek.gymtracker.domain.health.DailyRecovery
@@ -11,10 +12,13 @@ import com.jaroszeek.gymtracker.domain.health.HeartRateSample
 import com.jaroszeek.gymtracker.domain.health.ImportSummary
 import com.jaroszeek.gymtracker.domain.health.MATCH_WINDOW_MILLIS
 import com.jaroszeek.gymtracker.domain.health.SleepSession
+import com.jaroszeek.gymtracker.domain.health.resolveMaxHeartRate
 import com.jaroszeek.gymtracker.domain.health.withoutDuplicateSleep
 import com.jaroszeek.gymtracker.domain.health.withoutDuplicates
+import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
+import java.time.Year
 import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -74,3 +78,9 @@ class HealthRepository @Inject constructor(
 }
 
 internal fun HealthSessionEntity.toDomain() = HealthSession(id, origin, exerciseType, title, startTime, endTime, activeKcal, totalKcal)
+
+/** Age from the stored birth year, in the device zone. */
+fun AppPreferences.observeAge(clock: Clock): Flow<Int?> = birthYear.map { year -> year?.let { Year.now(clock.withZone(ZoneId.systemDefault())).value - it } }
+
+/** The maximum heart rate the zones use (A6). */
+fun AppPreferences.observeMaxHeartRate(clock: Clock): Flow<Int?> = combine(maxHeartRate, observeAge(clock), ::resolveMaxHeartRate)

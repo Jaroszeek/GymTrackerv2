@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,9 +45,9 @@ private fun TopLevelTab.placeholderText(): Int = when (this) {
     TopLevelTab.Profile -> R.string.placeholder_profile
 }
 
-/** Stub of a tab until its stage (Etap 2–8) replaces it. */
+/** Stub of a tab until its stage (Etap 2–8) replaces it; [content] is what already works there. */
 @Composable
-fun PlaceholderScreen(tab: TopLevelTab, modifier: Modifier = Modifier) {
+fun PlaceholderScreen(tab: TopLevelTab, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit = {}) {
     val colors = GtTheme.colors
     Column(
         modifier
@@ -57,6 +58,7 @@ fun PlaceholderScreen(tab: TopLevelTab, modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(GtSpacing.xxl),
     ) {
         Text(stringResource(tab.label), style = GtTheme.typography.display)
+        content()
         GlassCard(Modifier.fillMaxWidth()) {
             Box(
                 Modifier

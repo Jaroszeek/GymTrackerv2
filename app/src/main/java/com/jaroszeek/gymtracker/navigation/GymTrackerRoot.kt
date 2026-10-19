@@ -49,6 +49,9 @@ import com.jaroszeek.gymtracker.feature.exercises.ExerciseDetailViewModel
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseEditorRoute
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseEditorViewModel
 import com.jaroszeek.gymtracker.feature.exercises.ExercisesRoute
+import com.jaroszeek.gymtracker.feature.health.HealthConnectEntry
+import com.jaroszeek.gymtracker.feature.health.HealthConnectRoute
+import com.jaroszeek.gymtracker.feature.health.PrivacyPolicyScreen
 import com.jaroszeek.gymtracker.feature.placeholder.PlaceholderScreen
 import com.jaroszeek.gymtracker.feature.routines.RoutineEditorRoute
 import com.jaroszeek.gymtracker.feature.routines.RoutineEditorViewModel
@@ -226,6 +229,15 @@ private fun entryProvider(navigator: TabNavigator): (NavKey) -> NavEntry<NavKey>
                 onOpenWorkout = { navigator.navigate(WorkoutDetailKey(it)) },
             )
         }
+        ProfileKey -> NavEntry(key) {
+            PlaceholderScreen(TopLevelTab.Profile) {
+                HealthConnectEntry(onClick = { navigator.navigate(HealthConnectKey) })
+            }
+        }
+        HealthConnectKey -> NavEntry(key) {
+            HealthConnectRoute(viewModel = hiltViewModel(), onBack = navigator::back, onPrivacy = { navigator.navigate(PrivacyPolicyKey) })
+        }
+        PrivacyPolicyKey -> NavEntry(key) { PrivacyPolicyScreen(onBack = navigator::back) }
         else -> NavEntry(key) { PlaceholderScreen(TopLevelTab.entries.first { it.root == key }) }
     }
 }

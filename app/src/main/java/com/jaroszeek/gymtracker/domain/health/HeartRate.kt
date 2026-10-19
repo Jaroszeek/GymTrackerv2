@@ -14,6 +14,14 @@ const val MAX_SAMPLE_GAP_MILLIS = 120_000L
 /** Tanaka's estimate, 208 − 0.7 × age; better than 220 − age for adults. */
 fun estimatedMaxHeartRate(age: Int): Int = (208 - 0.7 * age).roundToInt()
 
+/** Plausible values; the fields store whatever is typed, so a half-typed "1" counts as unset. */
+val AGE_RANGE = 10..100
+val MAX_HEART_RATE_RANGE = 100..230
+
+/** The one entered by hand, else the estimate from the age; null without either. */
+fun resolveMaxHeartRate(manual: Int?, age: Int?): Int? =
+    manual?.takeIf { it in MAX_HEART_RATE_RANGE } ?: age?.takeIf { it in AGE_RANGE }?.let(::estimatedMaxHeartRate)
+
 /**
  * Each sample lasts until the next one, unless the gap is over [MAX_SAMPLE_GAP_MILLIS]; time under
  * half of [maxHeartRate] is in no zone. Null without samples.

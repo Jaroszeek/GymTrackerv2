@@ -1,7 +1,8 @@
 package com.jaroszeek.gymtracker.core.health
 
+import android.content.ActivityNotFoundException
 import android.content.Context
-import android.content.Intent
+import android.util.Log
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.PermissionController
@@ -71,10 +72,17 @@ class HealthConnect @Inject constructor(@ApplicationContext private val context:
         return client()?.features?.getFeatureStatus(flag) == HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
     }
 
-    /** Health Connect's own screen with the data and the permissions of this app. */
-    fun manageIntent(): Intent = HealthConnectClient.getHealthConnectManageDataIntent(context)
-
     companion object {
         val permissionContract = PermissionController.createRequestPermissionResultContract()
+    }
+}
+
+/** Health Connect's own screen with the data and the permissions of this app. */
+fun Context.openHealthConnect() {
+    val intent = HealthConnectClient.getHealthConnectManageDataIntent(this)
+    try {
+        startActivity(intent)
+    } catch (e: ActivityNotFoundException) {
+        Log.w("HealthConnect", "No Health Connect screen for ${intent.action}", e)
     }
 }
