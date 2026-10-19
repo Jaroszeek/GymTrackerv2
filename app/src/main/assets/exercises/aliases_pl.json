@@ -1,0 +1,472 @@
+{
+ "Barbell_Bench_Press_-_Medium_Grip": [
+  "wyciskanie sztangi leżąc",
+  "wyciskanie na ławce płaskiej",
+  "klata sztanga"
+ ],
+ "Barbell_Incline_Bench_Press_-_Medium_Grip": [
+  "wyciskanie sztangi na skosie",
+  "wyciskanie na ławce skośnej"
+ ],
+ "Decline_Barbell_Bench_Press": [
+  "wyciskanie sztangi głową w dół",
+  "wyciskanie na ławce ujemnej"
+ ],
+ "Wide-Grip_Barbell_Bench_Press": [
+  "wyciskanie szerokim chwytem"
+ ],
+ "Close-Grip_Barbell_Bench_Press": [
+  "wyciskanie wąskim chwytem"
+ ],
+ "Dumbbell_Bench_Press": [
+  "wyciskanie hantli leżąc",
+  "wyciskanie hantli na ławce płaskiej"
+ ],
+ "Incline_Dumbbell_Press": [
+  "wyciskanie hantli na skosie",
+  "wyciskanie hantli na ławce skośnej"
+ ],
+ "Machine_Bench_Press": [
+  "wyciskanie na maszynie"
+ ],
+ "Leverage_Chest_Press": [
+  "wyciskanie na maszynie hammer"
+ ],
+ "Smith_Machine_Bench_Press": [
+  "wyciskanie na suwnicy smitha"
+ ],
+ "Dumbbell_Flyes": [
+  "rozpiętki z hantlami",
+  "rozpiętki leżąc"
+ ],
+ "Incline_Dumbbell_Flyes": [
+  "rozpiętki na skosie"
+ ],
+ "Cable_Crossover": [
+  "krzyżowanie linek",
+  "rozpiętki na wyciągu"
+ ],
+ "Butterfly": [
+  "motylek",
+  "pec deck",
+  "rozpiętki na maszynie"
+ ],
+ "Pushups": [
+  "pompki"
+ ],
+ "Dips_-_Chest_Version": [
+  "pompki na poręczach",
+  "dipy na klatkę"
+ ],
+ "Dips_-_Triceps_Version": [
+  "pompki na poręczach na triceps",
+  "dipy"
+ ],
+ "Barbell_Deadlift": [
+  "martwy ciąg",
+  "martwy ciąg klasyczny"
+ ],
+ "Romanian_Deadlift": [
+  "martwy ciąg rumuński",
+  "rdl"
+ ],
+ "Stiff-Legged_Barbell_Deadlift": [
+  "martwy ciąg na prostych nogach"
+ ],
+ "Sumo_Deadlift": [
+  "martwy ciąg sumo"
+ ],
+ "Deficit_Deadlift": [
+  "martwy ciąg z podwyższenia"
+ ],
+ "Rack_Pulls": [
+  "martwy ciąg ze stojaków"
+ ],
+ "Barbell_Full_Squat": [
+  "przysiad ze sztangą",
+  "przysiad tylny",
+  "przysiad"
+ ],
+ "Barbell_Squat": [
+  "przysiad ze sztangą na plecach"
+ ],
+ "Front_Squat_Clean_Grip": [
+  "przysiad przedni",
+  "front squat"
+ ],
+ "Box_Squat": [
+  "przysiad na skrzynię"
+ ],
+ "Goblet_Squat": [
+  "przysiad goblet",
+  "przysiad z hantlą"
+ ],
+ "Smith_Machine_Squat": [
+  "przysiad na suwnicy smitha"
+ ],
+ "Hack_Squat": [
+  "hack przysiad",
+  "przysiad na maszynie hack"
+ ],
+ "Leg_Press": [
+  "wypychanie nogami",
+  "suwnica",
+  "prasa nożna"
+ ],
+ "Barbell_Lunge": [
+  "wykroki ze sztangą"
+ ],
+ "Dumbbell_Lunges": [
+  "wykroki z hantlami"
+ ],
+ "Barbell_Walking_Lunge": [
+  "wykroki chodzone ze sztangą"
+ ],
+ "Bodyweight_Walking_Lunge": [
+  "wykroki chodzone"
+ ],
+ "Split_Squat_with_Dumbbells": [
+  "przysiad bułgarski",
+  "bułgar",
+  "przysiad wykroczny"
+ ],
+ "Barbell_Step_Ups": [
+  "wejścia na skrzynię ze sztangą"
+ ],
+ "Dumbbell_Step_Ups": [
+  "wejścia na skrzynię z hantlami"
+ ],
+ "Leg_Extensions": [
+  "prostowanie nóg na maszynie",
+  "wyprosty nóg"
+ ],
+ "Lying_Leg_Curls": [
+  "uginanie nóg leżąc",
+  "uginanie nóg na maszynie"
+ ],
+ "Seated_Leg_Curl": [
+  "uginanie nóg siedząc"
+ ],
+ "Barbell_Hip_Thrust": [
+  "hip thrust",
+  "wypychanie bioder ze sztangą"
+ ],
+ "Barbell_Glute_Bridge": [
+  "mostek biodrowy ze sztangą"
+ ],
+ "Glute_Kickback": [
+  "odwodzenie nogi w tył"
+ ],
+ "Pull_Through": [
+  "przeciąganie liny między nogami"
+ ],
+ "Standing_Calf_Raises": [
+  "wspięcia na palce stojąc",
+  "łydki stojąc"
+ ],
+ "Seated_Calf_Raise": [
+  "wspięcia na palce siedząc",
+  "łydki siedząc"
+ ],
+ "Calf_Press_On_The_Leg_Press_Machine": [
+  "wspięcia na palce na suwnicy"
+ ],
+ "Thigh_Adductor": [
+  "przywodzenie nóg na maszynie"
+ ],
+ "Thigh_Abductor": [
+  "odwodzenie nóg na maszynie"
+ ],
+ "Natural_Glute_Ham_Raise": [
+  "uginanie nóg nordyckie z podparciem"
+ ],
+ "Glute_Ham_Raise": [
+  "glute ham raise",
+  "ghr"
+ ],
+ "Pullups": [
+  "podciąganie nachwytem",
+  "podciąganie na drążku"
+ ],
+ "Chin-Up": [
+  "podciąganie podchwytem"
+ ],
+ "Weighted_Pull_Ups": [
+  "podciąganie z obciążeniem"
+ ],
+ "Band_Assisted_Pull-Up": [
+  "podciąganie z gumą"
+ ],
+ "Wide-Grip_Lat_Pulldown": [
+  "ściąganie drążka do klatki",
+  "ściąganie drążka szerokim chwytem",
+  "wyciąg górny"
+ ],
+ "Close-Grip_Front_Lat_Pulldown": [
+  "ściąganie drążka wąskim chwytem"
+ ],
+ "V-Bar_Pulldown": [
+  "ściąganie uchwytu v"
+ ],
+ "Straight-Arm_Pulldown": [
+  "ściąganie drążka prostymi rękami"
+ ],
+ "Seated_Cable_Rows": [
+  "wiosłowanie na wyciągu dolnym",
+  "przyciąganie linki siedząc"
+ ],
+ "Bent_Over_Barbell_Row": [
+  "wiosłowanie sztangą w opadzie",
+  "wiosłowanie sztangą"
+ ],
+ "One-Arm_Dumbbell_Row": [
+  "wiosłowanie hantlą jednorącz",
+  "wiosłowanie hantlą w podporze"
+ ],
+ "Bent_Over_Two-Dumbbell_Row": [
+  "wiosłowanie hantlami w opadzie"
+ ],
+ "T-Bar_Row_with_Handle": [
+  "wiosłowanie t-bar",
+  "wiosłowanie końcem sztangi"
+ ],
+ "Lying_T-Bar_Row": [
+  "wiosłowanie t-bar z podparciem klatki"
+ ],
+ "Inverted_Row": [
+  "podciąganie australijskie",
+  "wiosłowanie odwrotne"
+ ],
+ "Face_Pull": [
+  "przyciąganie liny do twarzy",
+  "face pull"
+ ],
+ "Barbell_Shrug": [
+  "szrugsy ze sztangą",
+  "wzruszanie ramion ze sztangą"
+ ],
+ "Dumbbell_Shrug": [
+  "szrugsy z hantlami",
+  "wzruszanie ramion z hantlami"
+ ],
+ "Hyperextensions_Back_Extensions": [
+  "prostowanie tułowia na ławce rzymskiej",
+  "hiperekstensje"
+ ],
+ "Good_Morning": [
+  "dzień dobry",
+  "skłony ze sztangą na karku"
+ ],
+ "Standing_Military_Press": [
+  "wyciskanie żołnierskie",
+  "ohp",
+  "wyciskanie sztangi nad głowę stojąc"
+ ],
+ "Seated_Barbell_Military_Press": [
+  "wyciskanie sztangi nad głowę siedząc"
+ ],
+ "Dumbbell_Shoulder_Press": [
+  "wyciskanie hantli nad głowę"
+ ],
+ "Seated_Dumbbell_Press": [
+  "wyciskanie hantli siedząc"
+ ],
+ "Arnold_Dumbbell_Press": [
+  "wyciskanie arnolda",
+  "arnoldki"
+ ],
+ "Machine_Shoulder_Military_Press": [
+  "wyciskanie nad głowę na maszynie"
+ ],
+ "Side_Lateral_Raise": [
+  "wznosy bokiem",
+  "unoszenie hantli bokiem"
+ ],
+ "Cable_Seated_Lateral_Raise": [
+  "wznosy bokiem na wyciągu siedząc"
+ ],
+ "Single-Arm_Cable_Lateral_Raise": [
+  "wznosy bokiem na wyciągu"
+ ],
+ "Machine_Lateral_Raise": [
+  "wznosy bokiem na maszynie"
+ ],
+ "Front_Dumbbell_Raise": [
+  "wznosy w przód",
+  "unoszenie hantli przodem"
+ ],
+ "Reverse_Flyes": [
+  "odwrotne rozpiętki",
+  "wznosy w opadzie"
+ ],
+ "Reverse_Machine_Flyes": [
+  "odwrotne rozpiętki na maszynie",
+  "reverse pec deck"
+ ],
+ "Upright_Barbell_Row": [
+  "podciąganie sztangi wzdłuż tułowia"
+ ],
+ "Barbell_Curl": [
+  "uginanie ramion ze sztangą",
+  "biceps ze sztangą"
+ ],
+ "EZ-Bar_Curl": [
+  "uginanie ramion z gryfem łamanym"
+ ],
+ "Dumbbell_Bicep_Curl": [
+  "uginanie ramion z hantlami",
+  "biceps z hantlami"
+ ],
+ "Hammer_Curls": [
+  "uginanie młotkowe",
+  "młotki"
+ ],
+ "Preacher_Curl": [
+  "modlitewnik",
+  "uginanie na modlitewniku"
+ ],
+ "Cable_Preacher_Curl": [
+  "modlitewnik na wyciągu"
+ ],
+ "Concentration_Curls": [
+  "uginanie w podporze o udo",
+  "koncentryczne uginanie"
+ ],
+ "Incline_Dumbbell_Curl": [
+  "uginanie z hantlami na skosie"
+ ],
+ "Spider_Curl": [
+  "spider curl",
+  "uginanie na ławce skośnej przodem"
+ ],
+ "Standing_Biceps_Cable_Curl": [
+  "uginanie ramion na wyciągu"
+ ],
+ "Bayesian_Cable_Curl": [
+  "uginanie bayesian",
+  "biceps na wyciągu za plecami"
+ ],
+ "Triceps_Pushdown": [
+  "prostowanie ramion na wyciągu",
+  "ściąganie linki na triceps"
+ ],
+ "Triceps_Pushdown_-_Rope_Attachment": [
+  "prostowanie ramion na wyciągu z liną"
+ ],
+ "EZ-Bar_Skullcrusher": [
+  "francuskie wyciskanie",
+  "łamanie czaszki"
+ ],
+ "Cable_Rope_Overhead_Triceps_Extension": [
+  "prostowanie ramion nad głową na wyciągu"
+ ],
+ "Standing_Dumbbell_Triceps_Extension": [
+  "francuskie wyciskanie hantli nad głową"
+ ],
+ "Tricep_Dumbbell_Kickback": [
+  "prostowanie ramienia w opadzie",
+  "kickback"
+ ],
+ "Palms-Down_Wrist_Curl_Over_A_Bench": [
+  "uginanie nadgarstków nachwytem"
+ ],
+ "Crunches": [
+  "brzuszki",
+  "spięcia brzucha"
+ ],
+ "Sit-Up": [
+  "brzuszki pełne"
+ ],
+ "Cable_Crunch": [
+  "spięcia brzucha na wyciągu",
+  "allahy"
+ ],
+ "Hanging_Leg_Raise": [
+  "unoszenie nóg w zwisie"
+ ],
+ "Flat_Bench_Lying_Leg_Raise": [
+  "unoszenie nóg leżąc"
+ ],
+ "Plank": [
+  "deska",
+  "plank"
+ ],
+ "Ab_Roller": [
+  "kółko do brzucha",
+  "rollout"
+ ],
+ "Russian_Twist": [
+  "rosyjski skręt"
+ ],
+ "Oblique_Crunches": [
+  "skośne spięcia brzucha"
+ ],
+ "Dumbbell_Side_Bend": [
+  "skłony boczne z hantlą"
+ ],
+ "Mountain_Climbers": [
+  "wspinaczka górska"
+ ],
+ "Kettlebell_One-Legged_Deadlift": [
+  "martwy ciąg na jednej nodze z kettlebell"
+ ],
+ "One-Arm_Kettlebell_Swings": [
+  "swing kettlebell jednorącz"
+ ],
+ "Power_Clean": [
+  "zarzut siłowy"
+ ],
+ "Clean_and_Jerk": [
+  "podrzut"
+ ],
+ "Snatch": [
+  "rwanie"
+ ],
+ "Zercher_Squats": [
+  "przysiad zerchera"
+ ],
+ "Rope_Jumping": [
+  "skakanka"
+ ],
+ "Bicycling": [
+  "rower"
+ ],
+ "Rowing_Stationary": [
+  "wioślarz",
+  "ergometr wioślarski"
+ ],
+ "Elliptical_Trainer": [
+  "orbitrek"
+ ],
+ "Air_Bike": [
+  "rowerek powietrzny"
+ ],
+ "Nordic_Ham_Curl": [
+  "nordyckie uginanie",
+  "nordic"
+ ],
+ "Pendlay_Row": [
+  "wiosłowanie pendlaya"
+ ],
+ "Belt_Squat": [
+  "przysiad z pasem"
+ ],
+ "Pendulum_Squat": [
+  "przysiad wahadłowy"
+ ],
+ "Paused_Bench_Press": [
+  "wyciskanie z pauzą"
+ ],
+ "Pause_Squat": [
+  "przysiad z pauzą"
+ ],
+ "Single-Leg_Leg_Press": [
+  "suwnica jednonóż"
+ ],
+ "Machine_Assisted_Pull-Up": [
+  "podciąganie z asystą na maszynie"
+ ],
+ "Machine_Chest-Supported_Row": [
+  "wiosłowanie na maszynie z podparciem klatki"
+ ]
+}
