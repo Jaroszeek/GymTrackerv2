@@ -92,7 +92,11 @@ fun Context.openSettings(screen: SystemSettings) {
     val app = "package:$packageName".toUri()
     val intent = when (screen) {
         SystemSettings.Notifications -> notificationSettings()
-        SystemSettings.LiveUpdates -> Intent(Settings.ACTION_APP_NOTIFICATION_PROMOTION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+        SystemSettings.LiveUpdates -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+            Intent(Settings.ACTION_APP_NOTIFICATION_PROMOTION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+        } else {
+            notificationSettings()
+        }
         SystemSettings.Battery -> Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, app)
         SystemSettings.ExactAlarms -> Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, app)
         SystemSettings.Developer -> Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)

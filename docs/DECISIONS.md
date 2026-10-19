@@ -318,6 +318,51 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 - Nowe: `GlassProgressRing` (łuk w `accentText`, bo żywy akcent ginie na jasnym tle), `GlassMiniBar`, `GlassFullScreenOverlay`; placeholder w `GlassNumberField`; `GlassChip` ucina długi tekst. Wszystko w galerii (sekcje „Nakładki” i „Postęp i trening”).
 - Release: 3,6 MB.
 
+### D-044 Live Updates: wymagania i jak je spełniamy (Etap 5)
+Źródła (sprawdzone 2026-10-19): developer.android.com/develop/ui/views/notifications/live-update; documentation.onesignal.com/docs/en/android-live-notifications; androidauthority.com/one-ui-8-live-updates-support-3573794; sammyfans.com (One UI 8 Beta 3, 2025-07-04); wątki r2.community.samsung.com.
+- Wymagania z dokumentacji Androida i jak je spełnia `WorkoutNotifications`:
+  - styl Standard, BigText, Call, **Progress** albo Metric → `NotificationCompat.ProgressStyle` (segment na ćwiczenie, postęp = ukończone serie);
+  - `POST_PROMOTED_NOTIFICATIONS` w manifeście (zwykłe, nie runtime) → manifest główny;
+  - prośba o promocję → `NotificationCompat.Builder.setRequestPromotedOngoing(true)` (ustawia extra na każdym API, D-022);
+  - `ongoing`, tytuł (nazwa rutyny), bez `customContentView`, bez `setGroupSummary`, bez `setColorized(true)` → spełnione;
+  - kanał nie może mieć `IMPORTANCE_MIN` → kanał „Trening w toku” ma `IMPORTANCE_LOW`, bez dźwięku, wibracji i odznaki (zalecenie OneSignal: ciche, niska ważność).
+- Chip na pasku stanu: poza przerwą `setShortCriticalText("3/8")`; w przerwie bez krótkiego tekstu, za to `setWhen(koniec przerwy)` + `setUsesChronometer` + `setChronometerCountDown`, więc chip pokazuje odliczanie (dokumentacja: „Chronometer timer is shown in the chip as long as it is positive”). Kolejności priorytetu krótki tekst / czas dokumentacja nie opisuje, dlatego w przerwie krótkiego tekstu nie ustawiamy.
+- Akcje: „Ukończ serię” (poza przerwą, gdy bieżąca seria ma powtórzenia) i „Pomiń przerwę” (w przerwie). Dokumentacja nie zabrania akcji.
+- Odrzucone przez użytkownika powiadomienie nie wraca, dopóki nie otworzy aplikacji (`setDeleteIntent`; dokumentacja: „Don't repost Live Updates that the user dismissed”).
+- API: według `api-versions.xml` z SDK 37 `canPostPromotedNotifications()`, `hasPromotableCharacteristics()` i `FLAG_PROMOTED_ONGOING` są od API 36, a samo promowanie działa od Androida 16 QPR1 (36.1; D-022). `Settings.ACTION_MANAGE_APP_PROMOTED_NOTIFICATIONS` z dokumentacji i A7 w SDK nie istnieje; używamy `ACTION_APP_NOTIFICATION_PROMOTION_SETTINGS`.
+- One UI 8.5 (wiedza z raportów, nie z dokumentacji Samsunga): Live Updates trafiają do Now Bar i na AOD; część wersji One UI 8 wpuszcza aplikacje spoza listy Samsunga dopiero po włączeniu opcji programisty „Live notifications for all apps”; w One UI 8.5 ma być przełącznik powiadomień na żywo per aplikacja; spełnienie wymagań Androida nie gwarantuje promocji (OEM może dodać własne kryteria). Dlatego ekran diagnostyki (D-049) i sekcja README.
+
+### D-045 Nowe uprawnienia w manifeście (do potwierdzenia przez właściciela)
+CLAUDE.md wymaga zgody na nowe uprawnienia. Wszystkie wynikają wprost z A7 i A5.4 w PROMPT.md, więc dodałem je i zgłaszam w raporcie:
+- `POST_NOTIFICATIONS` (runtime) i `POST_PROMOTED_NOTIFICATIONS` (zwykłe) — przeniesione z manifestu debug do głównego;
+- `FOREGROUND_SERVICE` i `FOREGROUND_SERVICE_SPECIAL_USE` (zwykłe) — serwis typu `specialUse` z `PROPERTY_SPECIAL_USE_FGS_SUBTYPE`;
+- `SCHEDULE_EXACT_ALARM` (dostęp specjalny, domyślnie wyłączony; użytkownik włącza go w ustawieniach „Alarmy i przypomnienia”);
+- `WAKE_LOCK` i `VIBRATE` (zwykłe) — zapasowa blokada uśpienia na czas przerwy i wibracja na koniec.
+Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla budzików i kalendarzy), typ serwisu `health` (wymaga uprawnień do czujników albo aktywności fizycznej, A7 mówi `specialUse`).
+
+### D-046 Serwis treningu i przerwa w tle
+- `WorkoutService` startuje tylko z `MainActivity` w stanie RESUMED, gdy trwa trening (klik „Start” albo powrót z treningiem odtworzonym po śmierci procesu). Przy każdym starcie z aplikacji od razu woła `startForeground`; jeśli system odmówi, loguje błąd i się zatrzymuje. `START_NOT_STICKY`: system nie wskrzesza serwisu po śmierci procesu, bo byłby to start z tła.
+- Treść pochodzi z `ActiveWorkoutManager.workout` i nazw ćwiczeń; gdy treningu nie ma (zakończenie, odrzucenie), serwis usuwa powiadomienie i się zatrzymuje. Po śmierci procesu system sam usuwa powiadomienie serwisu.
+- Tapnięcie otwiera trening (`ACTION_OPEN_WORKOUT`, aktywność dostaje intent przez `onNewIntent`).
+- Koniec przerwy: timer menedżera liczy na zegarze monotonicznym, który stoi w głębokim uśpieniu, więc przy wygaszonym ekranie budzi telefon `RestAlarm`: exact alarm (`setExactAndAllowWhileIdle`, RTC_WAKEUP), gdy `canScheduleExactAlarms()`, inaczej częściowa blokada uśpienia na czas przerwy + 5 s. Na koniec wibracja (`USAGE_ALARM`, wzór 400-200-400-200-700 ms) i `manager.endRestIfDue()`. Pominięta albo skrócona przerwa kasuje budzenie; przerwa, która skończyła się sama, je zachowuje, więc wibracja zawsze następuje. Odbiornik alarmu działa także w nowym procesie, gdy system zabił aplikację.
+- Dźwięk na koniec przerwy (A5.4: opcjonalny) na razie wyłączony; przełącznik dojdzie z ustawieniami w Etapie 9.
+
+### D-047 Zgoda na powiadomienia i karta „Trening w tle”
+- Przy pierwszym starcie (flaga w DataStore) dialog wyjaśnia powiadomienie treningu, potem systemowa prośba o `POST_NOTIFICATIONS`. „Nie teraz” też zapisuje flagę, więc dialog nie wraca.
+- Na ekranie treningu karta „Trening w tle” wylicza, czego brakuje: powiadomień, baterii „Bez ograniczeń” (`isIgnoringBatteryOptimizations`; „Ograniczona” = `isBackgroundRestricted`) i zgody na alarmy, każdą pozycję z przyciskiem do właściwego ekranu ustawień, plus „Diagnostyka” i „Ukryj” (do zamknięcia ekranu treningu). Stan odświeża się przy każdym powrocie na ekran.
+
+### D-048 Zależność: DataStore Preferences 1.2.1
+- Po co: flaga „prośba o powiadomienia pokazana”; w Etapie 9 ustawienia. DataStore jest w ustalonym stosie (CLAUDE.md).
+- Alternatywy: `SharedPreferences` (bez zależności, ale synchroniczny I/O i poza ustalonym stosem), tabela w Room (za ciężkie na flagi).
+- Licencja Apache-2.0. Wersja 1.2.1 to najnowsza stabilna (1.3.0 jest w RC).
+- Rozmiar release: patrz D-050.
+
+### D-049 Ekran „Diagnostyka powiadomień na żywo”
+- Otwierany przyciskiem na dole ekranu treningu i z karty „Trening w tle” (w Etapie 9 także z ustawień).
+- Pokazuje i loguje (`adb logcat -s LiveUpdate`): wersję Androida z `SDK_INT_FULL` (np. 36.1), urządzenie, `areNotificationsEnabled`, ważność kanału, `canPostPromotedNotifications`, `hasPromotableCharacteristics` powiadomienia zbudowanego teraz (bez treningu: przykładowego), `FLAG_PROMOTED_ONGOING` opublikowanego powiadomienia, zgodę na dokładne alarmy i stan baterii. Na Samsungu dodatkowa karta z przełącznikami One UI.
+- Deep-linki: ustawienia powiadomień aplikacji, powiadomienia na żywo (`ACTION_APP_NOTIFICATION_PROMOTION_SETTINGS`, poniżej API 36 i przy braku ekranu: ustawienia powiadomień), informacje o aplikacji (bateria), „Alarmy i przypomnienia”, opcje programisty.
+- Sonda z galerii debug (D-014) zostaje na razie bez zmian; dubluje część diagnostyki, więc można ją usunąć (pytanie w raporcie).
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |
@@ -329,7 +374,7 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 | navigation3 + lifecycle-viewmodel-navigation3 | 1.2.0 / 2.11.0 | Apache-2.0 | 1 | nawigacja (D-003) |
 | Hilt / androidx.hilt | 2.60.1 / 1.4.0 | Apache-2.0 | 1 | DI |
 | kotlinx-serialization-json | 1.11.0 | Apache-2.0 | 1 | klucze nawigacji, JSON |
-| datastore-preferences | 1.2.1 | Apache-2.0 | 1 | ustawienia |
+| datastore-preferences | 1.2.1 | Apache-2.0 | 5 | flagi aplikacji, w Etapie 9 ustawienia (D-048) |
 | backdrop / shapes | 2.0.1 / 1.2.1 | Apache-2.0 | 1 | szkło (D-006) |
 | room3 / sqlite-framework | 3.0.3 / 2.7.1 | Apache-2.0 | 2 | baza (D-004) |
 | sqlite-bundled-jvm | 2.7.1 | Apache-2.0 | 2 | tylko testy: Room na JVM (D-028) |

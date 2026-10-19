@@ -102,6 +102,8 @@ class WorkoutFlowTest {
         val routinesViewModel = RoutinesViewModel(routines, manager)
         val checks = LiveUpdateChecks(context, manager, WorkoutNotifications(context))
         val workoutViewModel = WorkoutViewModel(manager, exercises, routines, checks, Dispatchers.Default)
+        // The background issues card (permissions differ per device) would push the exercises off screen
+        workoutViewModel.onHideIssues()
         val pickerViewModel = ExercisesViewModel(exercises, Dispatchers.Default)
         var onWorkout by mutableStateOf(false)
         compose.setContent {

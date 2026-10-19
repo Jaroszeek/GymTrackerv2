@@ -139,8 +139,9 @@ fun GymTrackerRoot(openWorkoutRequests: Int = 0) {
                 )
             }
         }
+        // Inside the scaffold: dialogs need its overlay host
+        NotificationPrompt()
     }
-    NotificationPrompt()
 }
 
 private fun entryProvider(navigator: TabNavigator): (NavKey) -> NavEntry<NavKey> = { key ->

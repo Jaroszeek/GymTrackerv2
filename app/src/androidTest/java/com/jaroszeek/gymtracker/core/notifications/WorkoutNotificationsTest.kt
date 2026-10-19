@@ -2,6 +2,7 @@ package com.jaroszeek.gymtracker.core.notifications
 
 import android.app.Notification
 import android.os.Build
+import androidx.core.app.NotificationCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
@@ -24,13 +25,16 @@ class WorkoutNotificationsTest {
     private val names = mapOf(10L to "Bench Press", 20L to "Dips")
 
     private val Notification.text get() = extras.getCharSequence(Notification.EXTRA_TEXT).toString()
-    private val Notification.shortText get() = extras.getCharSequence(EXTRA_SHORT_CRITICAL_TEXT)?.toString()
+    private val Notification.shortText get() = extras.getCharSequence(NotificationCompat.EXTRA_SHORT_CRITICAL_TEXT)?.toString()
 
     private fun Notification.assertPromotable() {
         assertTrue(flags and Notification.FLAG_ONGOING_EVENT != 0)
         assertEquals("Push", extras.getCharSequence(Notification.EXTRA_TITLE).toString())
-        assertTrue(extras.getBoolean(EXTRA_REQUEST_PROMOTED_ONGOING))
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) assertTrue(hasPromotableCharacteristics())
+        assertTrue(NotificationCompat.isRequestPromotedOngoing(this))
+        // 36.0 has the method but promotes nothing (D-022); promotion starts with 36.1
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA && Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1) {
+            assertTrue(hasPromotableCharacteristics())
+        }
     }
 
     @Test
@@ -63,11 +67,5 @@ class WorkoutNotificationsTest {
         notification.assertPromotable()
         assertEquals("Dodaj pierwsze ćwiczenie, żeby zacząć.", notification.text)
         assertEquals(0, notification.actions?.size ?: 0)
-    }
-
-    private companion object {
-        // Platform constants exist only from 36.1; these are their values
-        const val EXTRA_SHORT_CRITICAL_TEXT = "android.shortCriticalText"
-        const val EXTRA_REQUEST_PROMOTED_ONGOING = "android.requestPromotedOngoing"
     }
 }
