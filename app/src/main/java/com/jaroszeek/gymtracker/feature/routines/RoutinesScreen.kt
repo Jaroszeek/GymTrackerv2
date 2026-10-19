@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,22 +46,37 @@ import com.jaroszeek.gymtracker.navigation.sharedBounds
 private const val PREVIEW_EXERCISES = 3
 
 @Composable
-fun RoutinesRoute(onEdit: (Long) -> Unit, onNew: () -> Unit, onTemplates: () -> Unit, viewModel: RoutinesViewModel = hiltViewModel()) {
+fun RoutinesRoute(
+    onEdit: (Long) -> Unit,
+    onNew: () -> Unit,
+    onTemplates: () -> Unit,
+    onOpenWorkout: () -> Unit,
+    viewModel: RoutinesViewModel = hiltViewModel(),
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    LaunchedEffect(state.openWorkout) {
+        if (state.openWorkout) {
+            viewModel.onWorkoutOpened()
+            onOpenWorkout()
+        }
+    }
     val copyName = stringResource(R.string.routine_copy_name, state.actionsFor?.name.orEmpty())
+    val emptyName = stringResource(R.string.workout_default_name)
     RoutinesScreen(
         state = state,
         onOpen = { onEdit(it.id) },
         onNew = onNew,
         onTemplates = onTemplates,
-        onStart = { viewModel.onStart() },
+        onStart = viewModel::onStart,
+        onStartEmpty = { viewModel.onStartEmpty(emptyName) },
         onMore = viewModel::onMore,
         onActionsDismiss = viewModel::onActionsDismiss,
         onDuplicate = { viewModel.onDuplicate(it, copyName) },
         onDeleteRequest = viewModel::onDeleteRequest,
         onDeleteDismiss = viewModel::onDeleteDismiss,
         onDeleteConfirm = viewModel::onDeleteConfirm,
-        onStartStubDismiss = viewModel::onStartStubDismiss,
+        onRunningDismiss = viewModel::onRunningDismiss,
+        onOpenRunning = viewModel::onOpenRunning,
     )
 }
 
@@ -71,13 +87,15 @@ fun RoutinesScreen(
     onNew: () -> Unit,
     onTemplates: () -> Unit,
     onStart: (Routine) -> Unit,
+    onStartEmpty: () -> Unit,
     onMore: (Routine) -> Unit,
     onActionsDismiss: () -> Unit,
     onDuplicate: (Routine) -> Unit,
     onDeleteRequest: (Routine) -> Unit,
     onDeleteDismiss: () -> Unit,
     onDeleteConfirm: () -> Unit,
-    onStartStubDismiss: () -> Unit,
+    onRunningDismiss: () -> Unit,
+    onOpenRunning: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val insets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal).asPaddingValues()
@@ -95,9 +113,17 @@ fun RoutinesScreen(
             Text(stringResource(R.string.nav_workout), style = GtTheme.typography.display)
         }
         item(key = "actions") {
-            Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
-                GlassButton(stringResource(R.string.routines_new), onClick = onNew, icon = R.drawable.ic_add)
-                GlassButton(stringResource(R.string.routines_templates), onClick = onTemplates, style = GlassButtonStyle.Secondary)
+            Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+                    GlassButton(stringResource(R.string.routines_new), onClick = onNew, icon = R.drawable.ic_add)
+                    GlassButton(stringResource(R.string.routines_templates), onClick = onTemplates, style = GlassButtonStyle.Secondary)
+                }
+                GlassButton(
+                    stringResource(R.string.routines_start_empty),
+                    onClick = onStartEmpty,
+                    icon = R.drawable.ic_play_arrow,
+                    style = GlassButtonStyle.Secondary,
+                )
             }
         }
         when {
@@ -134,11 +160,12 @@ fun RoutinesScreen(
         dismissButton = { GlassButton(stringResource(R.string.action_cancel), onClick = onDeleteDismiss, style = GlassButtonStyle.Ghost) },
     )
     GlassDialog(
-        visible = state.startStub,
-        onDismissRequest = onStartStubDismiss,
-        title = stringResource(R.string.start_stub_title),
-        text = stringResource(R.string.start_stub_text),
-        confirmButton = { GlassButton(stringResource(R.string.action_ok), onClick = onStartStubDismiss) },
+        visible = state.workoutRunning,
+        onDismissRequest = onRunningDismiss,
+        title = stringResource(R.string.workout_running_title),
+        text = stringResource(R.string.workout_running_text),
+        confirmButton = { GlassButton(stringResource(R.string.action_open_workout), onClick = onOpenRunning) },
+        dismissButton = { GlassButton(stringResource(R.string.action_cancel), onClick = onRunningDismiss, style = GlassButtonStyle.Ghost) },
     )
 }
 
@@ -198,8 +225,8 @@ private fun RoutinesScreenEmptyPreview() {
         GlassScaffold {
             RoutinesScreen(
                 state = RoutinesUiState(loading = false),
-                onOpen = {}, onNew = {}, onTemplates = {}, onStart = {}, onMore = {}, onActionsDismiss = {}, onDuplicate = {},
-                onDeleteRequest = {}, onDeleteDismiss = {}, onDeleteConfirm = {}, onStartStubDismiss = {},
+                onOpen = {}, onNew = {}, onTemplates = {}, onStart = {}, onStartEmpty = {}, onMore = {}, onActionsDismiss = {}, onDuplicate = {},
+                onDeleteRequest = {}, onDeleteDismiss = {}, onDeleteConfirm = {}, onRunningDismiss = {}, onOpenRunning = {},
             )
         }
     }

@@ -35,7 +35,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jaroszeek.gymtracker.R
-import com.jaroszeek.gymtracker.designsystem.component.AuroraBackground
 import com.jaroszeek.gymtracker.designsystem.component.GlassBottomSheet
 import com.jaroszeek.gymtracker.designsystem.component.GlassButton
 import com.jaroszeek.gymtracker.designsystem.component.GlassButtonStyle
@@ -56,8 +55,7 @@ import com.jaroszeek.gymtracker.domain.routine.RoutineBlock
 import com.jaroszeek.gymtracker.domain.routine.RoutineDraft
 import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseImage
-import com.jaroszeek.gymtracker.feature.exercises.ExercisesScreen
-import com.jaroszeek.gymtracker.feature.exercises.ExercisesUiState
+import com.jaroszeek.gymtracker.feature.exercises.ExercisePicker
 import com.jaroszeek.gymtracker.feature.exercises.ExercisesViewModel
 import com.jaroszeek.gymtracker.navigation.sharedBounds
 import sh.calvin.reorderable.ReorderableCollectionItemScope
@@ -91,31 +89,7 @@ fun RoutineEditorRoute(viewModel: RoutineEditorViewModel, pickerViewModel: Exerc
         onDiscardDismiss = viewModel::onDiscardDismiss,
         onDiscardConfirm = viewModel::onDiscardConfirm,
     )
-    if (state.picker != null) {
-        // Declared after the editor's handler, so back closes the picker first
-        BackHandler(onBack = viewModel::onPickerDismiss)
-        val pickerState by pickerViewModel.state.collectAsStateWithLifecycle()
-        Box(Modifier.fillMaxSize()) {
-            AuroraBackground(Modifier.fillMaxSize())
-            ExercisesScreen(
-                state = pickerState,
-                query = pickerViewModel.query,
-                onQueryChange = pickerViewModel::onQueryChange,
-                onToggleBodyPart = pickerViewModel::onToggleBodyPart,
-                onToggleEquipment = pickerViewModel::onToggleEquipment,
-                onClearFilters = pickerViewModel::onClearFilters,
-                onRetry = pickerViewModel::onRetry,
-                onOpen = { id ->
-                    (pickerState as? ExercisesUiState.Content)
-                        ?.exercises?.firstOrNull { it.id == id }
-                        ?.let(viewModel::onPicked)
-                },
-                onAdd = null,
-                pickerTitle = stringResource(R.string.picker_title),
-                onBack = viewModel::onPickerDismiss,
-            )
-        }
-    }
+    if (state.picker != null) ExercisePicker(pickerViewModel, onPick = viewModel::onPicked, onDismiss = viewModel::onPickerDismiss)
 }
 
 @Composable

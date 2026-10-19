@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.jaroszeek.gymtracker.R
 import com.jaroszeek.gymtracker.designsystem.theme.GtAlpha
@@ -68,7 +69,7 @@ fun GlassChip(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (icon != null) Icon(painterResource(icon), contentDescription = null, Modifier.size(GtSizes.IconSmall), tint = content)
-            Text(text, color = content, style = GtTheme.typography.label)
+            Text(text, color = content, style = GtTheme.typography.label, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }

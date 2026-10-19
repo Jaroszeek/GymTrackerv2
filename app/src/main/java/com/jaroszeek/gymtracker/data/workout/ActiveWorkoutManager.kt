@@ -97,6 +97,8 @@ class ActiveWorkoutManager @Inject constructor(
 
     fun updateSet(exerciseId: Long, setId: Long, change: (WorkoutSet) -> WorkoutSet) = mutate { it.updateSet(exerciseId, setId, change) }
 
+    fun setWeight(exerciseId: Long, setId: Long, weightKg: Double?) = mutate { it.setWeight(exerciseId, setId, weightKg) }
+
     fun addSet(exerciseId: Long) = mutate { it.addSet(exerciseId) }
 
     fun removeSet(exerciseId: Long, setId: Long) = mutate { it.removeSet(exerciseId, setId) }

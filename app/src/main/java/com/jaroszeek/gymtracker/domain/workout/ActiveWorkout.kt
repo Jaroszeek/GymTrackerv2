@@ -93,6 +93,22 @@ data class ActiveWorkout(
         exercise.copy(sets = exercise.sets.map { if (it.id == setId) change(it) else it })
     }
 
+    /**
+     * Changes the weight of a set; the unticked sets of the same kind after it that had the same weight
+     * follow, so a new working weight is entered once.
+     */
+    fun setWeight(exerciseId: Long, setId: Long, weightKg: Double?): ActiveWorkout = updateExercise(exerciseId) { exercise ->
+        val index = exercise.sets.indexOfFirst { it.id == setId }
+        if (index < 0) return@updateExercise exercise
+        val edited = exercise.sets[index]
+        exercise.copy(
+            sets = exercise.sets.mapIndexed { i, set ->
+                val follows = i > index && !set.done && set.type == edited.type && set.weightKg == edited.weightKg
+                if (i == index || follows) set.copy(weightKg = weightKg) else set
+            },
+        )
+    }
+
     /** A new set copies the type, weight and reps of the last one. */
     fun addSet(exerciseId: Long): ActiveWorkout {
         val id = nextId()

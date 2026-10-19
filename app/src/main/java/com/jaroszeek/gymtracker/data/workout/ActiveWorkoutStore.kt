@@ -11,7 +11,11 @@ import kotlinx.serialization.json.Json
 
 /** The workout in progress as one JSON file, written atomically (temp file, then rename). Blocking: call off the main thread. */
 class ActiveWorkoutStore(private val file: File) {
-    private val json = Json { ignoreUnknownKeys = true }
+    // Defaults are written out, so changing a default in code never changes a saved workout
+    private val json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+    }
 
     fun read(): ActiveWorkout? {
         if (!file.exists()) return null

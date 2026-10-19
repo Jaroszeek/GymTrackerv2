@@ -151,7 +151,7 @@
     <string name="action_keep_editing">Wróć do edycji</string>
     <string name="action_more">Więcej opcji</string>
     <string name="delete_exercise_in_use_title">Ćwiczenie jest w użyciu</string>
-    <string name="delete_exercise_in_use_text">To ćwiczenie jest w co najmniej jednej rutynie. Najpierw usuń je z rutyn.</string>
+    <string name="delete_exercise_in_use_text">To ćwiczenie jest w rutynie, w historii albo w trwającym treningu, więc nie da się go usunąć.</string>
 
     <!-- Routines: list -->
     <string name="routines_new">Nowa rutyna</string>
@@ -174,8 +174,11 @@
     <string name="routine_copy_name">%1$s (kopia)</string>
     <string name="delete_routine_title">Usunąć rutynę?</string>
     <string name="delete_routine_text">„%1$s” zniknie z listy. Zakończone treningi zostaną w historii.</string>
-    <string name="start_stub_title">Wkrótce</string>
-    <string name="start_stub_text">Rejestrowanie treningu pojawi się w kolejnym etapie.</string>
+    <string name="routines_start_empty">Pusty trening</string>
+    <string name="workout_default_name">Trening</string>
+    <string name="workout_running_title">Trening już trwa</string>
+    <string name="workout_running_text">Zakończ albo odrzuć bieżący trening, zanim zaczniesz kolejny.</string>
+    <string name="action_open_workout">Wróć do treningu</string>
 
     <!-- Routines: editor -->
     <string name="routine_editor_new">Nowa rutyna</string>
@@ -212,4 +215,62 @@
     <string name="template_upper_lower_description">Dwa dni: góra i dół ciała. Dobre na 4 treningi w tygodniu.</string>
     <string name="template_fbw_description">Całe ciało na każdym treningu, A i B na zmianę. Dobry start na 3 treningi w tygodniu.</string>
     <string name="templates_error">Nie udało się wczytać szablonów.</string>
+
+    <!-- Workout -->
+    <string name="workout_progress">%1$d/%2$d serii</string>
+    <string name="workout_meta">%1$s • %2$s</string>
+    <string name="workout_open">Otwórz trening</string>
+    <string name="workout_target">Cel: %1$s</string>
+    <string name="workout_progression">Progresja: spróbuj %1$s kg</string>
+    <string name="workout_previous">Poprzednio: %1$s</string>
+    <string name="workout_set_value">%1$s kg × %2$d</string>
+    <string name="workout_set_value_bodyweight">%1$d powt.</string>
+    <string name="workout_set_empty">Wpisz powtórzenia</string>
+    <string name="workout_set_number">Seria %1$d</string>
+    <string name="workout_set_complete">Odhacz serię %1$d</string>
+    <string name="workout_set_undo">Cofnij serię %1$d</string>
+    <string name="workout_set_edit">Edytuj serię %1$d</string>
+    <string name="workout_add_set">Dodaj serię</string>
+    <string name="workout_set_delete">Usuń serię</string>
+    <string name="workout_set_type">Typ serii</string>
+    <string name="workout_set_delete_hint">Usunięcie ostatniej serii usuwa ćwiczenie z tego treningu.</string>
+    <string name="workout_finish">Zakończ trening</string>
+    <string name="workout_discard">Odrzuć trening</string>
+    <string name="workout_empty">Dodaj pierwsze ćwiczenie, żeby zacząć.</string>
+    <string name="workout_label_weight">Ciężar</string>
+    <string name="workout_label_reps">Powtórzenia</string>
+    <string name="set_type_warmup">Rozgrzewkowa</string>
+    <string name="set_type_working">Robocza</string>
+    <string name="set_type_drop">Drop set</string>
+    <string name="set_type_failure">Do upadku</string>
+    <string name="finish_title">Zakończyć trening?</string>
+    <string name="finish_text">Trening trafi do historii.</string>
+    <string name="finish_text_incomplete">Nieodhaczone serie nie zostaną zapisane.</string>
+    <string name="finish_text_empty">Żadna seria nie jest odhaczona, więc trening nie zostanie zapisany.</string>
+    <string name="action_finish">Zakończ</string>
+    <string name="finish_failed">Nie udało się zapisać treningu. Spróbuj ponownie.</string>
+    <string name="discard_workout_title">Odrzucić trening?</string>
+    <string name="discard_workout_text">Wszystkie serie z tego treningu przepadną.</string>
+
+    <!-- Workout: rest -->
+    <string name="rest_title">Przerwa</string>
+    <string name="rest_next">Następne: %1$s • seria %2$d</string>
+    <string name="rest_last">To była ostatnia seria</string>
+    <string name="rest_minus">−15 s</string>
+    <string name="rest_plus">+30 s</string>
+    <string name="rest_skip">Pomiń</string>
+    <string name="rest_chip">Przerwa %1$s</string>
+
+    <!-- Workout: summary -->
+    <string name="summary_title">Trening zakończony</string>
+    <string name="summary_duration">Czas</string>
+    <string name="summary_volume">Objętość</string>
+    <string name="summary_sets">Serie robocze</string>
+    <string name="summary_exercises">Ćwiczenia</string>
+    <string name="summary_volume_value">%1$s kg</string>
+    <string name="changes_title">Zmiany względem rutyny</string>
+    <string name="changes_text">Na tym treningu cele wyszły inaczej niż w rutynie. Wybierz, co zapisać w rutynie.</string>
+    <string name="changes_value">%1$s → %2$s</string>
+    <string name="change_apply">Zastosuj jako nowe cele</string>
+    <string name="change_keep">Zostaw stare</string>
 </resources>

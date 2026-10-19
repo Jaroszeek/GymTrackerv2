@@ -62,6 +62,12 @@ object GtSizes {
     val ContentMaxWidth = 560.dp
     val Thumbnail = 56.dp
     val ThumbnailSmall = 44.dp
+    val MiniBarHeight = 60.dp
+    val RestRing = 240.dp
+    val RingStroke = 12.dp
+    val MiniRing = 32.dp
+    val MiniRingStroke = 3.dp
+    val SetBadge = 32.dp
 }
 
 object GtAlpha {

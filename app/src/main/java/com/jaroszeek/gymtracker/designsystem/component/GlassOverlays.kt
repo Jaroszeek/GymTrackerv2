@@ -33,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
@@ -126,11 +127,47 @@ fun GlassBottomSheet(
     }
 }
 
+/**
+ * Full-screen glass layer above everything, e.g. the rest timer: the screen behind stays visible,
+ * blurred. Back calls [onDismissRequest]; [content] gets the safe drawing area.
+ */
+@Composable
+fun GlassFullScreenOverlay(
+    visible: Boolean,
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    OverlayLayer(visible, onDismissRequest, contentAlignment = Alignment.Center, scrim = false) { state ->
+        AnimatedVisibility(visibleState = state, enter = fadeIn(), exit = fadeOut()) {
+            GlassSurface(
+                modifier
+                    .fillMaxSize()
+                    .consumeTaps(),
+                shape = RectangleShape,
+                shadow = false,
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .windowInsetsPadding(WindowInsets.safeDrawing)
+                        .animateEnterExit(
+                            enter = scaleIn(GtMotion.Standard, initialScale = DIALOG_ENTER_SCALE),
+                            exit = scaleOut(targetScale = DIALOG_ENTER_SCALE),
+                        ),
+                    content = content,
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun OverlayLayer(
     visible: Boolean,
     onDismissRequest: () -> Unit,
     contentAlignment: Alignment,
+    scrim: Boolean = true,
     content: @Composable BoxScope.(MutableTransitionState<Boolean>) -> Unit,
 ) {
     val state = remember { MutableTransitionState(false) }
@@ -141,18 +178,20 @@ private fun OverlayLayer(
     Overlay {
         val dismiss = stringResource(R.string.action_close)
         Box(Modifier.fillMaxSize(), contentAlignment = contentAlignment) {
-            AnimatedVisibility(visibleState = state, enter = fadeIn(), exit = fadeOut()) {
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .background(GtTheme.colors.scrim)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClickLabel = dismiss,
-                            onClick = onDismissRequest,
-                        ),
-                )
+            if (scrim) {
+                AnimatedVisibility(visibleState = state, enter = fadeIn(), exit = fadeOut()) {
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .background(GtTheme.colors.scrim)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClickLabel = dismiss,
+                                onClick = onDismissRequest,
+                            ),
+                    )
+                }
             }
             content(state)
         }

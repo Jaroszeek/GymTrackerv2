@@ -31,6 +31,10 @@ data class RoutineEditorKey(val id: Long?) : NavKey
 @Serializable
 data object TemplatesKey : NavKey
 
+/** The running workout, on the Trening stack. */
+@Serializable
+data object ActiveWorkoutKey : NavKey
+
 /** [id] null creates a new custom exercise. */
 @Serializable
 data class ExerciseEditorKey(val id: Long?) : NavKey

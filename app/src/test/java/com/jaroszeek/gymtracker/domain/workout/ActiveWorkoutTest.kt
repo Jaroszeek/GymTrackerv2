@@ -70,6 +70,30 @@ class ActiveWorkoutTest {
     }
 
     @Test
+    fun newWeightFillsDownToLaterSetsThatHadTheSameWeight() {
+        var workout = empty.addExercise(listOf(bench))
+        val exercise = workout.exercise()
+        val (first, second, third) = exercise.sets
+        workout = workout.complete(exercise.id, first.id, 0, 90)
+            .updateSet(exercise.id, third.id) { it.copy(type = SetType.DropSet) }
+            .addSet(exercise.id)
+            .setWeight(exercise.id, second.id, 62.5)
+        // The done set before it and the drop sets (another kind) keep their weight
+        assertEquals(listOf(60.0, 62.5, 60.0, 60.0), workout.exercise().sets.map { it.weightKg })
+
+        workout = workout.setWeight(exercise.id, first.id, 65.0)
+        assertEquals(listOf(65.0, 62.5, 60.0, 60.0), workout.exercise().sets.map { it.weightKg })
+    }
+
+    @Test
+    fun emptyWeightFillsDownToo() {
+        var workout = empty.addExercise(listOf(dips))
+        val exercise = workout.exercise()
+        workout = workout.setWeight(exercise.id, exercise.sets[0].id, 10.0)
+        assertEquals(listOf(10.0, 10.0), workout.exercise().sets.map { it.weightKg })
+    }
+
+    @Test
     fun removingTheLastSetRemovesTheExercise() {
         var workout = empty.addExercise(listOf(dips))
         val exercise = workout.exercise()
