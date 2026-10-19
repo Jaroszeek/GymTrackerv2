@@ -39,6 +39,10 @@ import com.jaroszeek.gymtracker.feature.exercises.ExerciseEditorRoute
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseEditorViewModel
 import com.jaroszeek.gymtracker.feature.exercises.ExercisesRoute
 import com.jaroszeek.gymtracker.feature.placeholder.PlaceholderScreen
+import com.jaroszeek.gymtracker.feature.routines.RoutineEditorRoute
+import com.jaroszeek.gymtracker.feature.routines.RoutineEditorViewModel
+import com.jaroszeek.gymtracker.feature.routines.RoutinesRoute
+import com.jaroszeek.gymtracker.feature.routines.TemplatesRoute
 
 private val NavItems = TopLevelTab.entries.map { GlassNavItem(it.label, it.icon, it.selectedIcon) }
 
@@ -117,6 +121,21 @@ private fun entryProvider(navigator: TabNavigator): (NavKey) -> NavEntry<NavKey>
                 onSaved = { navigator.back() },
             )
         }
+        WorkoutKey -> NavEntry(key) {
+            RoutinesRoute(
+                onEdit = { navigator.navigate(RoutineEditorKey(it)) },
+                onNew = { navigator.navigate(RoutineEditorKey(null)) },
+                onTemplates = { navigator.navigate(TemplatesKey) },
+            )
+        }
+        is RoutineEditorKey -> NavEntry(key) {
+            RoutineEditorRoute(
+                viewModel = hiltViewModel<RoutineEditorViewModel, RoutineEditorViewModel.Factory> { it.create(key.id) },
+                pickerViewModel = hiltViewModel(key = "exercisePicker"),
+                onClose = navigator::back,
+            )
+        }
+        TemplatesKey -> NavEntry(key) { TemplatesRoute(onBack = navigator::back) }
         else -> NavEntry(key) { PlaceholderScreen(TopLevelTab.entries.first { it.root == key }) }
     }
 }

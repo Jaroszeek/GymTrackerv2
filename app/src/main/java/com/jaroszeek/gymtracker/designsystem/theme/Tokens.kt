@@ -61,6 +61,7 @@ object GtSizes {
     val DialogMaxWidth = 360.dp
     val ContentMaxWidth = 560.dp
     val Thumbnail = 56.dp
+    val ThumbnailSmall = 44.dp
 }
 
 object GtAlpha {

@@ -5,11 +5,13 @@ import androidx.room3.Room
 import androidx.sqlite.driver.AndroidSQLiteDriver
 import com.jaroszeek.gymtracker.core.database.ExerciseDao
 import com.jaroszeek.gymtracker.core.database.GtDatabase
+import com.jaroszeek.gymtracker.core.database.RoutineDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import java.time.Clock
 import javax.inject.Qualifier
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
@@ -43,4 +45,10 @@ object CoreModule {
 
     @Provides
     fun exerciseDao(database: GtDatabase): ExerciseDao = database.exerciseDao()
+
+    @Provides
+    fun routineDao(database: GtDatabase): RoutineDao = database.routineDao()
+
+    @Provides
+    fun clock(): Clock = Clock.systemUTC()
 }

@@ -18,3 +18,12 @@ fun Modifier.sharedElement(key: Any): Modifier {
     val animatedScope = LocalNavAnimatedContentScope.current
     return with(scope) { this@sharedElement.sharedElement(rememberSharedContentState(key), animatedScope) }
 }
+
+/** Morphs this container into the one with the same [key] on the next screen, even when the content differs. */
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+fun Modifier.sharedBounds(key: Any): Modifier {
+    val scope = LocalSharedTransitionScope.current ?: return this
+    val animatedScope = LocalNavAnimatedContentScope.current
+    return with(scope) { this@sharedBounds.sharedBounds(rememberSharedContentState(key), animatedScope) }
+}

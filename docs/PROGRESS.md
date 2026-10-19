@@ -6,8 +6,8 @@
 |---|---|---|
 | 0 | Start i plan | ✅ zakończony (2026-10-19) |
 | 1 | Fundament i design system | ✅ zakończony (2026-10-19) |
-| 2 | Ćwiczenia | 🔍 PR #2, czeka na akceptację |
-| 3 | Rutyny i szablony | — |
+| 2 | Ćwiczenia | ✅ zakończony (2026-10-19) |
+| 3 | Rutyny i szablony | 🔍 PR #3, czeka na akceptację |
 | 4 | Aktywny trening | — |
 | 5 | Powiadomienie, Live Update, przerwa w tle | — |
 | 6 | Historia i postępy | — |
@@ -19,19 +19,20 @@
 
 ## Bieżący stan
 
-- **Etap 1** zmergowany (PR #1).
-- **Etap 2** na branchu `feat/stage-2-exercises`, PR #2.
-  - Zrobione: Room v1 (ćwiczenia + mięśnie), seed free-exercise-db + 26 wariantów Nipparda + 135 aliasów PL, lista z wyszukiwarką i filtrami, szczegóły (zdjęcia, mięśnie, instrukcje, wideo, miejsca na wykres i rekordy), własne ćwiczenia (dodawanie, edycja, usuwanie), shared element, testy domeny i bazy na JVM (35 testów), zrzuty w `docs/screenshots/stage2-*`.
-  - Czeka: akceptacja właściciela; pomiar płynności na telefonie (D-023, D-031).
-- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-031).
+- **Etapy 1–2** zmergowane (PR #1, #2).
+- **Etap 3** na branchu `feat/stage-3-routines`, PR #3.
+  - Zrobione: schemat v2 z migracją i testem migracji na JVM, rutyny z blokami i wariantami, edytor z drag & drop, arkuszem celów i wyborem ćwiczeń, menu rutyny (edycja, duplikat, usunięcie), szablony PPL / Upper-Lower / FBW, double progression w `domain/`, ochrona ćwiczeń w użyciu, 59 testów, zrzuty `docs/screenshots/stage3-*`.
+  - Czeka: akceptacja właściciela.
+- **Tryb pracy:** plan etapu nie czeka na akceptację (D-032), akceptacja na PR.
+- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-037).
 - **Środowisko:**
   - Android Studio 2026.2.1 w `C:\Program Files\Android\Android Studio1` (JBR 25).
-  - `adb` nie zawsze jest w PATH sesji; pełna ścieżka: `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe`.
+  - `adb`: `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe`.
   - AVD `gt-api36` to obraz 36.0, który nie promuje Live Updates (D-022); wydajność emulatora jest niestabilna (D-031).
-  - Na emulatorze: język aplikacji pl-PL (`cmd locale set-app-locales`) i wyłączone pismo rysikiem.
+  - Na emulatorze: język aplikacji pl-PL i wyłączone pismo rysikiem.
 - **vynox:** sklonowany do `%TEMP%\vynox-ref`, tylko do odczytu.
 
 ## Następny krok
 
-- Akceptacja Etapu 2 i merge PR #2.
-- Potem Etap 3 — Rutyny i szablony (schemat v2 z migracją; ochrona usuwania ćwiczeń w użyciu, D-026).
+- Akceptacja Etapu 3 i merge PR #3.
+- Potem Etap 4 — Aktywny trening (schemat v3: treningi i serie; „Start” z karty rutyny; podpowiedź progresji z D-036; tabele treningów dochodzą do sprawdzenia ćwiczeń w użyciu).

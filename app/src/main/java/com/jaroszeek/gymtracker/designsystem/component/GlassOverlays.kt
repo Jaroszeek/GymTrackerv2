@@ -21,7 +21,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.widthIn
@@ -110,7 +112,8 @@ fun GlassBottomSheet(
         ) {
             GlassSurface(
                 modifier
-                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    // Above the keyboard too: sheets can hold text and number fields
+                    .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
                     .padding(GtSpacing.s)
                     .widthIn(max = GtSizes.ContentMaxWidth)
                     .fillMaxWidth()

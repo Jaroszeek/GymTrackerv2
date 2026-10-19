@@ -1,0 +1,591 @@
+[
+ {
+  "id": "ppl",
+  "name": "Push / Pull / Legs",
+  "routines": [
+   {
+    "name": "Push",
+    "blocks": [
+     {
+      "variants": [
+       {
+        "exercise": "Barbell_Bench_Press_-_Medium_Grip",
+        "sets": 4,
+        "repsMin": 6,
+        "repsMax": 8,
+        "restSeconds": 180
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Incline_Dumbbell_Press",
+        "sets": 3,
+        "repsMin": 8,
+        "repsMax": 10,
+        "restSeconds": 120
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Dumbbell_Shoulder_Press",
+        "sets": 3,
+        "repsMin": 8,
+        "repsMax": 10,
+        "restSeconds": 120
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Single-Arm_Cable_Lateral_Raise",
+        "sets": 3,
+        "repsMin": 12,
+        "repsMax": 15,
+        "restSeconds": 60
+       },
+       {
+        "exercise": "Side_Lateral_Raise",
+        "sets": 3,
+        "repsMin": 12,
+        "repsMax": 15,
+        "restSeconds": 60
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Triceps_Pushdown_-_Rope_Attachment",
+        "sets": 3,
+        "repsMin": 10,
+        "repsMax": 12,
+        "restSeconds": 60
+       },
+       {
+        "exercise": "Cable_Rope_Overhead_Triceps_Extension",
+        "sets": 3,
+        "repsMin": 10,
+        "repsMax": 12,
+        "restSeconds": 60
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Butterfly",
+        "sets": 2,
+        "repsMin": 12,
+        "repsMax": 15,
+        "restSeconds": 60
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "Pull",
+    "blocks": [
+     {
+      "variants": [
+       {
+        "exercise": "Pullups",
+        "sets": 3,
+        "repsMin": 6,
+        "repsMax": 10,
+        "restSeconds": 120
+       },
+       {
+        "exercise": "Wide-Grip_Lat_Pulldown",
+        "sets": 3,
+        "repsMin": 6,
+        "repsMax": 10,
+        "restSeconds": 120
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Bent_Over_Barbell_Row",
+        "sets": 3,
+        "repsMin": 8,
+        "repsMax": 10,
+        "restSeconds": 120
+       },
+       {
+        "exercise": "Machine_Chest-Supported_Row",
+        "sets": 3,
+        "repsMin": 8,
+        "repsMax": 10,
+        "restSeconds": 120
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Seated_Cable_Rows",
+        "sets": 3,
+        "repsMin": 10,
+        "repsMax": 12,
+        "restSeconds": 90
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Face_Pull",
+        "sets": 3,
+        "repsMin": 12,
+        "repsMax": 15,
+        "restSeconds": 60
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "EZ-Bar_Curl",
+        "sets": 3,
+        "repsMin": 8,
+        "repsMax": 12,
+        "restSeconds": 60
+       },
+       {
+        "exercise": "Bayesian_Cable_Curl",
+        "sets": 3,
+        "repsMin": 8,
+        "repsMax": 12,
+        "restSeconds": 60
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Hammer_Curls",
+        "sets": 2,
+        "repsMin": 10,
+        "repsMax": 12,
+        "restSeconds": 60
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "Legs",
+    "blocks": [
+     {
+      "variants": [
+       {
+        "exercise": "Barbell_Squat",
+        "sets": 4,
+        "repsMin": 6,
+        "repsMax": 8,
+        "restSeconds": 180
+       },
+       {
+        "exercise": "Hack_Squat",
+        "sets": 4,
+        "repsMin": 6,
+        "repsMax": 8,
+        "restSeconds": 180
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Romanian_Deadlift",
+        "sets": 3,
+        "repsMin": 8,
+        "repsMax": 10,
+        "restSeconds": 120
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Leg_Press",
+        "sets": 3,
+        "repsMin": 10,
+        "repsMax": 12,
+        "restSeconds": 120
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Lying_Leg_Curls",
+        "sets": 3,
+        "repsMin": 10,
+        "repsMax": 12,
+        "restSeconds": 90
+       },
+       {
+        "exercise": "Seated_Leg_Curl",
+        "sets": 3,
+        "repsMin": 10,
+        "repsMax": 12,
+        "restSeconds": 90
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Leg_Extensions",
+        "sets": 2,
+        "repsMin": 12,
+        "repsMax": 15,
+        "restSeconds": 60
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Standing_Calf_Raises",
+        "sets": 3,
+        "repsMin": 10,
+        "repsMax": 15,
+        "restSeconds": 60
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "upper_lower",
+  "name": "Upper / Lower",
+  "routines": [
+   {
+    "name": "Upper",
+    "blocks": [
+     {
+      "variants": [
+       {
+        "exercise": "Barbell_Bench_Press_-_Medium_Grip",
+        "sets": 4,
+        "repsMin": 6,
+        "repsMax": 8,
+        "restSeconds": 180
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Bent_Over_Barbell_Row",
+        "sets": 4,
+        "repsMin": 6,
+        "repsMax": 8,
+        "restSeconds": 120
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Dumbbell_Shoulder_Press",
+        "sets": 3,
+        "repsMin": 8,
+        "repsMax": 10,
+        "restSeconds": 120
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Pullups",
+        "sets": 3,
+        "repsMin": 8,
+        "repsMax": 12,
+        "restSeconds": 120
+       },
+       {
+        "exercise": "Wide-Grip_Lat_Pulldown",
+        "sets": 3,
+        "repsMin": 8,
+        "repsMax": 12,
+        "restSeconds": 120
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Side_Lateral_Raise",
+        "sets": 3,
+        "repsMin": 12,
+        "repsMax": 15,
+        "restSeconds": 60
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "EZ-Bar_Curl",
+        "sets": 2,
+        "repsMin": 10,
+        "repsMax": 12,
+        "restSeconds": 60
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Triceps_Pushdown",
+        "sets": 2,
+        "repsMin": 10,
+        "repsMax": 12,
+        "restSeconds": 60
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "Lower",
+    "blocks": [
+     {
+      "variants": [
+       {
+        "exercise": "Barbell_Squat",
+        "sets": 4,
+        "repsMin": 6,
+        "repsMax": 8,
+        "restSeconds": 180
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Romanian_Deadlift",
+        "sets": 3,
+        "repsMin": 8,
+        "repsMax": 10,
+        "restSeconds": 120
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Leg_Press",
+        "sets": 3,
+        "repsMin": 10,
+        "repsMax": 12,
+        "restSeconds": 120
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Seated_Leg_Curl",
+        "sets": 3,
+        "repsMin": 10,
+        "repsMax": 12,
+        "restSeconds": 90
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Standing_Calf_Raises",
+        "sets": 3,
+        "repsMin": 12,
+        "repsMax": 15,
+        "restSeconds": 60
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Hanging_Leg_Raise",
+        "sets": 3,
+        "repsMin": 10,
+        "repsMax": 15,
+        "restSeconds": 60
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "fbw",
+  "name": "FBW A / B",
+  "routines": [
+   {
+    "name": "FBW A",
+    "blocks": [
+     {
+      "variants": [
+       {
+        "exercise": "Barbell_Squat",
+        "sets": 3,
+        "repsMin": 6,
+        "repsMax": 8,
+        "restSeconds": 180
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Barbell_Bench_Press_-_Medium_Grip",
+        "sets": 3,
+        "repsMin": 6,
+        "repsMax": 8,
+        "restSeconds": 120
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Bent_Over_Barbell_Row",
+        "sets": 3,
+        "repsMin": 8,
+        "repsMax": 10,
+        "restSeconds": 120
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Dumbbell_Shoulder_Press",
+        "sets": 2,
+        "repsMin": 10,
+        "repsMax": 12,
+        "restSeconds": 90
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Lying_Leg_Curls",
+        "sets": 2,
+        "repsMin": 10,
+        "repsMax": 12,
+        "restSeconds": 90
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Cable_Crunch",
+        "sets": 2,
+        "repsMin": 12,
+        "repsMax": 15,
+        "restSeconds": 60
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "FBW B",
+    "blocks": [
+     {
+      "variants": [
+       {
+        "exercise": "Barbell_Deadlift",
+        "sets": 3,
+        "repsMin": 5,
+        "repsMax": 5,
+        "restSeconds": 180
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Incline_Dumbbell_Press",
+        "sets": 3,
+        "repsMin": 8,
+        "repsMax": 10,
+        "restSeconds": 120
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Pullups",
+        "sets": 3,
+        "repsMin": 6,
+        "repsMax": 10,
+        "restSeconds": 120
+       },
+       {
+        "exercise": "Wide-Grip_Lat_Pulldown",
+        "sets": 3,
+        "repsMin": 6,
+        "repsMax": 10,
+        "restSeconds": 120
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Leg_Press",
+        "sets": 3,
+        "repsMin": 10,
+        "repsMax": 12,
+        "restSeconds": 120
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Side_Lateral_Raise",
+        "sets": 2,
+        "repsMin": 12,
+        "repsMax": 15,
+        "restSeconds": 60
+       }
+      ]
+     },
+     {
+      "variants": [
+       {
+        "exercise": "Hammer_Curls",
+        "sets": 2,
+        "repsMin": 10,
+        "repsMax": 12,
+        "restSeconds": 60
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+]

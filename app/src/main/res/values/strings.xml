@@ -142,4 +142,74 @@
     <string name="category_olympic_weightlifting">Podnoszenie ciężarów</string>
     <string name="category_strongman">Strongman</string>
     <string name="category_cardio">Cardio</string>
+
+    <string name="action_ok">OK</string>
+    <string name="action_start">Start</string>
+    <string name="action_duplicate">Duplikuj</string>
+    <string name="action_done">Gotowe</string>
+    <string name="action_discard">Odrzuć</string>
+    <string name="action_keep_editing">Wróć do edycji</string>
+    <string name="action_more">Więcej opcji</string>
+    <string name="delete_exercise_in_use_title">Ćwiczenie jest w użyciu</string>
+    <string name="delete_exercise_in_use_text">To ćwiczenie jest w co najmniej jednej rutynie. Najpierw usuń je z rutyn.</string>
+
+    <!-- Routines: list -->
+    <string name="routines_new">Nowa rutyna</string>
+    <string name="routines_templates">Szablony</string>
+    <string name="routines_empty_title">Nie masz jeszcze rutyn</string>
+    <string name="routines_empty_text">Utwórz własną albo zacznij od gotowego szablonu.</string>
+    <plurals name="routine_exercises">
+        <item quantity="one">%1$d ćwiczenie</item>
+        <item quantity="few">%1$d ćwiczenia</item>
+        <item quantity="many">%1$d ćwiczeń</item>
+        <item quantity="other">%1$d ćwiczenia</item>
+    </plurals>
+    <plurals name="routine_sets">
+        <item quantity="one">%1$d seria</item>
+        <item quantity="few">%1$d serie</item>
+        <item quantity="many">%1$d serii</item>
+        <item quantity="other">%1$d serii</item>
+    </plurals>
+    <string name="routine_meta">%1$s • %2$s</string>
+    <string name="routine_copy_name">%1$s (kopia)</string>
+    <string name="delete_routine_title">Usunąć rutynę?</string>
+    <string name="delete_routine_text">„%1$s” zniknie z listy. Zakończone treningi zostaną w historii.</string>
+    <string name="start_stub_title">Wkrótce</string>
+    <string name="start_stub_text">Rejestrowanie treningu pojawi się w kolejnym etapie.</string>
+
+    <!-- Routines: editor -->
+    <string name="routine_editor_new">Nowa rutyna</string>
+    <string name="routine_editor_edit">Edytuj rutynę</string>
+    <string name="label_routine_name">Nazwa rutyny</string>
+    <string name="routine_name_placeholder">np. Push A</string>
+    <string name="routine_name_error">Podaj nazwę rutyny</string>
+    <string name="routine_blocks_error">Dodaj co najmniej jedno ćwiczenie</string>
+    <string name="routine_add_exercise">Dodaj ćwiczenie</string>
+    <string name="routine_add_variant">Dodaj wariant</string>
+    <string name="routine_or">lub</string>
+    <string name="routine_drag">Przeciągnij, aby zmienić kolejność</string>
+    <string name="routine_remove_variant">Usuń: %1$s</string>
+    <string name="routine_target_sets_reps">%1$d × %2$s</string>
+    <string name="routine_target_weight">%1$s kg</string>
+    <string name="routine_target_rest">przerwa %1$s</string>
+    <string name="routine_target_rest_default">przerwa domyślna</string>
+    <string name="routine_discard_title">Odrzucić zmiany?</string>
+    <string name="routine_discard_text">Niezapisane zmiany w rutynie przepadną.</string>
+    <string name="routine_save_failed">Nie udało się zapisać rutyny.</string>
+    <string name="picker_title">Wybierz ćwiczenie</string>
+    <string name="label_sets">Serie</string>
+    <string name="label_reps_min">Powtórzenia od</string>
+    <string name="label_reps_max">Powtórzenia do</string>
+    <string name="label_rest">Przerwa</string>
+    <string name="unit_seconds">s</string>
+    <string name="targets_weight_hint">Puste pole = bez ciężaru docelowego</string>
+    <string name="targets_rest_hint">Puste pole = przerwa domyślna</string>
+
+    <!-- Routines: templates -->
+    <string name="templates_title">Szablony</string>
+    <string name="template_add">Dodaj do moich rutyn</string>
+    <string name="template_ppl_description">Trzy dni: wyciskanie, przyciąganie i nogi. Klasyczny podział na 3 albo 6 treningów w tygodniu.</string>
+    <string name="template_upper_lower_description">Dwa dni: góra i dół ciała. Dobre na 4 treningi w tygodniu.</string>
+    <string name="template_fbw_description">Całe ciało na każdym treningu, A i B na zmianę. Dobry start na 3 treningi w tygodniu.</string>
+    <string name="templates_error">Nie udało się wczytać szablonów.</string>
 </resources>

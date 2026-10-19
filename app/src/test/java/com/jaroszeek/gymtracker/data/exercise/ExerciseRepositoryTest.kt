@@ -1,12 +1,11 @@
 package com.jaroszeek.gymtracker.data.exercise
 
-import androidx.room3.Room
-import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import com.jaroszeek.gymtracker.core.database.GtDatabase
 import com.jaroszeek.gymtracker.domain.exercise.Equipment
 import com.jaroszeek.gymtracker.domain.exercise.ExerciseDraft
 import com.jaroszeek.gymtracker.domain.exercise.Muscle
-import java.io.File
+import com.jaroszeek.gymtracker.testing.bundledSeed
+import com.jaroszeek.gymtracker.testing.inMemoryDatabase
+import com.jaroszeek.gymtracker.testing.seeder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -19,20 +18,9 @@ import org.junit.Test
 /** DAO, seed and repository on an in-memory database with the bundled SQLite driver (runs on the JVM and in CI). */
 class ExerciseRepositoryTest {
 
-    private val database = Room.inMemoryDatabaseBuilder<GtDatabase>()
-        .setDriver(BundledSQLiteDriver())
-        .build()
+    private val database = inMemoryDatabase()
 
-    private val seed by lazy {
-        fun asset(path: String) = File("src/main/assets/$path").readText()
-        ExerciseSeedParser.parse(
-            asset(ExerciseSeedParser.FREE_EXERCISE_DB),
-            asset(ExerciseSeedParser.NIPPARD),
-            asset(ExerciseSeedParser.ALIASES_PL),
-        )
-    }
-
-    private fun seeder() = ExerciseSeeder(database, Dispatchers.IO) { seed }
+    private fun seeder() = seeder(database)
 
     private fun repository() = ExerciseRepository(database, seeder(), Dispatchers.IO)
 
@@ -44,7 +32,7 @@ class ExerciseRepositoryTest {
         seeder().ensureSeeded()
         // A new seeder instance stands in for the next app start
         seeder().ensureSeeded()
-        assertEquals(seed.size, database.exerciseDao().countSeeded())
+        assertEquals(bundledSeed.size, database.exerciseDao().countSeeded())
     }
 
     @Test
@@ -77,7 +65,7 @@ class ExerciseRepositoryTest {
         assertEquals("Landmine Press (half-kneeling)", edited.name)
         assertEquals(setOf(Muscle.Chest), edited.primaryMuscles)
 
-        repository.deleteCustom(id)
+        assertEquals(DeleteResult.Deleted, repository.deleteCustom(id))
         assertNull(repository.observe(id).first())
     }
 
