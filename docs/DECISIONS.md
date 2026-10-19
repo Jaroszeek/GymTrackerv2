@@ -182,7 +182,7 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 - **Rozmiar:** release z R8 (bez podpisu) ma 2,0 MB; Backdrop + Shapes to ok. 12 KB dexu.
 
 ### D-020 Galeria komponentów i build `benchmark`
-- **Decyzja:** galeria to osobna aktywność w source secie `debug` z własną ikoną „GT Galeria”. To narzędzie deweloperskie, więc nie łamie zasady single-activity aplikacji. Motyw można ustawić przez extras intencji (skrypty zrzutów).
+- **Decyzja:** galeria to osobna aktywność w source secie `debug` z własną ikoną „GT Galeria” (od Etapu 6 bez ikony, D-058). To narzędzie deweloperskie, więc nie łamie zasady single-activity aplikacji. Motyw można ustawić przez extras intencji (skrypty zrzutów).
 - Build type `benchmark` (`initWith(release)`, podpis debug, sufiks `.benchmark`) kompiluje źródła i manifest `debug`, żeby macrobenchmark przewijał galerię na kodzie po R8. W AGP 9 źródła Kotlina dodaje się przez `kotlin.directories`, nie `java.directories`.
 - **Alternatywy:** galeria w `main` wycinana przez R8 (kod galerii trafiałby do kompilacji release).
 
@@ -425,6 +425,10 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
   - punkt odniesienia z Etapu 1 (galeria z blurem na tym samym emulatorze): p50 28 ms, p90 42 ms, jank 28%.
   Nowe ekrany nie są wolniejsze od reszty aplikacji na emulatorze. Miarodajny pomiar będzie na telefonie.
 - Bez nowych zależności. Release: 4,04 MB (było 3,88 MB; +0,16 MB).
+
+### D-058 Wydanie testowe po każdym etapie, galeria bez ikony
+- Na polecenie właściciela (2026-10-19) każdy etap dostaje wydanie testowe `preview-stage-<nr>` na zasadach z D-051 (pre-release, APK debug zbudowany lokalnie). Etap 6 dostał je po merge'u, z `main`. Kolejne etapy dostaną je razem z PR, żeby dało się je sprawdzić na telefonie przed akceptacją.
+- Galeria komponentów nie ma już ikony w launcherze, bo właściciel nie chce jej na telefonie. Zostaje jako narzędzie deweloperskie, bo CLAUDE.md wymaga galerii dla każdego komponentu. Otwiera ją `adb shell am start -n …` (README) i macrobenchmark, który startuje ją po nazwie.
 
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 

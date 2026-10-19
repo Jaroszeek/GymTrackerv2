@@ -52,7 +52,7 @@ Wariant debug ma identyfikator `com.jaroszeek.gymtracker.debug`, więc instaluje
 
 ### Galeria komponentów (tylko debug)
 
-W launcherze pojawia się osobna ikona „GT Galeria” ze wszystkimi komponentami i przełącznikami motywu. Motyw można też ustawić z linii poleceń, np. do zrzutów ekranu:
+Galeria ze wszystkimi komponentami i przełącznikami motywu nie ma ikony w launcherze (D-058). Otwiera się ją z linii poleceń, a parametrami można od razu ustawić motyw, np. do zrzutów ekranu:
 
 ```powershell
 adb shell am start -n com.jaroszeek.gymtracker.debug/com.jaroszeek.gymtracker.designsystem.gallery.GalleryActivity --es palette onyx --ez reduceTransparency true
