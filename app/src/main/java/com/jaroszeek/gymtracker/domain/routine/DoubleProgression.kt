@@ -1,9 +1,25 @@
 package com.jaroszeek.gymtracker.domain.routine
 
 import kotlin.math.roundToLong
+import kotlinx.serialization.Serializable
 
-enum class SetType { Warmup, Working, DropSet, Failure }
+/** [key] is how the type is stored. */
+enum class SetType(val key: String) {
+    Warmup("warmup"),
+    Working("working"),
+    DropSet("drop"),
+    Failure("failure"),
+    ;
 
+    /** Counts toward the target sets and progression (warm-ups and drop sets do not). */
+    val isWork: Boolean get() = this == Working || this == Failure
+
+    companion object {
+        fun fromKey(key: String): SetType = entries.first { it.key == key }
+    }
+}
+
+@Serializable
 data class PerformedSet(val weightKg: Double?, val reps: Int, val type: SetType = SetType.Working)
 
 /**
@@ -18,7 +34,7 @@ object DoubleProgression {
      * no weight to progress, e.g. bodyweight work or no history). Warm-up and drop sets do not count.
      */
     fun nextWeight(targets: RoutineTargets, lastSession: List<PerformedSet>, incrementKg: Double = DEFAULT_INCREMENT_KG): Double? {
-        val working = lastSession.filter { it.type == SetType.Working || it.type == SetType.Failure }
+        val working = lastSession.filter { it.type.isWork }
         if (working.size < targets.sets) return null
         val weights = working.map { it.weightKg ?: return null }
         // The weight every working set was done with at least; below the target weight means not there yet

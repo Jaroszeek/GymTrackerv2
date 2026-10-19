@@ -2,8 +2,10 @@ package com.jaroszeek.gymtracker.domain.routine
 
 import com.jaroszeek.gymtracker.domain.exercise.Exercise
 import java.time.Instant
+import kotlinx.serialization.Serializable
 
 /** Targets of one exercise in a routine; [repsMin] == [repsMax] means a fixed rep count. */
+@Serializable
 data class RoutineTargets(
     val sets: Int = DEFAULT_SETS,
     val repsMin: Int = DEFAULT_REPS_MIN,

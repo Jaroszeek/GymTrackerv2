@@ -80,6 +80,10 @@ class RoutineRepository @Inject constructor(
     }
 
     suspend fun delete(id: Long) = dao.deleteRoutine(id)
+
+    /** New targets of one variant, from the dialog after a workout; a variant deleted meanwhile is skipped. */
+    suspend fun updateTargets(variantId: Long, targets: RoutineTargets) =
+        dao.updateTargets(variantId, targets.sets, targets.repsMin, targets.repsMax, targets.weightKg, targets.restSeconds)
 }
 
 /** The same routine as a draft of new rows (all ids temporary). */

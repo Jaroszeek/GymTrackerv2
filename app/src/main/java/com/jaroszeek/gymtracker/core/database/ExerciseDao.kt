@@ -39,8 +39,11 @@ interface ExerciseDao {
     @Query("DELETE FROM exercise_muscles WHERE exercise_id = :exerciseId")
     suspend fun deleteMuscles(exerciseId: Long)
 
-    /** Whether a routine uses the exercise; such an exercise cannot be deleted (FK RESTRICT is the safety net). */
-    @Query("SELECT EXISTS(SELECT 1 FROM routine_variants WHERE exercise_id = :id)")
+    /** Whether a routine or a finished workout uses the exercise; such an exercise cannot be deleted (FK RESTRICT is the safety net). */
+    @Query(
+        """SELECT EXISTS(SELECT 1 FROM routine_variants WHERE exercise_id = :id)
+               OR EXISTS(SELECT 1 FROM workout_exercises WHERE exercise_id = :id)""",
+    )
     suspend fun isUsed(id: Long): Boolean
 
     /** Only custom exercises can be deleted; returns the number of deleted rows. */

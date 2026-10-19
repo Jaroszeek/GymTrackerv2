@@ -6,7 +6,12 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.sqlite.execSQL
 import com.jaroszeek.gymtracker.data.exercise.ExerciseRepository
 import com.jaroszeek.gymtracker.data.routine.RoutineRepository
+import com.jaroszeek.gymtracker.data.workout.WorkoutRepository
+import com.jaroszeek.gymtracker.domain.routine.PerformedSet
 import com.jaroszeek.gymtracker.domain.routine.RoutineDraft
+import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
+import com.jaroszeek.gymtracker.domain.workout.ActiveWorkout
+import com.jaroszeek.gymtracker.domain.workout.WorkoutVariant
 import com.jaroszeek.gymtracker.testing.seeder
 import java.io.File
 import java.time.Clock
@@ -61,6 +66,37 @@ class MigrationTest {
         val routines = RoutineRepository(current, exercises, Clock.systemUTC(), Dispatchers.IO)
         val routineId = routines.save(null, RoutineDraft(name = "Shoulders").addBlock(landmine))
         assertEquals(listOf(landmine), routines.observe(routineId).first()!!.blocks.map { it.variants.single().exercise })
+    }
+
+    @Test
+    fun version2MigratesKeepingRoutines() = runTest {
+        createFromSchema(version = 2).run {
+            execSQL(
+                """INSERT INTO exercises (id, external_id, name, aliases_pl, category, instructions, images, source)
+                   VALUES (1, NULL, 'Landmine Press', '[]', 'strength', '[]', '[]', 'custom')""",
+            )
+            execSQL("INSERT INTO exercise_muscles (exercise_id, muscle, is_primary) VALUES (1, 'shoulders', 1)")
+            execSQL("INSERT INTO routines (id, name, created_at, updated_at) VALUES (1, 'Shoulders', 0, 0)")
+            execSQL("INSERT INTO routine_blocks (id, routine_id, position) VALUES (1, 1, 0)")
+            execSQL(
+                """INSERT INTO routine_variants (id, block_id, exercise_id, position, target_sets, reps_min, reps_max, target_weight_kg, rest_seconds)
+                   VALUES (1, 1, 1, 0, 4, 6, 10, 30.0, 90)""",
+            )
+            close()
+        }
+
+        val current = Room.databaseBuilder<GtDatabase>(file.path).setDriver(BundledSQLiteDriver()).build().also { database = it }
+        val exercises = ExerciseRepository(current, seeder(current), Dispatchers.IO)
+        val routine = RoutineRepository(current, exercises, Clock.systemUTC(), Dispatchers.IO).observe(1).first()!!
+        assertEquals(RoutineTargets(4, 6, 10, 30.0, 90), routine.blocks.single().variants.single().targets)
+
+        // The tables added in version 3 work and link to the routine
+        val variant = routine.blocks.single().variants.single()
+        var workout = ActiveWorkout(routine.id, routine.name, 0, 0).addExercise(listOf(WorkoutVariant(1, variant.id, variant.targets)))
+        workout.exercises.single().let { exercise -> workout = workout.updateSet(exercise.id, exercise.sets[0].id) { it.copy(done = true) } }
+        val workouts = WorkoutRepository(current, Dispatchers.IO)
+        workouts.save(workout, endedAt = 1)
+        assertEquals(listOf(PerformedSet(30.0, 6)), workouts.lastSession(1))
     }
 
     private fun createFromSchema(version: Int): SQLiteConnection {
