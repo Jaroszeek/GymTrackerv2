@@ -394,14 +394,15 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 
 ### D-054 Rekordy i e1RM: reguły
 - e1RM liczymy wzorem Epleya (jedno powtórzenie = ciężar), a Brzyckiego tylko do porównania na liście rekordów. Liczą się serie 1–12 powtórzeń z ciężarem większym od 0, bez rozgrzewkowych.
-- Rekord wymaga wcześniejszego wyniku: pierwszy trening ćwiczenia tylko ustala punkt odniesienia. Inaczej pierwszy trening z każdym ćwiczeniem byłby samymi rekordami.
+- Rekord wymaga wcześniejszego wyniku: pierwszy trening ćwiczenia tylko ustala punkt odniesienia. Inaczej pierwszy trening z każdym ćwiczeniem byłby samymi rekordami. Tak samo dla każdego typu rekordu osobno: po samej masie ciała pierwszy trening z dodatkowym ciężarem, a po samych seriach powyżej 12 powtórzeń pierwszy trening z e1RM tylko ustalają punkt odniesienia (poprawka po przeglądzie kodu).
 - Ciężar, e1RM i objętość serii: rekordem jest wynik wyższy od najlepszego z wcześniejszych treningów (równy nie). Powtórzenia: więcej niż kiedykolwiek przy tym samym lub większym ciężarze; masa ciała porównywana tylko z masą ciała. Objętość treningu: odznakę dostaje seria, która przekroczyła poprzedni najlepszy wynik.
 - To samo ćwiczenie dwa razy w treningu to jedna sesja.
 - Rekordy liczymy przy odczycie historii, nie zapisujemy ich. Edycja i usunięcie treningu przeliczają je bez dodatkowego kodu i bez migracji (baza zostaje w wersji 3). Data rekordu to pierwszy trening, w którym padł.
 - Lista „najwięcej powtórzeń” pomija wyniki, które przebija cięższa seria z co najmniej taką samą liczbą powtórzeń.
+- W trakcie treningu rekordy liczą się względem historii z chwili dodania ćwiczenia. Edycja albo usunięcie treningu w historii w trakcie treningu nie zmienia ich do końca treningu; potem historia przelicza je sama. Odświeżanie w locie odrzucone: przypadek rzadki, a dokładałoby obserwację historii do aktywnego treningu.
 
 ### D-055 Tygodniowe serie na partię
-- Tydzień zaczyna się w poniedziałek w strefie urządzenia. Liczą się serie bez rozgrzewkowych. Seria liczy się raz dla każdej partii, do której należą mięśnie główne ćwiczenia; pomocnicze się nie liczą.
+- Tydzień zaczyna się w poniedziałek w strefie urządzenia. Liczą się serie bez rozgrzewkowych. Seria liczy się raz dla każdej partii, do której należą mięśnie główne ćwiczenia; pomocnicze się nie liczą. Suma „Serie robocze w tygodniu” liczy każdą serię raz, także gdy seria liczy się dla kilku partii.
 - Odrzucone: pół serii dla mięśni pomocniczych. Trudniej to wyjaśnić w jednym zdaniu pod wykresem, a liczby w bazie ćwiczeń są do tego zbyt zgrubne.
 
 ### D-056 Komponenty: wykres, segmenty, pasek, odznaki rekordów
