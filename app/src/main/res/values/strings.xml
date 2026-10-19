@@ -332,4 +332,88 @@
     <string name="diagnostics_open_exact_alarms">Alarmy i przypomnienia</string>
     <string name="diagnostics_open_developer">Opcje programisty</string>
     <string name="diagnostics_refresh">Odśwież</string>
+
+    <!-- Charts -->
+    <string name="chart_range_1m">1M</string>
+    <string name="chart_range_3m">3M</string>
+    <string name="chart_range_6m">6M</string>
+    <string name="chart_range_1y">1R</string>
+    <string name="chart_range_all">Wszystko</string>
+    <string name="chart_description">Wykres: %1$s, od %2$s do %3$s</string>
+    <plurals name="chart_points">
+        <item quantity="one">%1$d punkt</item>
+        <item quantity="few">%1$d punkty</item>
+        <item quantity="many">%1$d punktów</item>
+        <item quantity="other">%1$d punktu</item>
+    </plurals>
+    <string name="chart_range_empty">Brak treningów w tym okresie.</string>
+    <string name="chart_metric_weight">Ciężar</string>
+    <string name="chart_metric_e1rm">e1RM</string>
+    <string name="chart_metric_reps">Powtórzenia</string>
+    <string name="value_kg">%1$s kg</string>
+
+    <!-- Progress tab -->
+    <string name="progress_history">Historia</string>
+    <string name="progress_exercises">Ćwiczenia</string>
+    <string name="progress_routines">Rutyny</string>
+    <string name="progress_muscles">Partie</string>
+    <string name="progress_sets">Serie</string>
+    <string name="progress_error">Nie udało się wczytać danych.</string>
+    <string name="history_empty_title">Brak treningów</string>
+    <string name="history_empty_text">Zakończony trening pojawi się tutaj, a z nim rekordy i wykresy.</string>
+    <plurals name="progress_sessions">
+        <item quantity="one">%1$d trening</item>
+        <item quantity="few">%1$d treningi</item>
+        <item quantity="many">%1$d treningów</item>
+        <item quantity="other">%1$d treningu</item>
+    </plurals>
+    <string name="progress_last">ostatnio %1$s</string>
+    <string name="progress_e1rm">e1RM %1$s kg</string>
+    <string name="progress_exercises_empty">Ćwiczenia pojawią się tu po pierwszym zakończonym treningu.</string>
+    <string name="progress_routines_empty">Rutyny pojawią się tu po pierwszym treningu z rutyny.</string>
+    <string name="progress_week_previous">Poprzedni tydzień</string>
+    <string name="progress_week_next">Następny tydzień</string>
+    <string name="progress_week_total">Serie robocze w tygodniu: %1$d</string>
+    <string name="progress_week_hint">Bez rozgrzewek. Seria liczy się dla partii, do których należą mięśnie główne ćwiczenia.</string>
+
+    <!-- Workout from history -->
+    <string name="workout_detail_not_found">Tego treningu już nie ma.</string>
+    <string name="workout_detail_time">%1$s–%2$s</string>
+    <string name="delete_workout_title">Usunąć trening?</string>
+    <string name="delete_workout_text">Trening zniknie z historii, a rekordy i wykresy przeliczą się bez niego.</string>
+    <string name="record_badge_weight">Rekord ciężaru</string>
+    <string name="record_badge_e1rm">Rekord e1RM</string>
+    <string name="record_badge_reps">Rekord powtórzeń</string>
+    <string name="record_badge_set_volume">Rekord objętości serii</string>
+    <string name="record_badge_session_volume">Rekord objętości treningu</string>
+    <string name="record_type_weight">ciężar</string>
+    <string name="record_type_e1rm">e1RM</string>
+    <string name="record_type_reps">powtórzenia</string>
+    <string name="record_type_set_volume">objętość serii</string>
+    <string name="record_type_session_volume">objętość treningu</string>
+
+    <!-- Workout editor -->
+    <string name="workout_editor_title">Edytuj trening</string>
+    <string name="workout_editor_name_error">Podaj nazwę treningu</string>
+    <string name="workout_editor_duration">Czas trwania</string>
+    <string name="unit_min">min</string>
+    <string name="workout_editor_remove_exercise">Usuń ćwiczenie</string>
+    <string name="workout_editor_reps_missing">Uzupełnij powtórzenia w każdej serii albo usuń pustą serię.</string>
+    <string name="workout_editor_save_failed">Nie udało się zapisać zmian.</string>
+    <string name="workout_editor_discard_text">Niezapisane zmiany w treningu przepadną.</string>
+
+    <!-- Records -->
+    <string name="record_weight">Najcięższy ciężar</string>
+    <string name="record_e1rm">Najlepszy e1RM</string>
+    <string name="record_e1rm_from">%1$s • Brzycki %2$s kg</string>
+    <string name="record_set_volume">Największa objętość serii</string>
+    <string name="record_session_volume">Największa objętość treningu</string>
+    <string name="record_reps">Najwięcej powtórzeń</string>
+    <string name="summary_records">Nowe rekordy</string>
+    <string name="summary_record_value">%1$s: %2$s</string>
+
+    <!-- Routine progress -->
+    <string name="routine_progress_volume">Objętość treningu</string>
+    <string name="routine_progress_max_weight">Najcięższa seria</string>
+    <string name="routine_progress_sessions">Treningi</string>
 </resources>
