@@ -424,7 +424,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
   - przeciąganie po wykresie ze 100 punktami: p50 26 ms, p90 32 ms, jank 7,5%;
   - punkt odniesienia z Etapu 1 (galeria z blurem na tym samym emulatorze): p50 28 ms, p90 42 ms, jank 28%.
   Nowe ekrany nie są wolniejsze od reszty aplikacji na emulatorze. Miarodajny pomiar będzie na telefonie.
-- Bez nowych zależności.
+- Bez nowych zależności. Release: 4,04 MB (było 3,88 MB; +0,16 MB).
 
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
