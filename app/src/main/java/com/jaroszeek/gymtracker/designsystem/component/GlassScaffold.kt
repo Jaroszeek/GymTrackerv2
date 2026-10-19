@@ -52,17 +52,19 @@ fun GlassScaffold(
 ) {
     val backdrop = rememberLayerBackdrop()
     val host = remember { OverlayHost() }
+    // With "Ogranicz przezroczystość" nothing samples the content, so it is not recorded into a layer either
+    val sampled = !GtTheme.reduceTransparency
     Box(modifier.fillMaxSize()) {
         Box(
             Modifier
                 .fillMaxSize()
-                .layerBackdrop(backdrop),
+                .then(if (sampled) Modifier.layerBackdrop(backdrop) else Modifier),
         ) {
             AuroraBackground(Modifier.fillMaxSize())
             CompositionLocalProvider(LocalOverlayHost provides host, content = content)
         }
         StatusBarScrim()
-        CompositionLocalProvider(LocalBackdrop provides backdrop, LocalOverlayHost provides host) {
+        CompositionLocalProvider(LocalBackdrop provides backdrop.takeIf { sampled }, LocalOverlayHost provides host) {
             chrome()
             host.entries.forEach { entry -> key(entry) { entry.value() } }
         }

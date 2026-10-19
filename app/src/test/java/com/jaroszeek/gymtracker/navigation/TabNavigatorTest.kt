@@ -36,7 +36,7 @@ class TabNavigatorTest {
         navigator.navigate(Detail)
         navigator.back()
         assertEquals(TopLevelTab.Exercises, navigator.currentTab)
-        assertEquals(listOf<NavKey>(ExercisesRoute), navigator.stacks.getValue(TopLevelTab.Exercises))
+        assertEquals(listOf<NavKey>(ExercisesKey), navigator.stacks.getValue(TopLevelTab.Exercises))
     }
 
     @Test
@@ -46,7 +46,7 @@ class TabNavigatorTest {
         navigator.navigate(Detail)
         navigator.navigate(Detail)
         navigator.select(TopLevelTab.Profile)
-        assertEquals(listOf<NavKey>(ProfileRoute), navigator.stacks.getValue(TopLevelTab.Profile))
+        assertEquals(listOf<NavKey>(ProfileKey), navigator.stacks.getValue(TopLevelTab.Profile))
     }
 
     @Test
@@ -56,6 +56,6 @@ class TabNavigatorTest {
         navigator.navigate(Detail)
         navigator.select(TopLevelTab.Progress)
         navigator.select(TopLevelTab.Exercises)
-        assertEquals(listOf(ExercisesRoute, Detail), navigator.stacks.getValue(TopLevelTab.Exercises))
+        assertEquals(listOf(ExercisesKey, Detail), navigator.stacks.getValue(TopLevelTab.Exercises))
     }
 }
