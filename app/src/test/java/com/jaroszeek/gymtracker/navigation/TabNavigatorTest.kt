@@ -1,0 +1,61 @@
+package com.jaroszeek.gymtracker.navigation
+
+import androidx.compose.runtime.mutableStateOf
+import androidx.navigation3.runtime.NavKey
+import org.junit.Assert.assertEquals
+import org.junit.Test
+
+class TabNavigatorTest {
+
+    private data object Detail : NavKey
+
+    private fun navigator() = TabNavigator(
+        stacks = TopLevelTab.entries.associateWith { mutableListOf(it.root) },
+        tab = mutableStateOf(TopLevelTab.Home),
+    )
+
+    @Test
+    fun startStaysBelowOtherTabs() {
+        val navigator = navigator()
+        navigator.select(TopLevelTab.Progress)
+        assertEquals(listOf(TopLevelTab.Home, TopLevelTab.Progress), navigator.visibleTabs)
+    }
+
+    @Test
+    fun backFromTabRootReturnsToStart() {
+        val navigator = navigator()
+        navigator.select(TopLevelTab.Workout)
+        navigator.back()
+        assertEquals(TopLevelTab.Home, navigator.currentTab)
+    }
+
+    @Test
+    fun backPopsWithinTabFirst() {
+        val navigator = navigator()
+        navigator.select(TopLevelTab.Exercises)
+        navigator.navigate(Detail)
+        navigator.back()
+        assertEquals(TopLevelTab.Exercises, navigator.currentTab)
+        assertEquals(listOf<NavKey>(ExercisesRoute), navigator.stacks.getValue(TopLevelTab.Exercises))
+    }
+
+    @Test
+    fun reselectingTabReturnsToItsRoot() {
+        val navigator = navigator()
+        navigator.select(TopLevelTab.Profile)
+        navigator.navigate(Detail)
+        navigator.navigate(Detail)
+        navigator.select(TopLevelTab.Profile)
+        assertEquals(listOf<NavKey>(ProfileRoute), navigator.stacks.getValue(TopLevelTab.Profile))
+    }
+
+    @Test
+    fun tabsKeepTheirStacks() {
+        val navigator = navigator()
+        navigator.select(TopLevelTab.Exercises)
+        navigator.navigate(Detail)
+        navigator.select(TopLevelTab.Progress)
+        navigator.select(TopLevelTab.Exercises)
+        assertEquals(listOf(ExercisesRoute, Detail), navigator.stacks.getValue(TopLevelTab.Exercises))
+    }
+}

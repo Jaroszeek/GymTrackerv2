@@ -127,7 +127,7 @@ private data class Accent(val vivid: Color, val lightText: Color, val aurora: Li
 private val Accents = mapOf(
     GtPalette.Volt to Accent(Color(0xFFC6F135), Color(0xFF3F6B00), listOf(Color(0xFFC6F135), Color(0xFF3DDC97), Color(0xFF7BD3F7))),
     GtPalette.Ember to Accent(Color(0xFFFF6A3D), Color(0xFFB23A0E), listOf(Color(0xFFFF6A3D), Color(0xFFFF3D6E), Color(0xFFFFB020))),
-    GtPalette.Rose to Accent(Color(0xFFFF5C8A), Color(0xFFB21D50), listOf(Color(0xFFFF5C8A), Color(0xFFB45CFF), Color(0xFFFF8A5C))),
+    GtPalette.Rose to Accent(Color(0xFFFF6A94), Color(0xFFB21D50), listOf(Color(0xFFFF6A94), Color(0xFFB45CFF), Color(0xFFFF8A5C))),
     GtPalette.Aqua to Accent(Color(0xFF3EE6C8), Color(0xFF0B6B63), listOf(Color(0xFF3EE6C8), Color(0xFF3DA9FC), Color(0xFF8AF5A0))),
     GtPalette.Azure to Accent(Color(0xFF4DA3FF), Color(0xFF1A5BC4), listOf(Color(0xFF4DA3FF), Color(0xFF7C5CFF), Color(0xFF3EE6C8))),
     GtPalette.Amber to Accent(Color(0xFFFFB020), Color(0xFF8A5000), listOf(Color(0xFFFFB020), Color(0xFFFF6A3D), Color(0xFFF5E050))),
