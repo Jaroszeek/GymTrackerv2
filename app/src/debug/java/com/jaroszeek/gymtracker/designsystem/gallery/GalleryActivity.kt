@@ -9,21 +9,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.lifecycleScope
+import com.jaroszeek.gymtracker.data.debug.DebugData
 import com.jaroszeek.gymtracker.designsystem.theme.GtPalette
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
 import com.jaroszeek.gymtracker.designsystem.theme.ThemeMode
 import com.jaroszeek.gymtracker.designsystem.theme.ThemeSettings
+import kotlinx.coroutines.launch
 
 /**
  * Debug-only component gallery. The theme can be preset for scripted screenshots:
  * `adb shell am start -n com.jaroszeek.gymtracker.debug/com.jaroszeek.gymtracker.designsystem.gallery.GalleryActivity
  *  --es palette onyx --es mode dark --ez amoled true --ez reduceTransparency true`
+ * `--ei seedWorkouts 300` also adds test workouts ([DebugData]).
  */
 class GalleryActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         val initial = intent.toThemeSettings()
+        val seedWorkouts = intent.getIntExtra("seedWorkouts", 0)
+        if (savedInstanceState == null && seedWorkouts > 0) lifecycleScope.launch { DebugData.seed(applicationContext, seedWorkouts) }
         setContent {
             var settings by rememberSaveable(stateSaver = ThemeSettingsSaver) { mutableStateOf(initial) }
             GymTrackerTheme(settings) {
