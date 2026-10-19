@@ -9,7 +9,7 @@
     <string name="gallery_section_type">Typografia</string>
     <string name="gallery_section_buttons">Przyciski</string>
     <string name="gallery_section_chips">Chipy i badge</string>
-    <string name="gallery_section_inputs">Pola liczbowe i przełączniki</string>
+    <string name="gallery_section_inputs">Pola i przełączniki</string>
     <string name="gallery_section_surfaces">Karta i panel</string>
     <string name="gallery_section_overlays">Nakładki</string>
     <string name="gallery_section_live_update">Sonda Live Update</string>

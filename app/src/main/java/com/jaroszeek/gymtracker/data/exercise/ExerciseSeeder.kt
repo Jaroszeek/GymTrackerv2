@@ -1,6 +1,7 @@
 package com.jaroszeek.gymtracker.data.exercise
 
 import android.content.Context
+import android.util.Log
 import androidx.room3.withWriteTransaction
 import com.jaroszeek.gymtracker.core.database.GtDatabase
 import com.jaroszeek.gymtracker.core.di.IoDispatcher
@@ -11,6 +12,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlin.system.measureTimeMillis
 
 /**
  * Fills the exercise table from the bundled seed files once. Idempotent: it only runs when no
@@ -42,13 +44,15 @@ class ExerciseSeeder internal constructor(
             withContext(io) {
                 val dao = database.exerciseDao()
                 if (dao.countSeeded() == 0) {
-                    val seed = loadSeed()
-                    database.withWriteTransaction {
-                        seed.forEach { exercise ->
-                            val id = dao.insert(exercise.entity)
-                            dao.insertMuscles(exercise.muscles(id))
+                    val millis = measureTimeMillis {
+                        val seed = loadSeed()
+                        // Two batch inserts instead of ~1800 single ones: seconds faster on a cold start
+                        database.withWriteTransaction {
+                            val ids = dao.insertAll(seed.map { it.entity })
+                            dao.insertMuscles(seed.zip(ids).flatMap { (exercise, id) -> exercise.muscles(id) })
                         }
                     }
+                    Log.i(TAG, "Seeded exercises in $millis ms")
                 }
             }
             seeded = true
@@ -56,6 +60,8 @@ class ExerciseSeeder internal constructor(
     }
 
     private companion object {
+        const val TAG = "ExerciseSeeder"
+
         fun readAssets(context: Context): List<SeedExercise> {
             fun read(path: String) = context.assets.open(path).bufferedReader().use { it.readText() }
             return ExerciseSeedParser.parse(

@@ -90,4 +90,10 @@ class ExerciseIndexTest {
         assertEquals(listOf(bench), search("wyciskanie", bodyParts = setOf(BodyPart.Chest), equipment = setOf(EquipmentGroup.Barbell)))
         assertTrue(search("deska", equipment = setOf(EquipmentGroup.Barbell)).isEmpty())
     }
+
+    @Test
+    fun orderedMusclesListEveryMuscleOnce() {
+        assertEquals(Muscle.entries.toSet(), BodyPart.orderedMuscles.toSet())
+        assertEquals(Muscle.entries.size, BodyPart.orderedMuscles.size)
+    }
 }

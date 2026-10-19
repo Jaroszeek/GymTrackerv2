@@ -56,6 +56,10 @@ android {
         compose = true
         buildConfig = true
     }
+    testOptions {
+        // android.util.Log in production code returns defaults instead of throwing in JVM tests
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 room3 {

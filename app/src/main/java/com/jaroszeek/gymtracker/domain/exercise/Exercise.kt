@@ -36,6 +36,12 @@ enum class BodyPart(val muscles: Set<Muscle>) {
     Glutes(setOf(Muscle.Glutes)),
     Legs(setOf(Muscle.Quadriceps, Muscle.Hamstrings, Muscle.Calves, Muscle.Adductors, Muscle.Abductors)),
     Neck(setOf(Muscle.Neck)),
+    ;
+
+    companion object {
+        /** Every muscle once, grouped by body part: a natural order for pickers. */
+        val orderedMuscles: List<Muscle> = entries.flatMap { it.muscles }
+    }
 }
 
 enum class Equipment(val key: String, val group: EquipmentGroup) {

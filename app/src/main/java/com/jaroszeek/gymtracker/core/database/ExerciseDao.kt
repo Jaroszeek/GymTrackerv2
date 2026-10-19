@@ -23,6 +23,10 @@ interface ExerciseDao {
     @Insert
     suspend fun insert(exercise: ExerciseEntity): Long
 
+    /** Returns the new ids in the order of [exercises]. */
+    @Insert
+    suspend fun insertAll(exercises: List<ExerciseEntity>): List<Long>
+
     @Insert
     suspend fun insertMuscles(muscles: List<ExerciseMuscleEntity>)
 

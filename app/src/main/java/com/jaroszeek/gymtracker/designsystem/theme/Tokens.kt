@@ -60,6 +60,7 @@ object GtSizes {
     val BadgeHeight = 22.dp
     val DialogMaxWidth = 360.dp
     val ContentMaxWidth = 560.dp
+    val Thumbnail = 56.dp
 }
 
 object GtAlpha {

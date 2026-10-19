@@ -123,7 +123,12 @@ private fun PressableGlass(
             modifier = pressable,
             shape = GtShapes.Pill,
             refraction = style == GlassButtonStyle.Primary,
-            fill = if (style == GlassButtonStyle.Primary) GtTheme.colors.accent else Color.Unspecified,
+            fill = when {
+                style == GlassButtonStyle.Primary -> GtTheme.colors.accent
+                // Inside content there is nothing to blur; a see-through button over scrolling text reads as clutter
+                LocalBackdrop.current == null -> GtTheme.colors.surfaceRaised
+                else -> Color.Unspecified
+            },
             shadow = style == GlassButtonStyle.Primary,
             contentAlignment = Alignment.Center,
         ) { content() }

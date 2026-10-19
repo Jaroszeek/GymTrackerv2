@@ -57,7 +57,9 @@ import com.jaroszeek.gymtracker.designsystem.component.GlassNavItem
 import com.jaroszeek.gymtracker.designsystem.component.GlassNumberField
 import com.jaroszeek.gymtracker.designsystem.component.GlassPanel
 import com.jaroszeek.gymtracker.designsystem.component.GlassScaffold
+import com.jaroszeek.gymtracker.designsystem.component.GlassSearchField
 import com.jaroszeek.gymtracker.designsystem.component.GlassSwitch
+import com.jaroszeek.gymtracker.designsystem.component.GlassTextField
 import com.jaroszeek.gymtracker.designsystem.component.GlassTopBar
 import com.jaroszeek.gymtracker.designsystem.component.HideOnScrollState
 import com.jaroszeek.gymtracker.designsystem.component.navBarContentPadding
@@ -291,7 +293,17 @@ private fun Inputs() {
     var weight by remember { mutableDoubleStateOf(82.5) }
     var reps by remember { mutableDoubleStateOf(8.0) }
     var switch by remember { mutableStateOf(true) }
+    var query by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
     Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
+        GlassSearchField(query = query, onQueryChange = { query = it }, placeholder = stringResource(R.string.exercises_search))
+        GlassTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = stringResource(R.string.label_name),
+            placeholder = stringResource(R.string.editor_name_placeholder),
+            error = stringResource(R.string.editor_name_error).takeIf { name.isBlank() },
+        )
         Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
             GlassNumberField(
                 value = weight,
