@@ -4,7 +4,7 @@ Natywna aplikacja na Androida do śledzenia treningów siłowych. Działa lokaln
 
 > Szkic. Projekt jest w budowie, etapami opisanymi w `PROMPT.md`. Stan prac: `docs/PROGRESS.md`.
 >
-> Gotowe: design system i nawigacja (Etap 1), baza ćwiczeń z wyszukiwarką, filtrami i własnymi ćwiczeniami (Etap 2), rutyny z wariantami, drag & drop i gotowymi szablonami (Etap 3), aktywny trening z przerwą, podsumowaniem i podpowiedzią progresji (Etap 4).
+> Gotowe: design system i nawigacja (Etap 1), baza ćwiczeń z wyszukiwarką, filtrami i własnymi ćwiczeniami (Etap 2), rutyny z wariantami, drag & drop i gotowymi szablonami (Etap 3), aktywny trening z przerwą, podsumowaniem i podpowiedzią progresji (Etap 4), powiadomienie treningu z Live Update i przerwą w tle (Etap 5).
 
 <p>
   <img src="docs/screenshots/stage1-app-trening-dark.png" width="240" alt="Zakładka Trening, motyw ciemny">
@@ -32,7 +32,9 @@ Natywna aplikacja na Androida do śledzenia treningów siłowych. Działa lokaln
 
 - Room 3 (sterownik systemowego SQLite), Coil 3 z OkHttp.
 
-Kolejne biblioteki (DataStore, WorkManager, Health Connect) dochodzą w etapach, które ich potrzebują. Wersje: `gradle/libs.versions.toml`, uzasadnienia: `docs/DECISIONS.md`.
+- DataStore (flagi aplikacji, w Etapie 9 ustawienia).
+
+Kolejne biblioteki (WorkManager, Health Connect) dochodzą w etapach, które ich potrzebują. Wersje: `gradle/libs.versions.toml`, uzasadnienia: `docs/DECISIONS.md`.
 
 ## Budowanie
 
@@ -68,6 +70,27 @@ W galerii jest też sonda Live Update: publikuje powiadomienie z prośbą o prom
 
 Macrobenchmark przewija galerię pod szklanym navbarem na buildzie `benchmark` (R8), z rozmyciem i bez niego. Miarodajny jest tylko wynik z telefonu.
 
+## Powiadomienie treningu i Now Bar (One UI)
+
+W trakcie treningu działa usługa pierwszoplanowa z cichym powiadomieniem: nazwa rutyny, „ćwiczenie • seria”, czas treningu, pasek postępu serii, a w czasie przerwy odliczanie i akcja „Pomiń przerwę”. Powiadomienie prosi system o promocję do Live Update (powiadomienie na żywo), więc na Androidzie 16 QPR1 (36.1) i nowszym trafia do paska stanu jako chip z postępem („3/8”) albo z czasem przerwy, a na Samsungu do Now Bar. Koniec przerwy wibruje także przy wygaszonym ekranie.
+
+Samsung dokłada własne przełączniki. Żeby trening był widoczny w Now Bar:
+
+1. **Powiadomienia aplikacji** włączone (prośba przy pierwszym starcie; potem: Ustawienia → Aplikacje → GymTracker → Powiadomienia).
+2. **Powiadomienia na żywo dla aplikacji**: w ustawieniach powiadomień GymTrackera przełącznik powiadomień na żywo (Live notifications / Live updates). Na Androidzie 16 QPR1 to systemowy ekran, który otwiera przycisk „Powiadomienia na żywo” w diagnostyce.
+3. **Now Bar**: Ustawienia → Ekran blokady i AOD → Now Bar. GymTracker musi być na liście aplikacji, które mogą się tam pokazywać.
+4. **Opcja programisty „Live notifications for all apps”**: na części wersji One UI aplikacje spoza listy Samsunga trafiają do Now Bar dopiero po jej włączeniu (Ustawienia → Opcje programisty; opcje programisty włącza się, stukając 7 razy w „Numer wersji” w Ustawienia → Telefon — informacje → Informacje o oprogramowaniu).
+5. **Bateria „Bez ograniczeń”**: Ustawienia → Aplikacje → GymTracker → Bateria. Inaczej One UI potrafi zamknąć aplikację w tle i przerwać odliczanie.
+6. **Alarmy i przypomnienia** (opcjonalnie): Ustawienia → Aplikacje → GymTracker → Alarmy i przypomnienia. Z tą zgodą koniec przerwy budzi telefon dokładnym alarmem; bez niej telefon nie zasypia przez całą przerwę (blokada uśpienia).
+
+Nazwy pozycji różnią się między wersjami One UI. Stan wszystkich warunków pokazuje ekran **Diagnostyka powiadomień na żywo** (przycisk na dole ekranu treningu) i zapisuje go w logu:
+
+```powershell
+adb logcat -s LiveUpdate WorkoutService RestAlarm Workout
+```
+
+Najważniejsze pozycje: „Zgoda na powiadomienia na żywo” (`canPostPromotedNotifications`), „Powiadomienie spełnia wymagania” (`hasPromotableCharacteristics`) i „Powiadomienie jest na żywo” (`FLAG_PROMOTED_ONGOING`). Gdy dwie pierwsze są na „Tak”, a trzecia na „Nie”, promocję blokuje ustawienie systemu albo One UI.
+
 ## Struktura
 
 ```
@@ -75,7 +98,7 @@ app/src/main/java/com/jaroszeek/gymtracker/
   designsystem/theme/      tokeny: palety, typografia, odstępy, kształty, blur, ruch
   designsystem/component/  komponenty glass, navbar
   navigation/              zakładki i stosy Navigation 3
-  core/                    baza Room, DI
+  core/                    baza Room, DataStore, DI, powiadomienie treningu i przerwa w tle
   domain/                  czysta logika (modele, wyszukiwanie)
   data/                    repozytoria, seed
   feature/                 ekrany funkcji

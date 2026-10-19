@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -37,8 +38,11 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jaroszeek.gymtracker.R
+import com.jaroszeek.gymtracker.core.notifications.SystemSettings
+import com.jaroszeek.gymtracker.core.notifications.openSettings
 import com.jaroszeek.gymtracker.designsystem.component.BadgeTone
 import com.jaroszeek.gymtracker.designsystem.component.GlassBadge
 import com.jaroszeek.gymtracker.designsystem.component.GlassBottomSheet
@@ -76,8 +80,13 @@ private const val WEIGHT_STEP_KG = 2.5
 private const val MAX_REPS = 100.0
 
 @Composable
-fun WorkoutRoute(viewModel: WorkoutViewModel, pickerViewModel: ExercisesViewModel, onClose: () -> Unit) {
+fun WorkoutRoute(viewModel: WorkoutViewModel, pickerViewModel: ExercisesViewModel, onClose: () -> Unit, onDiagnostics: () -> Unit) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    LifecycleResumeEffect(viewModel) {
+        viewModel.onResume()
+        onPauseOrDispose {}
+    }
     LaunchedEffect(state.closed) { if (state.closed) onClose() }
     val finished = state.finished
     if (finished != null) {
@@ -91,7 +100,7 @@ fun WorkoutRoute(viewModel: WorkoutViewModel, pickerViewModel: ExercisesViewMode
         return
     }
     val workout = state.workout ?: return
-    WorkoutContent(state, workout, viewModel)
+    WorkoutContent(state, workout, viewModel, onOpenSettings = context::openSettings, onDiagnostics = onDiagnostics)
 
     val ref = state.setActions
     val actionsExercise = workout.exercises.firstOrNull { it.id == ref?.exerciseId }
@@ -144,7 +153,13 @@ fun WorkoutRoute(viewModel: WorkoutViewModel, pickerViewModel: ExercisesViewMode
 }
 
 @Composable
-private fun WorkoutContent(state: WorkoutUiState, workout: ActiveWorkout, viewModel: WorkoutViewModel) {
+private fun WorkoutContent(
+    state: WorkoutUiState,
+    workout: ActiveWorkout,
+    viewModel: WorkoutViewModel,
+    onOpenSettings: (SystemSettings) -> Unit,
+    onDiagnostics: () -> Unit,
+) {
     val insets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal).asPaddingValues()
     LazyColumn(
         Modifier.fillMaxSize(),
@@ -162,6 +177,11 @@ private fun WorkoutContent(state: WorkoutUiState, workout: ActiveWorkout, viewMo
                 restHidden = workout.rest != null && !state.restVisible,
                 onShowRest = viewModel::onRestShow,
             )
+        }
+        if (state.issues.any) {
+            item(key = "issues") {
+                BackgroundIssuesCard(state.issues, onOpenSettings = onOpenSettings, onDiagnostics = onDiagnostics, onHide = viewModel::onHideIssues)
+            }
         }
         if (workout.exercises.isEmpty()) {
             item(key = "empty") {
@@ -204,6 +224,12 @@ private fun WorkoutContent(state: WorkoutUiState, workout: ActiveWorkout, viewMo
                 GlassButton(
                     stringResource(R.string.workout_discard),
                     onClick = viewModel::onDiscardRequest,
+                    style = GlassButtonStyle.Ghost,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                GlassButton(
+                    stringResource(R.string.diagnostics_title),
+                    onClick = onDiagnostics,
                     style = GlassButtonStyle.Ghost,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -363,6 +389,33 @@ private fun SetRow(
     }
 }
 
+/** What keeps the workout from running reliably with the screen off, each with the system screen that fixes it. */
+@Composable
+fun BackgroundIssuesCard(
+    issues: BackgroundIssues,
+    onOpenSettings: (SystemSettings) -> Unit,
+    onDiagnostics: () -> Unit,
+    onHide: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = GtTheme.colors
+    GlassCard(modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.background_title), style = GtTheme.typography.title)
+        listOfNotNull(
+            Triple(R.string.background_notifications, R.string.background_notifications_action, SystemSettings.Notifications).takeIf { issues.notificationsOff },
+            Triple(R.string.background_battery, R.string.background_battery_action, SystemSettings.Battery).takeIf { issues.batteryLimited },
+            Triple(R.string.background_exact_alarms, R.string.background_exact_alarms_action, SystemSettings.ExactAlarms).takeIf { issues.exactAlarmsOff },
+        ).forEach { (text, action, screen) ->
+            Text(stringResource(text), color = colors.textSecondary, style = GtTheme.typography.bodySmall)
+            GlassButton(stringResource(action), onClick = { onOpenSettings(screen) }, style = GlassButtonStyle.Secondary, modifier = Modifier.fillMaxWidth())
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+            GlassButton(stringResource(R.string.background_diagnostics), onClick = onDiagnostics, style = GlassButtonStyle.Ghost)
+            GlassButton(stringResource(R.string.background_hide), onClick = onHide, style = GlassButtonStyle.Ghost)
+        }
+    }
+}
+
 /** Set number; tapping it opens the set's type and delete options. */
 @Composable
 private fun SetBadge(number: Int, done: Boolean, onClick: () -> Unit) {
@@ -421,6 +474,7 @@ private fun ExerciseCardPreview() {
                     restHidden = true,
                     onShowRest = {},
                 )
+                BackgroundIssuesCard(BackgroundIssues(notificationsOff = true, batteryLimited = true), onOpenSettings = {}, onDiagnostics = {}, onHide = {})
                 ExerciseCard(
                     exercise = exercise,
                     exercises = emptyMap(),

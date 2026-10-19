@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -42,6 +43,7 @@ import com.jaroszeek.gymtracker.designsystem.component.HideOnScrollState
 import com.jaroszeek.gymtracker.designsystem.component.LocalChromeAboveNavBar
 import com.jaroszeek.gymtracker.designsystem.theme.GtMotion
 import com.jaroszeek.gymtracker.designsystem.theme.GtSizes
+import com.jaroszeek.gymtracker.feature.diagnostics.LiveUpdateDiagnosticsRoute
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseDetailRoute
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseDetailViewModel
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseEditorRoute
@@ -52,16 +54,21 @@ import com.jaroszeek.gymtracker.feature.routines.RoutineEditorRoute
 import com.jaroszeek.gymtracker.feature.routines.RoutineEditorViewModel
 import com.jaroszeek.gymtracker.feature.routines.RoutinesRoute
 import com.jaroszeek.gymtracker.feature.routines.TemplatesRoute
+import com.jaroszeek.gymtracker.feature.workout.NotificationPrompt
 import com.jaroszeek.gymtracker.feature.workout.WorkoutBarViewModel
 import com.jaroszeek.gymtracker.feature.workout.WorkoutMiniBar
 import com.jaroszeek.gymtracker.feature.workout.WorkoutRoute
 
 private val NavItems = TopLevelTab.entries.map { GlassNavItem(it.label, it.icon, it.selectedIcon) }
 
-/** App shell: content under the glass navbar, one back stack per tab. */
+/**
+ * App shell: content under the glass navbar, one back stack per tab. Every change of
+ * [openWorkoutRequests] (a tap on the workout notification) brings the workout up.
+ */
 @Composable
-fun GymTrackerRoot() {
+fun GymTrackerRoot(openWorkoutRequests: Int = 0) {
     val navigator = rememberTabNavigator()
+    LaunchedEffect(openWorkoutRequests) { if (openWorkoutRequests > 0) navigator.open(TopLevelTab.Workout, ActiveWorkoutKey) }
     val density = LocalDensity.current
     val hideOnScroll = remember(density) { HideOnScrollState(threshold = with(density) { GtSizes.HideBarThreshold.toPx() }) }
 
@@ -133,6 +140,7 @@ fun GymTrackerRoot() {
             }
         }
     }
+    NotificationPrompt()
 }
 
 private fun entryProvider(navigator: TabNavigator): (NavKey) -> NavEntry<NavKey> = { key ->
@@ -170,8 +178,10 @@ private fun entryProvider(navigator: TabNavigator): (NavKey) -> NavEntry<NavKey>
                 viewModel = hiltViewModel(),
                 pickerViewModel = hiltViewModel(key = "exercisePicker"),
                 onClose = navigator::back,
+                onDiagnostics = { navigator.navigate(LiveUpdateDiagnosticsKey) },
             )
         }
+        LiveUpdateDiagnosticsKey -> NavEntry(key) { LiveUpdateDiagnosticsRoute(viewModel = hiltViewModel(), onBack = navigator::back) }
         is RoutineEditorKey -> NavEntry(key) {
             RoutineEditorRoute(
                 viewModel = hiltViewModel<RoutineEditorViewModel, RoutineEditorViewModel.Factory> { it.create(key.id) },
