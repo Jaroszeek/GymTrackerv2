@@ -72,6 +72,7 @@ fun ExerciseDetailRoute(viewModel: ExerciseDetailViewModel, onBack: () -> Unit, 
         onDeleteRequest = viewModel::onDeleteRequest,
         onDeleteDismiss = viewModel::onDeleteDismiss,
         onDeleteConfirm = viewModel::onDeleteConfirm,
+        onInUseDismiss = viewModel::onInUseDismiss,
     )
 }
 
@@ -84,6 +85,7 @@ fun ExerciseDetailScreen(
     onDeleteRequest: () -> Unit,
     onDeleteDismiss: () -> Unit,
     onDeleteConfirm: () -> Unit,
+    onInUseDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val exercise = (state as? ExerciseDetailUiState.Content)?.exercise
@@ -129,6 +131,13 @@ fun ExerciseDetailScreen(
             text = stringResource(R.string.delete_exercise_text, exercise.name),
             confirmButton = { GlassButton(stringResource(R.string.action_delete), onClick = onDeleteConfirm) },
             dismissButton = { GlassButton(stringResource(R.string.action_cancel), onClick = onDeleteDismiss, style = GlassButtonStyle.Ghost) },
+        )
+        GlassDialog(
+            visible = state.inUse,
+            onDismissRequest = onInUseDismiss,
+            title = stringResource(R.string.delete_exercise_in_use_title),
+            text = stringResource(R.string.delete_exercise_in_use_text),
+            confirmButton = { GlassButton(stringResource(R.string.action_ok), onClick = onInUseDismiss) },
         )
     }
 }
@@ -249,7 +258,7 @@ private fun ExerciseDetailScreenPreview() {
     )
     GymTrackerTheme {
         GlassScaffold {
-            ExerciseDetailScreen(ExerciseDetailUiState.Content(exercise), {}, {}, {}, {}, {})
+            ExerciseDetailScreen(ExerciseDetailUiState.Content(exercise), {}, {}, {}, {}, {}, {})
         }
     }
 }

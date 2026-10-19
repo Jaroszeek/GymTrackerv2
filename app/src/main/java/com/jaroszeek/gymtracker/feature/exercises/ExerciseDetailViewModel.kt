@@ -3,6 +3,7 @@ package com.jaroszeek.gymtracker.feature.exercises
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jaroszeek.gymtracker.data.exercise.DeleteResult
 import com.jaroszeek.gymtracker.data.exercise.ExerciseRepository
 import com.jaroszeek.gymtracker.domain.exercise.Exercise
 import dagger.assisted.Assisted
@@ -25,7 +26,12 @@ sealed interface ExerciseDetailUiState {
 
     data object Error : ExerciseDetailUiState
 
-    data class Content(val exercise: Exercise, val confirmDelete: Boolean = false) : ExerciseDetailUiState
+    data class Content(
+        val exercise: Exercise,
+        val confirmDelete: Boolean = false,
+        /** Delete was refused because a routine uses the exercise. */
+        val inUse: Boolean = false,
+    ) : ExerciseDetailUiState
 
     /** The exercise was deleted from this screen; the screen leaves. */
     data object Deleted : ExerciseDetailUiState
@@ -39,13 +45,14 @@ class ExerciseDetailViewModel @AssistedInject constructor(
 
     private val confirmDelete = MutableStateFlow(false)
     private val deleting = MutableStateFlow(false)
+    private val inUse = MutableStateFlow(false)
 
-    val state: StateFlow<ExerciseDetailUiState> = combine(repository.observe(id), confirmDelete, deleting) { exercise, confirm, deleting ->
+    val state: StateFlow<ExerciseDetailUiState> = combine(repository.observe(id), confirmDelete, deleting, inUse) { exercise, confirm, deleting, inUse ->
         when {
             // Leave only once the row is really gone, so the screen never flashes "not found"
             exercise == null && deleting -> ExerciseDetailUiState.Deleted
             exercise == null -> ExerciseDetailUiState.NotFound
-            else -> ExerciseDetailUiState.Content(exercise, confirm)
+            else -> ExerciseDetailUiState.Content(exercise, confirm, inUse)
         }
     }
         .catch { e ->
@@ -61,8 +68,15 @@ class ExerciseDetailViewModel @AssistedInject constructor(
     fun onDeleteConfirm() {
         confirmDelete.update { false }
         deleting.update { true }
-        viewModelScope.launch { repository.deleteCustom(id) }
+        viewModelScope.launch {
+            if (repository.deleteCustom(id) == DeleteResult.InUse) {
+                deleting.update { false }
+                inUse.update { true }
+            }
+        }
     }
+
+    fun onInUseDismiss() = inUse.update { false }
 
     @AssistedFactory
     interface Factory {

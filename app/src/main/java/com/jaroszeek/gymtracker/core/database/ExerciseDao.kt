@@ -17,6 +17,9 @@ interface ExerciseDao {
     @Query("SELECT * FROM exercises WHERE id = :id")
     fun observe(id: Long): Flow<ExerciseWithMuscles?>
 
+    @Query("SELECT id, external_id AS externalId FROM exercises WHERE external_id IS NOT NULL")
+    suspend fun externalIds(): List<ExternalIdRow>
+
     @Query("SELECT COUNT(*) FROM exercises WHERE source != 'custom'")
     suspend fun countSeeded(): Int
 
@@ -36,7 +39,13 @@ interface ExerciseDao {
     @Query("DELETE FROM exercise_muscles WHERE exercise_id = :exerciseId")
     suspend fun deleteMuscles(exerciseId: Long)
 
+    /** Whether a routine uses the exercise; such an exercise cannot be deleted (FK RESTRICT is the safety net). */
+    @Query("SELECT EXISTS(SELECT 1 FROM routine_variants WHERE exercise_id = :id)")
+    suspend fun isUsed(id: Long): Boolean
+
     /** Only custom exercises can be deleted; returns the number of deleted rows. */
     @Query("DELETE FROM exercises WHERE id = :id AND source = 'custom'")
     suspend fun deleteCustom(id: Long): Int
 }
+
+data class ExternalIdRow(val id: Long, val externalId: String)

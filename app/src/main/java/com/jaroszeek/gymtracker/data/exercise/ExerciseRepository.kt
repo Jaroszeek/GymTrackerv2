@@ -72,11 +72,18 @@ class ExerciseRepository @Inject constructor(
         exerciseId
     }
 
-    /** Built-in exercises are never deleted. Protection of exercises used in history comes with those tables (Etap 3–4). */
-    suspend fun deleteCustom(id: Long) {
-        dao.deleteCustom(id)
+    /** Built-in exercises are never deleted, and neither is one a routine uses. */
+    suspend fun deleteCustom(id: Long): DeleteResult = database.withWriteTransaction {
+        if (dao.isUsed(id)) {
+            DeleteResult.InUse
+        } else {
+            dao.deleteCustom(id)
+            DeleteResult.Deleted
+        }
     }
 }
+
+enum class DeleteResult { Deleted, InUse }
 
 internal fun ExerciseWithMuscles.toDomain(): Exercise = Exercise(
     id = exercise.id,
