@@ -160,6 +160,52 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 - AVD `gt-api36` (Pixel 6, `system-images;android-36;google_apis;x86_64`).
 - Commity podpisuje `Jaroszeek <jaroszjasiek26@gmail.com>`. Właściciel zgodził się na publiczny adres email w historii.
 
+## 2026-10-19 — Etap 1 (fundament i design system)
+
+### D-017 Środowisko: Android Studio 2026.2.1, daemon Gradle na Javie 25
+- **Decyzja:** daemon JVM 25 (`gradle/gradle-daemon-jvm.properties`), bo AS 2026.2.1 ma JBR 25, a JBR 21 zniknął razem ze starym AS. CI używa Temurin 25.
+- **Poza repo:** `%USERPROFILE%\.gradle\gradle.properties` wskazuje teraz `C:/Program Files/Android/Android Studio1/jbr`. Stary katalog `Android Studio` jest niekompletny (brak `jvm.cfg`) i nieużywany.
+- **Alternatywy:** pobranie JDK 21 przez foojay (dodatkowa instalacja bez potrzeby).
+
+### D-018 Kolory i kontrast
+- **Bazy:** ciemna `#0A0B0E` (karta `#14161B`), AMOLED `#000000`, jasna `#F3F2EE` (karta `#FFFFFF`).
+- **Akcenty (wypełnienie / tekst na jasnym):** Volt `#C6F135`/`#3F6B00`, Ember `#FF6A3D`/`#B23A0E`, Rose `#FF6A94`/`#B21D50`, Aqua `#3EE6C8`/`#0B6B63`, Azure `#4DA3FF`/`#1A5BC4`, Amber `#FFB020`/`#8A5000`.
+- **Token `accentText`:** jasne akcenty są czytelne jako wypełnienie z ciemnym tekstem, ale nie jako tekst na jasnym tle, więc tekst w kolorze akcentu ma osobny, ciemniejszy wariant.
+- **Onyx i Porcelain** to pełne motywy mono z narzuconą jasnością: Onyx zawsze ciemny, Porcelain zawsze jasny; przełącznik System/Jasny/Ciemny ich nie zmienia. AMOLED działa też z Onyx.
+- **Material You:** akcent = `primary`, aurora = `primary`, `tertiary`, `secondary` ze schematu systemowego; nie dotyczy Onyx i Porcelain.
+- **Kontrast:** `ContrastTest` sprawdza ≥ 4.5:1 dla 8 palet × jasny/ciemny × AMOLED: wszystkie teksty na tle, karcie i podniesionej powierzchni, `onAccent` na akcencie, `accentText` na tle i na akcentowym tle odznak, tekst na szkle nałożonym na środek każdej plamy aurory (najgorszy przypadek) oraz pod kroplą navbara. Test wymusił rozjaśnienie Rose z `#FF5C8A` (4,44:1) na `#FF6A94` (4,71:1). Material You nie da się sprawdzić testem (zależy od tapety).
+
+### D-019 Szkło: jak działa i ile kosztuje
+- `GlassScaffold` ma dwie warstwy: treść z aurorą (źródło do rozmycia) i chrome (paski, nakładki). Szkło rozmywa tylko w chrome; w treści jest półprzezroczystym wypełnieniem.
+- Dialog i bottom sheet to własne warstwy w chrome (host nakładek), a nie `Popup` ani okno platformy (D-006). Arkusz jest pływający, z marginesem od krawędzi; przeciąganie w dół do zamknięcia dojdzie, gdy będzie potrzebne.
+- Aurora odświeża fazę co ok. 33 ms (30 fps): ruch na klatkę jest poniżej piksela, a warstwa pod szkłem nie przerysowuje się 120 razy na sekundę.
+- **Rozmiar:** release z R8 (bez podpisu) ma 2,0 MB; Backdrop + Shapes to ok. 12 KB dexu.
+
+### D-020 Galeria komponentów i build `benchmark`
+- **Decyzja:** galeria to osobna aktywność w source secie `debug` z własną ikoną „GT Galeria”. To narzędzie deweloperskie, więc nie łamie zasady single-activity aplikacji. Motyw można ustawić przez extras intencji (skrypty zrzutów).
+- Build type `benchmark` (`initWith(release)`, podpis debug, sufiks `.benchmark`) kompiluje źródła i manifest `debug`, żeby macrobenchmark przewijał galerię na kodzie po R8. W AGP 9 źródła Kotlina dodaje się przez `kotlin.directories`, nie `java.directories`.
+- **Alternatywy:** galeria w `main` wycinana przez R8 (kod galerii trafiałby do kompilacji release).
+
+### D-021 Ikony zakładek
+- Start `home`, Ćwiczenia `menu_book`, Trening `exercise` (wyróżniony środek), Postępy `monitoring`, Profil `person`; warianty outline i filled z Material Symbols Rounded.
+- Pierwsza wersja miała hantle w Ćwiczeniach i w Treningu; dwie podobne ikony obok siebie myliły.
+
+### D-022 Live Updates: ustalenia z sondy (ważne dla Etapu 5)
+- `Notification.Builder.setRequestPromotedOngoing()` i stała `EXTRA_REQUEST_PROMOTED_ONGOING` są dopiero w SDK **36.1**. Na urządzeniu z 36.0 wywołanie kończy się `NoSuchMethodError`. `NotificationCompat` (core 1.19.1) ma `setRequestPromotedOngoing` i `ProgressStyle` i ustawia extra `android.requestPromotedOngoing` na każdym poziomie API, więc w Etapie 5 używamy `NotificationCompat`.
+- Akcja ustawień nazywa się `Settings.ACTION_APP_NOTIFICATION_PROMOTION_SETTINGS` (`android.settings.APP_NOTIFICATION_PROMOTION_SETTINGS`). Nazwy `ACTION_MANAGE_APP_PROMOTED_NOTIFICATIONS` z dokumentacji i z A7 w SDK 37 nie ma.
+- Emulator `gt-api36` ma obraz 36.0 (build BE2A.250530): `hasPromotableCharacteristics = false`, `canPostPromotedNotifications = false`, powiadomienie nie jest promowane, a ekranu ustawień promocji brak (sonda wraca wtedy do ustawień powiadomień aplikacji). Kryterium Etapu 5 („promowane na emulatorze API 36”) wymaga obrazu 36.1 lub nowszego.
+
+### D-023 Pomiar płynności blur
+- Moduł `:baselineprofile` (`com.android.test`) z macrobenchmarkiem `FrameTimingMetric` przewija galerię z blurem i bez. Na emulatorze test uruchamia aplikację, ale metryka zwraca 0 klatek; po 3 podejściach odłożone do pomiaru na telefonie.
+- Pomiar zastępczy na emulatorze (`dumpsys gfxinfo`, build `benchmark` z R8, 12 szybkich przewinięć): z blurem p50 28 ms, p90 42 ms, jank 28,4%; bez blura p50 23 ms, p90 36 ms, jank 25,7%. Emulator jest wolny także bez blura, więc liczby mówią tylko, że blur kosztuje ok. 5 ms na klatkę. Miarodajny będzie telefon.
+
+### D-024 Drobne decyzje Etapu 1
+- **DataStore** wchodzi dopiero w Etapie 9: w Etapie 1 nic nie jest zapisywane, aplikacja używa domyślnego motywu, a galeria trzyma motyw w stanie lokalnym.
+- **CI** uruchamia się na push do `main` i na PR (bez podwójnych przebiegów dla branchy z PR).
+- **Pole liczbowe:** przyciski −/+ pod wartością, żeby dwa pola mieściły się obok siebie na szerokości telefonu.
+- **Wersja:** `versionName 0.1.0`, `versionCode 1`; od Etapu 11 wersja wynika z tagu.
+- **Lint:** jedyne ostrzeżenie to `OldTargetApi` (targetSdk 36 jest ustalony w CLAUDE.md).
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |
@@ -180,5 +226,6 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 | health connect-client | 1.1.0 | Apache-2.0 | 7 | Health Connect (D-011) |
 | profileinstaller / baselineprofile / benchmark-macro | 1.4.1 / 1.5.0 / 1.5.0 | Apache-2.0 | 1 (pomiar), 10 | Baseline Profile, pomiary |
 | JUnit / coroutines-test / androidx.test runner, ext-junit / room3-testing | 4.13.2 / 1.11.0 / 1.7.0, 1.3.0 / 3.0.3 | EPL-1.0 / Apache-2.0 | 1–2 | testy |
-| Fonty Geist, Instrument Serif | — | OFL-1.1 | 1 | typografia (D-007) |
+| benchmark-macro-junit4 / uiautomator | 1.5.0 / 2.4.0 | Apache-2.0 | 1 | macrobenchmark w `:baselineprofile` (nie trafia do APK) |
+| Fonty Geist, Instrument Serif | 1.8.1 / — | OFL-1.1 | 1 | typografia (D-007), ok. 650 KB TTF |
 | free-exercise-db | — | Unlicense | 2 | baza ćwiczeń (atrybucja w „O aplikacji”) |

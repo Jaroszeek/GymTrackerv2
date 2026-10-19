@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug and benchmark builds only: component gallery and Live Update probe (D-014) -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
+
+    <application>
+        <!-- Lets macrobenchmarks trace the release-like benchmark build -->
+        <profileable android:shell="true" />
+
+        <activity
+            android:name=".designsystem.gallery.GalleryActivity"
+            android:exported="true"
+            android:label="@string/gallery_launcher_label"
+            android:taskAffinity="com.jaroszeek.gymtracker.gallery">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

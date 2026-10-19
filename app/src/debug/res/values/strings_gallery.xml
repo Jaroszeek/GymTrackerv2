@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug-only texts: component gallery and Live Update probe -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pl">
+    <string name="gallery_launcher_label">GT Galeria</string>
+    <string name="gallery_title">Galeria komponentów</string>
+
+    <string name="gallery_section_theme">Motyw</string>
+    <string name="gallery_section_colors">Kolory</string>
+    <string name="gallery_section_type">Typografia</string>
+    <string name="gallery_section_buttons">Przyciski</string>
+    <string name="gallery_section_chips">Chipy i badge</string>
+    <string name="gallery_section_inputs">Pola liczbowe i przełączniki</string>
+    <string name="gallery_section_surfaces">Karta i panel</string>
+    <string name="gallery_section_overlays">Nakładki</string>
+    <string name="gallery_section_live_update">Sonda Live Update</string>
+    <string name="gallery_section_scroll">Przewijanie pod navbarem</string>
+
+    <string name="gallery_mode_system">System</string>
+    <string name="gallery_mode_light">Jasny</string>
+    <string name="gallery_mode_dark">Ciemny</string>
+    <string name="gallery_amoled">AMOLED</string>
+    <string name="gallery_dynamic">Material You</string>
+    <string name="gallery_reduce_transparency">Ogranicz przezroczystość</string>
+
+    <string name="gallery_type_display">Dzień dobry</string>
+    <string name="gallery_type_headline">Push A — klatka i barki</string>
+    <string name="gallery_type_title">Wyciskanie sztangi leżąc</string>
+    <string name="gallery_type_body">Ostatnio 4 serie po 8 powtórzeń, przerwa 90 s. Zażółć gęślą jaźń.</string>
+    <string name="gallery_type_label">Seria robocza</string>
+    <string name="gallery_sample_weight">142,5</string>
+    <string name="gallery_sample_reps">12</string>
+    <string name="gallery_sample_timer">01:30</string>
+    <string name="gallery_sample_digits">1111 8888</string>
+
+    <string name="gallery_start_workout">Rozpocznij trening</string>
+    <string name="gallery_secondary">Edytuj</string>
+    <string name="gallery_ghost">Anuluj</string>
+    <string name="gallery_disabled">Zapisz</string>
+    <string name="gallery_add">Dodaj</string>
+    <string name="gallery_settings">Ustawienia</string>
+    <string name="gallery_search">Szukaj</string>
+
+    <string name="gallery_chip_chest">Klatka</string>
+    <string name="gallery_chip_back">Plecy</string>
+    <string name="gallery_chip_legs">Nogi</string>
+    <string name="gallery_chip_shoulders">Barki</string>
+    <string name="gallery_badge_barbell">Sztanga</string>
+    <string name="gallery_badge_custom">Własne</string>
+    <string name="gallery_switch_label">Dźwięk końca przerwy</string>
+
+    <string name="gallery_card_overline">Ostatni trening</string>
+    <string name="gallery_card_title">Push A</string>
+    <string name="gallery_card_meta">52 min • 18 serii • 6 240 kg</string>
+    <string name="gallery_panel_title">Panel szklany</string>
+    <string name="gallery_panel_text">W treści jest półprzezroczysty; rozmywa tło dopiero jako warstwa pływająca.</string>
+
+    <string name="gallery_show_dialog">Dialog</string>
+    <string name="gallery_show_sheet">Arkusz</string>
+    <string name="gallery_dialog_title">Odrzucić trening?</string>
+    <string name="gallery_dialog_text">Serie z tej sesji nie zostaną zapisane.</string>
+    <string name="gallery_dialog_confirm">Odrzuć</string>
+    <string name="gallery_dialog_dismiss">Wróć</string>
+    <string name="gallery_sheet_title">Wybierz wariant</string>
+    <string name="gallery_sheet_text">Wyciskanie sztangą albo hantlami.</string>
+
+    <string name="gallery_filler_title">Ćwiczenie %1$d</string>
+    <plurals name="gallery_filler_sets">
+        <item quantity="one">%1$d seria</item>
+        <item quantity="few">%1$d serie</item>
+        <item quantity="many">%1$d serii</item>
+        <item quantity="other">%1$d serii</item>
+    </plurals>
+
+    <string name="probe_channel">Sonda Live Update</string>
+    <string name="probe_notification_title">Push A</string>
+    <string name="probe_notification_text">Wyciskanie leżąc • seria 4</string>
+    <string name="probe_short_text">%1$d/%2$d</string>
+    <string name="probe_requires_android16">Live Updates wymagają Androida 16.</string>
+    <string name="probe_notifications_enabled">areNotificationsEnabled</string>
+    <string name="probe_can_post_promoted">canPostPromotedNotifications</string>
+    <string name="probe_promotable">hasPromotableCharacteristics</string>
+    <string name="probe_promoted">FLAG_PROMOTED_ONGOING</string>
+    <string name="probe_battery_unrestricted">Bateria bez ograniczeń</string>
+    <string name="probe_yes">tak</string>
+    <string name="probe_no">nie</string>
+    <string name="probe_unknown">—</string>
+    <string name="probe_post">Opublikuj</string>
+    <string name="probe_refresh">Odśwież</string>
+    <string name="probe_cancel">Usuń</string>
+    <string name="probe_open_promoted_settings">Live Updates</string>
+    <string name="probe_open_notification_settings">Powiadomienia</string>
+    <string name="probe_open_battery_settings">Bateria</string>
+</resources>

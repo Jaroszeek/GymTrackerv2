@@ -52,6 +52,8 @@ Gdy polecenie w sesji jest sprzeczne z tym plikiem albo z PROMPT.md, wskaż konf
   - instalacja: `adb install -r app\build\outputs\apk\debug\app-debug.apk`
   - logi: `adb logcat -s <TAG>`
   - zrzut ekranu: `adb shell screencap -p /sdcard/shot.png; adb pull /sdcard/shot.png docs\screenshots\<nazwa>.png`
+  - galeria (debug): `adb shell am start -n com.jaroszeek.gymtracker.debug/com.jaroszeek.gymtracker.designsystem.gallery.GalleryActivity --es palette <volt|onyx|...> --es mode <light|dark> --ez reduceTransparency true`
+  - macrobenchmark: `.\gradlew.bat :baselineprofile:connectedBenchmarkAndroidTest`
 - Nie używaj `adb exec-out screencap -p > plik.png`, bo przekierowanie w PowerShellu psuje pliki binarne.
 - Nie wpisuj do repo ścieżek specyficznych dla mojej maszyny (np. `org.gradle.java.home`). Jeśli systemowe JDK nie pasuje do Gradle, użyj toolchaina albo `%USERPROFILE%\.gradle\gradle.properties`.
 - Nie instaluj komponentów SDK ani narzędzi systemowych bez poinformowania mnie, co i po co.

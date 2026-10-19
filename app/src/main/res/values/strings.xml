@@ -1,3 +1,24 @@
-<resources>
-    <string name="app_name">GymTrackerv2</string>
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pl">
+    <string name="app_name">GymTracker</string>
+
+    <string name="nav_home">Start</string>
+    <string name="nav_exercises">Ćwiczenia</string>
+    <string name="nav_workout">Trening</string>
+    <string name="nav_progress">Postępy</string>
+    <string name="nav_profile">Profil</string>
+
+    <string name="placeholder_title">Wkrótce</string>
+    <string name="placeholder_home">Tu pojawi się podsumowanie tygodnia, seria treningów i szybki start.</string>
+    <string name="placeholder_exercises">Baza ok. 870 ćwiczeń ze zdjęciami, wyszukiwarką i filtrami.</string>
+    <string name="placeholder_workout">Twoje rutyny, gotowe szablony i start treningu.</string>
+    <string name="placeholder_progress">Rekordy, szacowany 1RM i wykresy postępów.</string>
+    <string name="placeholder_profile">Waga, skład ciała i dane z Health Connect.</string>
+
+    <string name="action_close">Zamknij</string>
+    <string name="label_weight">Ciężar</string>
+    <string name="label_reps">Powtórzenia</string>
+    <string name="unit_kg">kg</string>
+    <string name="number_decrease">Zmniejsz: %1$s</string>
+    <string name="number_increase">Zwiększ: %1$s</string>
 </resources>
