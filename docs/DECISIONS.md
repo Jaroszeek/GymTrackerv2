@@ -325,7 +325,7 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
   - `POST_PROMOTED_NOTIFICATIONS` w manifeście (zwykłe, nie runtime) → manifest główny;
   - prośba o promocję → `NotificationCompat.Builder.setRequestPromotedOngoing(true)` (ustawia extra na każdym API, D-022);
   - `ongoing`, tytuł (nazwa rutyny), bez `customContentView`, bez `setGroupSummary`, bez `setColorized(true)` → spełnione;
-  - kanał nie może mieć `IMPORTANCE_MIN` → kanał „Trening w toku” ma `IMPORTANCE_LOW`, bez dźwięku, wibracji i odznaki (zalecenie OneSignal: ciche, niska ważność).
+  - kanał nie może mieć `IMPORTANCE_MIN` → kanał „Trening w toku” ma `IMPORTANCE_DEFAULT`, bez dźwięku, wibracji i odznaki. Najpierw był `IMPORTANCE_LOW` (zalecenie OneSignal), ale test na emulatorze pokazał, że Android traktuje go jako cichy i domyślnie chowa z ekranu blokady (`lock_screen_show_silent_notifications`), a A5.4 wymaga tam odliczania przerwy. Kanał bez dźwięku nie hałasuje także przy `DEFAULT`; heads-up jest dopiero od `IMPORTANCE_HIGH`.
 - Chip na pasku stanu: poza przerwą `setShortCriticalText("3/8")`; w przerwie bez krótkiego tekstu, za to `setWhen(koniec przerwy)` + `setUsesChronometer` + `setChronometerCountDown`, więc chip pokazuje odliczanie (dokumentacja: „Chronometer timer is shown in the chip as long as it is positive”). Kolejności priorytetu krótki tekst / czas dokumentacja nie opisuje, dlatego w przerwie krótkiego tekstu nie ustawiamy.
 - Akcje: „Ukończ serię” (poza przerwą, gdy bieżąca seria ma powtórzenia) i „Pomiń przerwę” (w przerwie). Dokumentacja nie zabrania akcji.
 - Odrzucone przez użytkownika powiadomienie nie wraca, dopóki nie otworzy aplikacji (`setDeleteIntent`; dokumentacja: „Don't repost Live Updates that the user dismissed”).
@@ -360,7 +360,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 ### D-049 Ekran „Diagnostyka powiadomień na żywo”
 - Otwierany przyciskiem na dole ekranu treningu i z karty „Trening w tle” (w Etapie 9 także z ustawień).
 - Pokazuje i loguje (`adb logcat -s LiveUpdate`): wersję Androida z `SDK_INT_FULL` (np. 36.1), urządzenie, `areNotificationsEnabled`, ważność kanału, `canPostPromotedNotifications`, `hasPromotableCharacteristics` powiadomienia zbudowanego teraz (bez treningu: przykładowego), `FLAG_PROMOTED_ONGOING` opublikowanego powiadomienia, zgodę na dokładne alarmy i stan baterii. Na Samsungu dodatkowa karta z przełącznikami One UI.
-- Deep-linki: ustawienia powiadomień aplikacji, powiadomienia na żywo (`ACTION_APP_NOTIFICATION_PROMOTION_SETTINGS`, poniżej API 36 i przy braku ekranu: ustawienia powiadomień), informacje o aplikacji (bateria), „Alarmy i przypomnienia”, opcje programisty.
+- Deep-linki: ustawienia powiadomień aplikacji, powiadomienia na żywo (`ACTION_APP_NOTIFICATION_PROMOTION_SETTINGS`, poniżej API 36 i przy braku ekranu: ustawienia powiadomień), informacje o aplikacji (bateria), „Alarmy i przypomnienia”, opcje programisty (gdy są wyłączone, ich ekran od razu się zamyka, więc przycisk otwiera wtedy „Informacje o telefonie” z numerem wersji, którym się je włącza).
 - Sonda z galerii debug (D-014) zostaje na razie bez zmian; dubluje część diagnostyki, więc można ją usunąć (pytanie w raporcie).
 
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)

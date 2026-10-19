@@ -8,8 +8,8 @@
 | 1 | Fundament i design system | ✅ zakończony (2026-10-19) |
 | 2 | Ćwiczenia | ✅ zakończony (2026-10-19) |
 | 3 | Rutyny i szablony | ✅ zakończony (2026-10-19) |
-| 4 | Aktywny trening | 🔍 PR #4, czeka na akceptację |
-| 5 | Powiadomienie, Live Update, przerwa w tle | — |
+| 4 | Aktywny trening | ✅ zakończony (2026-10-19) |
+| 5 | Powiadomienie, Live Update, przerwa w tle | 🚧 w toku, czeka na test na telefonie |
 | 6 | Historia i postępy | — |
 | 7 | Health Connect | — |
 | 8 | Start i Profil | — |
@@ -19,21 +19,36 @@
 
 ## Bieżący stan
 
-- **Etapy 1–3** zmergowane (PR #1, #2, #3).
-- **Etap 4** na branchu `feat/stage-4-workout`, PR #4.
-  - Zrobione: schemat v3 (zakończone treningi) z migracją i testem; `ActiveWorkoutManager` z zapisem do pliku, odtwarzaniem po zabiciu procesu i regułą 24 h; ekran treningu (karty ćwiczeń, warianty, podpowiedzi z poprzedniej sesji i progresji, duże pola, spływanie ciężaru, typ i usuwanie serii, dodawanie ćwiczeń); nakładka przerwy; podsumowanie i zmiany celów; odrzucenie; mini-pasek; start z rutyny i pusty trening; 97 testów JVM i test UI pełnego przebiegu; zrzuty `docs/screenshots/stage4-*`.
-  - Czeka: akceptacja właściciela, w tym D-038 (porzucony trening trafia do historii zamiast znikać).
+- **Etapy 1–4** zmergowane (PR #1–#4). D-038 (porzucony trening trafia do historii) zostaje jako domyślne, właściciel nie zgłosił zmiany.
+- **Etap 5** na branchu `feat/stage-5-live-update`.
+  - Zrobione: `WorkoutService` (foreground `specialUse`, start tylko z pierwszego planu), powiadomienie jako Live Update (ProgressStyle, chronometr, chip „3/8” albo odliczanie przerwy, akcje „Ukończ serię” i „Pomiń przerwę”), budzenie na koniec przerwy (exact alarm albo blokada uśpienia) z wibracją, prośba o zgodę przy pierwszym starcie (DataStore), karta „Trening w tle” na ekranie treningu, ekran „Diagnostyka powiadomień na żywo”, sekcja One UI w README, decyzje D-044…D-050.
+  - Czeka: test na telefonie (instrukcja niżej) — etap zamykamy, gdy trening jest w Now Bar albo przyczyna braku jest udokumentowana diagnostyką.
 - **Tryb pracy:** plan etapu nie czeka na akceptację (D-032), akceptacja na PR.
-- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-043).
+- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-050).
 - **Środowisko:**
-  - Android Studio 2026.2.1 w `C:\Program Files\Android\Android Studio1` (JBR 25).
+  - Android Studio 2026.2.1 w `C:\Program Files\Android\Android Studio1` (JBR 25). Gdy `java` z PATH nie startuje, ustaw `$env:JAVA_HOME` na JBR.
   - `adb`: `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe`.
-  - AVD `gt-api36` to obraz 36.0, który nie promuje Live Updates (D-022); wydajność emulatora jest niestabilna (D-031).
+  - AVD `gt-api36` (36.0, nie promuje, D-022) i `gt-api36_1` (36.1, promuje). `gt-api36_1` startuj z `-memory 3072`: wpis `hw.ramSize` z `config.ini` nie zadziałał i gość dostał 256 MB (panika jądra z braku pamięci, D-050).
+  - Pamięć hosta: emulator + demon Gradle + demon Kotlina potrafią wyczerpać plik stronicowania. Przy pracy z emulatorem buduj z `-Pkotlin.compiler.execution.strategy=in-process` i zatrzymuj demona (`.\gradlew.bat --stop`).
   - Na emulatorze: język aplikacji pl-PL i wyłączone pismo rysikiem.
   - Test UI: `.\gradlew.bat :app:connectedDebugAndroidTest` (D-042).
 - **vynox:** sklonowany do `%TEMP%\vynox-ref`, tylko do odczytu.
 
+## Etap 5 — test na telefonie (Samsung, One UI 8.5)
+
+1. Instalacja: `.\gradlew.bat assembleDebug`, potem `adb install -r app\build\outputs\apk\debug\app-debug.apk`.
+2. Log w osobnym oknie: `adb logcat -c; adb logcat -s LiveUpdate WorkoutService RestAlarm Workout`.
+3. Pierwszy start: dialog „Powiadomienie treningu” → „Zezwól” → systemowe „Zezwól”.
+4. Trening → rutyna (np. z szablonu) → Start. W obszarze powiadomień: nazwa rutyny, „ćwiczenie • seria 1”, pasek postępu, czas, akcja „Ukończ serię”.
+5. Na dole ekranu treningu „Diagnostyka powiadomień na żywo” → zrzut ekranu. Jeśli „Powiadomienie jest na żywo” = Nie, po kolei: „Powiadomienia na żywo” (włącz), Ustawienia → Ekran blokady i AOD → Now Bar (GymTracker na liście?), „Opcje programisty” → „Live notifications for all apps”, bateria „Bez ograniczeń”. Po każdej zmianie: wróć, „Odśwież”, a jeśli nic, zakończ i zacznij trening od nowa (promocja liczy się przy publikacji powiadomienia).
+6. Zablokuj telefon: czy trening jest w Now Bar i na ekranie blokady? Zrzut.
+7. Przerwa: odhacz serię, zablokuj ekran, odczekaj do końca przerwy → wibracja? Odliczanie w Now Bar / na ekranie blokady? Powtórz z włączonymi „Alarmami i przypomnieniami” (karta „Trening w tle”).
+8. Akcje z powiadomienia: „Pomiń przerwę”, „Ukończ serię”; tapnięcie w powiadomienie otwiera trening.
+9. Usuń aplikację z ostatnich (przesunięcie): powiadomienie zostaje albo znika razem z procesem, ale nie zostaje „martwe”; po otwarciu aplikacji trening i powiadomienie wracają.
+10. Zakończ trening: powiadomienie znika.
+11. Do raportu: zrzuty z punktów 5–6, log z punktu 2 oraz `adb shell dumpsys notification --noredact | Select-String -Pattern "gymtracker" -Context 0,40 | Out-File -Encoding utf8 notif.txt` (pole `flags=0x…`: bit `0x40000` = `FLAG_PROMOTED_ONGOING`).
+
 ## Następny krok
 
-- Akceptacja Etapu 4 i merge PR #4.
-- Potem Etap 5 — powiadomienie, Live Update i przerwa w tle (serwis czyta `ActiveWorkoutManager`; obraz emulatora 36.1 do sprawdzenia promocji, D-022).
+- Test Etapu 5 na telefonie (wyżej), potem PR i akceptacja.
+- Potem Etap 6 — historia i postępy.
