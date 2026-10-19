@@ -76,10 +76,13 @@ class ProgressViewModel @Inject constructor(
         progress.observeWeek(shown, zone).map { Triple(shown, it, shown == current) }
     }
 
-    // A session linked to a workout shows inside it, not as a row of its own
+    // A session linked to a workout shows inside it, not as a row of its own. A link to a session no longer
+    // imported (deleted in its app, or after disconnecting) counts as none, as in the workout's details
     private val history = combine(workouts.observeHistory(), health.observeSessions()) { workouts, sessions ->
+        val imported = sessions.mapTo(HashSet()) { it.id }
         val linked = workouts.mapNotNullTo(HashSet()) { it.healthSessionId }
-        (workouts.map(HistoryEntry::Workout) + sessions.filter { it.id !in linked }.map(HistoryEntry::Session)).sortedByDescending { it.startedAt }
+        val rows = workouts.map { HistoryEntry.Workout(it.copy(healthSessionId = it.healthSessionId?.takeIf(imported::contains))) }
+        (rows + sessions.filter { it.id !in linked }.map(HistoryEntry::Session)).sortedByDescending { it.startedAt }
     }
 
     val state: StateFlow<ProgressUiState> =
