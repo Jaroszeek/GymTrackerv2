@@ -66,6 +66,8 @@ class WorkoutNotificationsTest {
         val notification = notifications.build(ActiveWorkout(null, "Push", 0, 0), emptyMap())
         notification.assertPromotable()
         assertEquals("Dodaj pierwsze ćwiczenie, żeby zacząć.", notification.text)
+        // No "0/0" in the chip: it shows the session clock instead
+        assertNull(notification.shortText)
         assertEquals(0, notification.actions?.size ?: 0)
     }
 }

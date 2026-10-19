@@ -61,8 +61,12 @@ class WorkoutNotifications @Inject constructor(@ApplicationContext private val c
         return WorkoutNotificationContent(
             title = workout.name,
             text = text(workout, next, names),
-            // While resting no short text, so the chip shows the countdown (D-044)
-            shortText = if (rest == null) context.getString(R.string.notification_progress_short, workout.doneSets, workout.totalSets) else null,
+            // While resting (or with no sets yet) no short text, so the chip shows the clock (D-044)
+            shortText = if (rest == null && workout.totalSets > 0) {
+                context.getString(R.string.notification_progress_short, workout.doneSets, workout.totalSets)
+            } else {
+                null
+            },
             segments = workout.exercises.map { it.sets.size }.ifEmpty { listOf(1) },
             progress = workout.doneSets,
             clockBase = rest?.endsAt ?: workout.startedAt,

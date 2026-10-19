@@ -363,6 +363,17 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 - Deep-linki: ustawienia powiadomień aplikacji, powiadomienia na żywo (`ACTION_APP_NOTIFICATION_PROMOTION_SETTINGS`, poniżej API 36 i przy braku ekranu: ustawienia powiadomień), informacje o aplikacji (bateria), „Alarmy i przypomnienia”, opcje programisty (gdy są wyłączone, ich ekran od razu się zamyka, więc przycisk otwiera wtedy „Informacje o telefonie” z numerem wersji, którym się je włącza).
 - Sonda z galerii debug (D-014) zostaje na razie bez zmian; dubluje część diagnostyki, więc można ją usunąć (pytanie w raporcie).
 
+### D-050 Emulator 36.1, wyniki testów Etapu 5, rozmiar
+- Zainstalowany obraz `system-images;android-36.1;google_apis;x86_64` rev 4 (build BE4B.251210.005) i AVD `gt-api36_1` (pixel_6). Pułapki:
+  - wpis `hw.ramSize` z `config.ini` nie zadziałał: gość dostał 256 MB, jądro panikowało („System is deadlocked on memory”) i emulator restartował się w kółko; uruchamiać z `-memory 3072`;
+  - na tym obrazie każdy odczyt bufora GPU przez CPU kończy się asercją `!rcEnc->featureInfo()->hasReadColorBufferDma` w `GoldfishMapper::readFromHost`: pada `screencap`, SurfaceFlinger (próbkowanie pod paskiem gestów) i `system_server` (miniatury w „ostatnich” po Home). Bez zmian przy `swiftshader_indirect`, `-gpu host`, bez okna i z ukrytym oknem, z wymuszonym `-feature GLDMA2,GLDirectMem`. Obejścia: nawigacja trzema przyciskami, zrzuty od strony hosta (`adb emu screenrecord screenshot <katalog>`), aplikacja tylko na pierwszym planie. Testy z wyjściem w tło robione na `gt-api36` (36.0).
+  - Emulator + demon Gradle + demon Kotlina wyczerpały plik stronicowania (JVM-y nie startowały: `hs_err_pid*.log`). Przy emulatorze: `-Pkotlin.compiler.execution.strategy=in-process` i `.\gradlew.bat --stop` po buildzie.
+- Wyniki (2026-10-19):
+  - 36.1: powiadomienie ma `FLAG_PROMOTED_ONGOING` (także po odtworzeniu po śmierci procesu i z kanałem `IMPORTANCE_DEFAULT`); diagnostyka: `canPostPromoted`, `promotable`, `promoted` = true; akcje „Ukończ serię” i „Pomiń przerwę” z panelu działają; odliczanie przerwy w powiadomieniu; tap otwiera trening; alarm dokładny kończy przerwę co do kilku ms i wibruje; `kill -9` procesu nie zostawia powiadomienia ani serwisu, po powrocie trening i powiadomienie wracają; zakończenie usuwa powiadomienie. `WorkoutNotificationsTest` 3/3 (przez `am instrument`; `connectedDebugAndroidTest` na tym emulatorze zgłaszał 0 testów).
+  - 36.0: koniec przerwy przy wygaszonym ekranie wibruje (blokada uśpienia, a po włączeniu zgody alarm dokładny także w wymuszonym głębokim Doze); odliczanie na ekranie blokady (po zmianie kanału na `DEFAULT`, D-044); usunięcie z „ostatnich” nie zatrzymuje serwisu; tap w powiadomienie bez zadania otwiera trening; odrzucenie usuwa powiadomienie; deep-linki (powiadomienia, informacje o aplikacji, „Alarmy i przypomnienia”, a ekranu promocji brak i jest fallback). `connectedDebugAndroidTest` 4/4.
+  - Chipa na pasku stanu i Now Bar nie dało się obejrzeć: chip widać dopiero z aplikacją w tle, a na 36.1 wyjście w tło wywala emulator. Sprawdzenie na telefonie (PROGRESS.md).
+- Release: 3,88 MB (było 3,6 MB; +0,28 MB, głównie DataStore).
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |
