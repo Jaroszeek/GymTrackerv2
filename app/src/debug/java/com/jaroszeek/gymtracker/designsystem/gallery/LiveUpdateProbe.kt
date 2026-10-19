@@ -3,6 +3,7 @@ package com.jaroszeek.gymtracker.designsystem.gallery
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -75,6 +76,16 @@ object LiveUpdateProbe {
     @RequiresApi(Build.VERSION_CODES.BAKLAVA)
     fun promotedSettingsIntent(context: Context) = Intent(Settings.ACTION_APP_NOTIFICATION_PROMOTION_SETTINGS)
         .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+
+    /** Some builds have no screen for an action (API 36.0 lacks the promotion settings); fall back to app notifications. */
+    fun openSettings(context: Context, intent: Intent) {
+        try {
+            context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            Log.w(TAG, "No settings screen for ${intent.action}", e)
+            context.startActivity(notificationSettingsIntent(context))
+        }
+    }
 
     fun notificationSettingsIntent(context: Context) = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
         .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)

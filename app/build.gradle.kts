@@ -42,7 +42,7 @@ android {
     }
     sourceSets {
         named("benchmark") {
-            java.directories += "src/debug/java"
+            kotlin.directories += "src/debug/java"
             res.directories += "src/debug/res"
             manifest.srcFile("src/debug/AndroidManifest.xml")
         }

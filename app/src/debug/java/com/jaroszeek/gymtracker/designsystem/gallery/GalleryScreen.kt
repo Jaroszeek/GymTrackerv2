@@ -356,18 +356,18 @@ private fun LiveUpdateProbeCard() {
             if (LiveUpdateProbe.supported) {
                 GlassButton(
                     stringResource(R.string.probe_open_promoted_settings),
-                    onClick = { context.startActivity(LiveUpdateProbe.promotedSettingsIntent(context)) },
+                    onClick = { LiveUpdateProbe.openSettings(context, LiveUpdateProbe.promotedSettingsIntent(context)) },
                     style = GlassButtonStyle.Ghost,
                 )
             }
             GlassButton(
                 stringResource(R.string.probe_open_notification_settings),
-                onClick = { context.startActivity(LiveUpdateProbe.notificationSettingsIntent(context)) },
+                onClick = { LiveUpdateProbe.openSettings(context, LiveUpdateProbe.notificationSettingsIntent(context)) },
                 style = GlassButtonStyle.Ghost,
             )
             GlassButton(
                 stringResource(R.string.probe_open_battery_settings),
-                onClick = { context.startActivity(LiveUpdateProbe.batterySettingsIntent(context)) },
+                onClick = { LiveUpdateProbe.openSettings(context, LiveUpdateProbe.batterySettingsIntent(context)) },
                 style = GlassButtonStyle.Ghost,
             )
             GlassButton(
