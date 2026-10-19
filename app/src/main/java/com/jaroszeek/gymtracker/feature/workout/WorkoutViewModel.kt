@@ -3,6 +3,8 @@ package com.jaroszeek.gymtracker.feature.workout
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jaroszeek.gymtracker.core.di.DefaultDispatcher
+import com.jaroszeek.gymtracker.core.notifications.LiveUpdateChecks
 import com.jaroszeek.gymtracker.data.exercise.ExerciseRepository
 import com.jaroszeek.gymtracker.data.routine.RoutineRepository
 import com.jaroszeek.gymtracker.data.workout.ActiveWorkoutManager
@@ -16,6 +18,7 @@ import com.jaroszeek.gymtracker.domain.workout.targetChanges
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +28,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class SetRef(val exerciseId: Long, val setId: Long)
 
@@ -37,6 +41,15 @@ data class FinishState(
     val apply: Set<Long> = emptySet(),
     val changesVisible: Boolean = changes.isNotEmpty(),
 )
+
+/** What keeps the workout from running reliably with the screen off; shown above the exercises. */
+data class BackgroundIssues(
+    val notificationsOff: Boolean = false,
+    val exactAlarmsOff: Boolean = false,
+    val batteryLimited: Boolean = false,
+) {
+    val any: Boolean get() = notificationsOff || exactAlarmsOff || batteryLimited
+}
 
 data class WorkoutUiState(
     val loading: Boolean = true,
@@ -54,6 +67,8 @@ data class WorkoutUiState(
     val finished: FinishState? = null,
     /** The screen leaves: discarded, finished with nothing to save, or no workout running. */
     val closed: Boolean = false,
+    /** Empty once the user hid them for this workout. */
+    val issues: BackgroundIssues = BackgroundIssues(),
 )
 
 private data class Local(
@@ -67,6 +82,8 @@ private data class Local(
     val finishing: Boolean = false,
     val finishFailed: Boolean = false,
     val finished: FinishState? = null,
+    val issues: BackgroundIssues = BackgroundIssues(),
+    val issuesHidden: Boolean = false,
 )
 
 @HiltViewModel
@@ -74,6 +91,8 @@ class WorkoutViewModel @Inject constructor(
     private val manager: ActiveWorkoutManager,
     exercises: ExerciseRepository,
     private val routines: RoutineRepository,
+    private val checks: LiveUpdateChecks,
+    @DefaultDispatcher private val dispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val local = MutableStateFlow(Local())
@@ -102,8 +121,24 @@ class WorkoutViewModel @Inject constructor(
             finishFailed = local.finishFailed,
             finished = local.finished,
             closed = !loading && workout == null && local.finished == null && !local.finishing,
+            issues = if (local.issuesHidden) BackgroundIssues() else local.issues,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), WorkoutUiState())
+
+    /** Checks the background issues again, e.g. after coming back from the system settings. */
+    fun onResume() {
+        viewModelScope.launch {
+            val status = withContext(dispatcher) { checks.status() }
+            val issues = BackgroundIssues(
+                notificationsOff = !status.notificationsEnabled,
+                exactAlarmsOff = !status.exactAlarms,
+                batteryLimited = status.backgroundRestricted || !status.ignoringBatteryOptimizations,
+            )
+            local.update { it.copy(issues = issues) }
+        }
+    }
+
+    fun onHideIssues() = local.update { it.copy(issuesHidden = true) }
 
     fun onWeightChange(exerciseId: Long, setId: Long, weightKg: Double?) = manager.setWeight(exerciseId, setId, weightKg)
 

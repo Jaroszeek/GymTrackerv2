@@ -35,6 +35,10 @@ data object TemplatesKey : NavKey
 @Serializable
 data object ActiveWorkoutKey : NavKey
 
+/** Live Update diagnostics (A7); opened from the workout, in Etap 9 from the settings too. */
+@Serializable
+data object LiveUpdateDiagnosticsKey : NavKey
+
 /** [id] null creates a new custom exercise. */
 @Serializable
 data class ExerciseEditorKey(val id: Long?) : NavKey

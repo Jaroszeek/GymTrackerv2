@@ -132,6 +132,24 @@ class ActiveWorkoutManagerTest {
     }
 
     @Test
+    fun restAlarmEndsTheRestWhenDeepSleepHeldTheTimerBack() = runTest {
+        val clock = TestClock(testScheduler)
+        val manager = manager(clock)
+        manager.start(routine())
+        val exercise = manager.workout.value!!.exercises.single()
+        manager.completeSet(exercise.id, exercise.sets[0].id)
+        runCurrent()
+
+        // Asleep: the wall clock moves on, the timer does not
+        clock.offsetMillis += 59_000
+        manager.endRestIfDue()
+        assertNotNull(manager.workout.value!!.rest)
+        clock.offsetMillis += 1_000
+        manager.endRestIfDue()
+        assertNull(manager.workout.value!!.rest)
+    }
+
+    @Test
     fun workoutAbandonedForADayGoesToHistoryInsteadOfComingBack() = runTest {
         val clock = TestClock(testScheduler)
         val first = manager(clock, CoroutineScope(StandardTestDispatcher(testScheduler)))

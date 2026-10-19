@@ -166,6 +166,15 @@ class ActiveWorkoutTest {
     }
 
     @Test
+    fun withoutARestTheNextSetIsTheFirstUntickedOne() {
+        var workout = empty.addExercise(listOf(bench)).addExercise(listOf(dips))
+        val first = workout.exercise(0)
+        // Done out of order, rest skipped: the notification offers the set left behind
+        workout = workout.complete(first.id, first.sets[1].id, 0, 90).skipRest()
+        assertEquals(first.id to 1, workout.nextSet()!!.let { it.exercise.id to it.number })
+    }
+
+    @Test
     fun choosingAnotherVariantReplansUntilASetIsDone() {
         val hammer = WorkoutVariant(exerciseId = 11, routineVariantId = 101, targets = RoutineTargets(4, 6, 8, 80.0))
         var workout = empty.addExercise(listOf(bench, hammer))

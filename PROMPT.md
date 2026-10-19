@@ -190,6 +190,12 @@ Aplikacja ma wyglądać jak produkt premium, a nie jak szablon Material. Dark-fi
   - dialog potwierdzenia z podsumowaniem kopii: liczba rutyn, treningów i pomiarów, zakres dat.
 - Podmiana pliku bazy przy następnym starcie procesu. Poprzednia baza zostaje jako kopia z timestampem.
 - Android Auto Backup z regułami (bez plików tymczasowych).
+- NOWE: import kopii zapasowej z pierwszej wersji GymTrackera (repo `Jaroszeek/GymTracker`), żeby przenieść dane ze starej aplikacji na nową:
+  - ten sam przycisk importu; aplikacja sama rozpoznaje kopię v1 i konwertuje jej dane do bazy v2;
+  - walidacja i dialog z podsumowaniem jak przy zwykłym imporcie, plus lista tego, czego nie dało się przenieść;
+  - ćwiczenia z kopii v1 są dopasowane do bazy ćwiczeń v2, a niedopasowane trafiają do własnych ćwiczeń;
+  - import zastępuje dane v2 tak jak zwykły import (poprzednia baza zostaje jako kopia z timestampem);
+  - z v1 bierzemy wyłącznie znajomość formatu pliku kopii. Kodu, UI, architektury ani funkcji v1 nie przenosimy.
 
 ### A5.11 Aktualizacje w aplikacji
 - Sprawdzanie przy starcie (maksymalnie raz na 24 h) i ręcznie, przez GitHub API `releases/latest` dla `Jaroszeek/GymTrackerv2`, z porównaniem versionCode.
@@ -243,7 +249,7 @@ Treść powiadomienia:
 
 Live Update:
 - `POST_PROMOTED_NOTIFICATIONS` w manifeście i `setRequestPromotedOngoing(true)`.
-- `setShortCriticalText` z tekstem typu „3/8” albo czasem przerwy.
+- NOWE: po wyjściu z aplikacji chip na pasku stanu („fasolka”) z zegarem: czas treningu, a w przerwie odliczanie. Zegar daje chronometr powiadomienia (`setWhen` + `setUsesChronometer`, w przerwie `setChronometerCountDown`); bez `setShortCriticalText`, bo krótki tekst mógłby zastąpić zegar.
 - Styl dozwolony dla promocji; powiadomienie ongoing z tytułem, bez colorize i bez custom RemoteViews.
 - Pełną listę wymagań sprawdź w aktualnej dokumentacji Androida „Live Updates”.
 
@@ -478,6 +484,7 @@ Zakres:
 **Kryteria akceptacji**
 - [ ] Na emulatorze API 36 powiadomienie jest promowane (`FLAG_PROMOTED_ONGOING`)
 - [ ] Na moim telefonie trening widać w Now Bar albo przyczyna braku jest udokumentowana diagnostyką
+- [ ] NOWE: po wyjściu z aplikacji chip na pasku stanu pokazuje zegar treningu, a w przerwie odliczanie
 - [ ] Koniec przerwy wibruje przy wygaszonym ekranie
 - [ ] Zabicie procesu i powrót nie zostawiają osieroconych powiadomień
 
@@ -491,7 +498,7 @@ Zanim zaczniesz kodować, sprawdź aktualną dokumentację Androida „Live Upda
 
 Zakres:
 1. Foreground service zgodny z A7, zasilany stanem menedżera z Etapu 4.
-2. Treść powiadomienia: ProgressStyle, chronometr, shortCriticalText i akcje zgodnie z A7.
+2. Treść powiadomienia: ProgressStyle, chronometr (też w chipie na pasku stanu) i akcje zgodnie z A7.
 3. Przerwa w tle:
    - odliczanie w powiadomieniu i na ekranie blokady;
    - wibracja (i opcjonalny dźwięk) na końcu, przy wygaszonym ekranie;
@@ -613,6 +620,7 @@ Zakres:
 - [ ] Wszystkie ustawienia z A5.9 działają i przeżywają restart
 - [ ] Po eksporcie i imporcie dane są identyczne
 - [ ] Uszkodzony plik i plik z nowszym schematem są bezpiecznie odrzucane
+- [ ] NOWE: kopia z GymTracker v1 importuje się do v2, a podsumowanie pokazuje, co przeniesiono i co pominięto
 
 **Prompt**
 ```
@@ -624,10 +632,12 @@ Zakres:
 1. Ustawienia zgodne z A5.9. Diagnostyka powiadomień trafia tutaj. Sekcja aktualizacji jest na razie zaślepką do Etapu 11.
 2. Eksport bazy do jednego pliku przez SAF, jako spójny snapshot.
 3. Import zgodny z A5.10: walidacja, dry-run migracji, dialog z podsumowaniem, podmiana przy starcie procesu, kopia poprzedniej bazy z timestampem, czytelna obsługa błędów.
-4. Android Auto Backup z regułami.
-5. Testy:
+4. NOWE: import kopii z GymTracker v1 zgodnie z A5.10. Najpierw przeanalizuj wyłącznie format pliku kopii v1 (kod tworzenia kopii i schemat zapisanych danych w repo `Jaroszeek/GymTracker`) i pokaż mi w planie etapu mapowanie v1 → v2. Poza formatem kopii niczego z v1 nie bierzesz.
+5. Android Auto Backup z regułami.
+6. Testy:
    - eksport → import → identyczne dane;
    - odrzucenie uszkodzonego pliku i pliku z nowszą wersją schematu;
+   - import syntetycznej kopii w formacie v1 → dane zgodne z mapowaniem (moja prawdziwa kopia nie trafia do repo, sprawdzamy ją tylko lokalnie);
    - test UI ścieżki importu.
 ```
 

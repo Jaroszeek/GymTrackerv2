@@ -1,6 +1,10 @@
 package com.jaroszeek.gymtracker.core.di
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room3.Room
 import androidx.sqlite.driver.AndroidSQLiteDriver
 import com.jaroszeek.gymtracker.core.database.ExerciseDao
@@ -71,5 +75,11 @@ object CoreModule {
     fun activeWorkoutStore(@ApplicationContext context: Context): ActiveWorkoutStore =
         ActiveWorkoutStore(File(context.filesDir, ACTIVE_WORKOUT_FILE))
 
+    @Provides
+    @Singleton
+    fun preferences(@ApplicationContext context: Context, @IoDispatcher io: CoroutineDispatcher): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create(scope = CoroutineScope(SupervisorJob() + io)) { context.preferencesDataStoreFile(PREFERENCES_FILE) }
+
     private const val ACTIVE_WORKOUT_FILE = "active_workout.json"
+    private const val PREFERENCES_FILE = "preferences"
 }

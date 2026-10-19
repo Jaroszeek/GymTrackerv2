@@ -318,6 +318,73 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 - Nowe: `GlassProgressRing` (łuk w `accentText`, bo żywy akcent ginie na jasnym tle), `GlassMiniBar`, `GlassFullScreenOverlay`; placeholder w `GlassNumberField`; `GlassChip` ucina długi tekst. Wszystko w galerii (sekcje „Nakładki” i „Postęp i trening”).
 - Release: 3,6 MB.
 
+### D-044 Live Updates: wymagania i jak je spełniamy (Etap 5)
+Źródła (sprawdzone 2026-10-19): developer.android.com/develop/ui/views/notifications/live-update; documentation.onesignal.com/docs/en/android-live-notifications; androidauthority.com/one-ui-8-live-updates-support-3573794; sammyfans.com (One UI 8 Beta 3, 2025-07-04); wątki r2.community.samsung.com.
+- Wymagania z dokumentacji Androida i jak je spełnia `WorkoutNotifications`:
+  - styl Standard, BigText, Call, **Progress** albo Metric → `NotificationCompat.ProgressStyle` (segment na ćwiczenie, postęp = ukończone serie);
+  - `POST_PROMOTED_NOTIFICATIONS` w manifeście (zwykłe, nie runtime) → manifest główny;
+  - prośba o promocję → `NotificationCompat.Builder.setRequestPromotedOngoing(true)` (ustawia extra na każdym API, D-022);
+  - `ongoing`, tytuł (nazwa rutyny), bez `customContentView`, bez `setGroupSummary`, bez `setColorized(true)` → spełnione;
+  - kanał nie może mieć `IMPORTANCE_MIN` → kanał „Trening w toku” ma `IMPORTANCE_DEFAULT`, bez dźwięku, wibracji i odznaki. Najpierw był `IMPORTANCE_LOW` (zalecenie OneSignal), ale test na emulatorze pokazał, że Android traktuje go jako cichy i domyślnie chowa z ekranu blokady (`lock_screen_show_silent_notifications`), a A5.4 wymaga tam odliczania przerwy. Kanał bez dźwięku nie hałasuje także przy `DEFAULT`; heads-up jest dopiero od `IMPORTANCE_HIGH`.
+- Chip na pasku stanu („fasolka”, widoczny po wyjściu z aplikacji) pokazuje zegar: czas treningu (`setWhen(start)` + `setUsesChronometer`), a w przerwie odliczanie (`setWhen(koniec przerwy)` + `setChronometerCountDown`). Dokumentacja: „A timer in the chip can be shown when using Chronometer for when time… The Chronometer timer is shown in the chip as long as it is positive”. Krótkiego tekstu (`setShortCriticalText`) nie ustawiamy: dokumentacja nie opisuje, co wygrywa, gdy są oba, a tekst mógłby zastąpić zegar. Najpierw chip pokazywał postęp „3/8” (A7); właściciel poprosił o zegar, A7 zmienione 2026-10-19. Postęp serii zostaje na pasku postępu powiadomienia.
+- Akcje: „Ukończ serię” (poza przerwą, gdy bieżąca seria ma powtórzenia) i „Pomiń przerwę” (w przerwie). Dokumentacja nie zabrania akcji.
+- Odrzucone przez użytkownika powiadomienie nie wraca, dopóki nie otworzy aplikacji (`setDeleteIntent`; dokumentacja: „Don't repost Live Updates that the user dismissed”).
+- API: według `api-versions.xml` z SDK 37 `canPostPromotedNotifications()`, `hasPromotableCharacteristics()` i `FLAG_PROMOTED_ONGOING` są od API 36, a samo promowanie działa od Androida 16 QPR1 (36.1; D-022). `Settings.ACTION_MANAGE_APP_PROMOTED_NOTIFICATIONS` z dokumentacji i A7 w SDK nie istnieje; używamy `ACTION_APP_NOTIFICATION_PROMOTION_SETTINGS`.
+- One UI 8.5 (wiedza z raportów, nie z dokumentacji Samsunga): Live Updates trafiają do Now Bar i na AOD; część wersji One UI 8 wpuszcza aplikacje spoza listy Samsunga dopiero po włączeniu opcji programisty „Live notifications for all apps”; w One UI 8.5 ma być przełącznik powiadomień na żywo per aplikacja; spełnienie wymagań Androida nie gwarantuje promocji (OEM może dodać własne kryteria). Dlatego ekran diagnostyki (D-049) i sekcja README.
+
+### D-045 Nowe uprawnienia w manifeście (zaakceptowane z Etapem 5)
+CLAUDE.md wymaga zgody na nowe uprawnienia. Wszystkie wynikają wprost z A7 i A5.4 w PROMPT.md, więc dodałem je i zgłaszam w raporcie:
+- `POST_NOTIFICATIONS` (runtime) i `POST_PROMOTED_NOTIFICATIONS` (zwykłe) — przeniesione z manifestu debug do głównego;
+- `FOREGROUND_SERVICE` i `FOREGROUND_SERVICE_SPECIAL_USE` (zwykłe) — serwis typu `specialUse` z `PROPERTY_SPECIAL_USE_FGS_SUBTYPE`;
+- `SCHEDULE_EXACT_ALARM` (dostęp specjalny, domyślnie wyłączony; użytkownik włącza go w ustawieniach „Alarmy i przypomnienia”);
+- `WAKE_LOCK` i `VIBRATE` (zwykłe) — zapasowa blokada uśpienia na czas przerwy i wibracja na koniec.
+Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla budzików i kalendarzy), typ serwisu `health` (wymaga uprawnień do czujników albo aktywności fizycznej, A7 mówi `specialUse`).
+
+### D-046 Serwis treningu i przerwa w tle
+- `WorkoutService` startuje tylko z `MainActivity` w stanie RESUMED, gdy trwa trening (klik „Start” albo powrót z treningiem odtworzonym po śmierci procesu). Przy każdym starcie z aplikacji od razu woła `startForeground`; jeśli system odmówi, loguje błąd i się zatrzymuje. `START_NOT_STICKY`: system nie wskrzesza serwisu po śmierci procesu, bo byłby to start z tła.
+- Treść pochodzi z `ActiveWorkoutManager.workout` i nazw ćwiczeń; gdy treningu nie ma (zakończenie, odrzucenie), serwis usuwa powiadomienie i się zatrzymuje. Po śmierci procesu system sam usuwa powiadomienie serwisu.
+- Tapnięcie otwiera trening (`ACTION_OPEN_WORKOUT`, aktywność dostaje intent przez `onNewIntent`).
+- Koniec przerwy: timer menedżera liczy na zegarze monotonicznym, który stoi w głębokim uśpieniu, więc przy wygaszonym ekranie budzi telefon `RestAlarm`: exact alarm (`setExactAndAllowWhileIdle`, RTC_WAKEUP), gdy `canScheduleExactAlarms()`, inaczej częściowa blokada uśpienia na czas przerwy + 5 s. Na koniec wibracja (`USAGE_ALARM`, wzór 400-200-400-200-700 ms) i `manager.endRestIfDue()`. Pominięta albo skrócona przerwa kasuje budzenie; przerwa, która skończyła się sama, je zachowuje, więc wibracja zawsze następuje. Odbiornik alarmu działa także w nowym procesie, gdy system zabił aplikację.
+- Dźwięk na koniec przerwy (A5.4: opcjonalny) na razie wyłączony; przełącznik dojdzie z ustawieniami w Etapie 9.
+
+### D-047 Zgoda na powiadomienia i karta „Trening w tle”
+- Przy pierwszym starcie (flaga w DataStore) dialog wyjaśnia powiadomienie treningu, potem systemowa prośba o `POST_NOTIFICATIONS`. „Nie teraz” też zapisuje flagę, więc dialog nie wraca.
+- Na ekranie treningu karta „Trening w tle” wylicza, czego brakuje: powiadomień, baterii „Bez ograniczeń” (`isIgnoringBatteryOptimizations`; „Ograniczona” = `isBackgroundRestricted`) i zgody na alarmy, każdą pozycję z przyciskiem do właściwego ekranu ustawień, plus „Diagnostyka” i „Ukryj” (do zamknięcia ekranu treningu). Stan odświeża się przy każdym powrocie na ekran.
+
+### D-048 Zależność: DataStore Preferences 1.2.1
+- Po co: flaga „prośba o powiadomienia pokazana”; w Etapie 9 ustawienia. DataStore jest w ustalonym stosie (CLAUDE.md).
+- Alternatywy: `SharedPreferences` (bez zależności, ale synchroniczny I/O i poza ustalonym stosem), tabela w Room (za ciężkie na flagi).
+- Licencja Apache-2.0. Wersja 1.2.1 to najnowsza stabilna (1.3.0 jest w RC).
+- Rozmiar release: patrz D-050.
+
+### D-049 Ekran „Diagnostyka powiadomień na żywo”
+- Otwierany przyciskiem na dole ekranu treningu i z karty „Trening w tle” (w Etapie 9 także z ustawień).
+- Pokazuje i loguje (`adb logcat -s LiveUpdate`): wersję Androida z `SDK_INT_FULL` (np. 36.1), urządzenie, `areNotificationsEnabled`, ważność kanału, `canPostPromotedNotifications`, `hasPromotableCharacteristics` powiadomienia zbudowanego teraz (bez treningu: przykładowego), `FLAG_PROMOTED_ONGOING` opublikowanego powiadomienia, zgodę na dokładne alarmy i stan baterii. Na Samsungu dodatkowa karta z przełącznikami One UI.
+- Deep-linki: ustawienia powiadomień aplikacji, powiadomienia na żywo (`ACTION_APP_NOTIFICATION_PROMOTION_SETTINGS`, poniżej API 36 i przy braku ekranu: ustawienia powiadomień), informacje o aplikacji (bateria), „Alarmy i przypomnienia”, opcje programisty (gdy są wyłączone, ich ekran od razu się zamyka, więc przycisk otwiera wtedy „Informacje o telefonie” z numerem wersji, którym się je włącza).
+- Sonda z galerii debug (D-014) zostaje na razie bez zmian; dubluje część diagnostyki, więc można ją usunąć (pytanie w raporcie).
+
+### D-050 Emulator 36.1, wyniki testów Etapu 5, rozmiar
+- Zainstalowany obraz `system-images;android-36.1;google_apis;x86_64` rev 4 (build BE4B.251210.005) i AVD `gt-api36_1` (pixel_6). Pułapki:
+  - wpis `hw.ramSize` z `config.ini` nie zadziałał: gość dostał 256 MB, jądro panikowało („System is deadlocked on memory”) i emulator restartował się w kółko; uruchamiać z `-memory 3072`;
+  - na tym obrazie każdy odczyt bufora GPU przez CPU kończy się asercją `!rcEnc->featureInfo()->hasReadColorBufferDma` w `GoldfishMapper::readFromHost`: pada `screencap`, SurfaceFlinger (próbkowanie pod paskiem gestów) i `system_server` (miniatury w „ostatnich” po Home). Bez zmian przy `swiftshader_indirect`, `-gpu host`, bez okna i z ukrytym oknem, z wymuszonym `-feature GLDMA2,GLDirectMem`. Obejścia: nawigacja trzema przyciskami, zrzuty od strony hosta (`adb emu screenrecord screenshot <katalog>`), aplikacja tylko na pierwszym planie. Testy z wyjściem w tło robione na `gt-api36` (36.0).
+  - Emulator + demon Gradle + demon Kotlina wyczerpały plik stronicowania (JVM-y nie startowały: `hs_err_pid*.log`). Przy emulatorze: `-Pkotlin.compiler.execution.strategy=in-process` i `.\gradlew.bat --stop` po buildzie.
+- Wyniki (2026-10-19):
+  - 36.1: powiadomienie ma `FLAG_PROMOTED_ONGOING` (także po odtworzeniu po śmierci procesu i z kanałem `IMPORTANCE_DEFAULT`); diagnostyka: `canPostPromoted`, `promotable`, `promoted` = true; akcje „Ukończ serię” i „Pomiń przerwę” z panelu działają; odliczanie przerwy w powiadomieniu; tap otwiera trening; alarm dokładny kończy przerwę co do kilku ms i wibruje; `kill -9` procesu nie zostawia powiadomienia ani serwisu, po powrocie trening i powiadomienie wracają; zakończenie usuwa powiadomienie. `WorkoutNotificationsTest` 3/3 (przez `am instrument`; `connectedDebugAndroidTest` na tym emulatorze zgłaszał 0 testów).
+  - 36.0: koniec przerwy przy wygaszonym ekranie wibruje (blokada uśpienia, a po włączeniu zgody alarm dokładny także w wymuszonym głębokim Doze); odliczanie na ekranie blokady (po zmianie kanału na `DEFAULT`, D-044); usunięcie z „ostatnich” nie zatrzymuje serwisu; tap w powiadomienie bez zadania otwiera trening; odrzucenie usuwa powiadomienie; deep-linki (powiadomienia, informacje o aplikacji, „Alarmy i przypomnienia”, a ekranu promocji brak i jest fallback). `connectedDebugAndroidTest` 4/4.
+  - Chipa na pasku stanu i Now Bar nie dało się obejrzeć: chip widać dopiero z aplikacją w tle, a na 36.1 wyjście w tło wywala emulator. Sprawdzenie na telefonie (PROGRESS.md).
+- Release: 3,88 MB (było 3,6 MB; +0,28 MB, głównie DataStore).
+
+### D-051 Wydanie testowe przed v1.0.0
+- Na polecenie właściciela (2026-10-19) GitHub Release `preview-stage-5`: oznaczony jako pre-release, z APK debug zbudowanym lokalnie z brancha etapu.
+- APK debug, bo ma osobny `applicationId` (`.debug`, nazwa „GymTracker Debug”): instaluje się obok przyszłej wersji podpisanej kluczem właściciela i jej nie blokuje. Kolejne podglądy budowane na tym samym komputerze mają ten sam klucz debug, więc instalują się jako aktualizacja bez utraty danych. Build debug nie ma R8, więc animacje mogą być mniej płynne niż w wydaniu.
+- Tag poza schematem `v*`: A8 rezerwuje `v*` dla podpisanych wydań (versionCode z tagu), a Etap 11 zaczyna od `v1.0.0`. Aktualizator z A5.11 czyta `releases/latest`, które pomija pre-release, więc podglądu nie zaproponuje.
+- Odrzucone: release podpisany kluczem debug (po zainstalowaniu zablokowałby właściwą wersję — inny podpis, trzeba by odinstalować i stracić dane), tag `v0.5.0` (miesza się ze schematem wersji z A8).
+
+### D-052 Import kopii z GymTracker v1 (zakres)
+- Na prośbę właściciela (2026-10-19) dopisany do A5.10 i Etapu 9: v2 wczytuje kopię zapasową z pierwszej wersji. Z repo `Jaroszeek/GymTracker` bierzemy tylko format pliku kopii, i to dopiero w Etapie 9; kodu, UI ani funkcji v1 nie przenosimy.
+- Domyślnie import kopii v1 zastępuje dane v2 jak zwykły import (poprzednia baza zostaje w kopii). Łączenie z danymi v2 wymagałoby deduplikacji ćwiczeń i treningów — do decyzji właściciela w planie Etapu 9.
+- Test na syntetycznej kopii w formacie v1; prawdziwa kopia właściciela nie trafia do repo (dane zdrowotne).
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |
@@ -329,7 +396,7 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 | navigation3 + lifecycle-viewmodel-navigation3 | 1.2.0 / 2.11.0 | Apache-2.0 | 1 | nawigacja (D-003) |
 | Hilt / androidx.hilt | 2.60.1 / 1.4.0 | Apache-2.0 | 1 | DI |
 | kotlinx-serialization-json | 1.11.0 | Apache-2.0 | 1 | klucze nawigacji, JSON |
-| datastore-preferences | 1.2.1 | Apache-2.0 | 1 | ustawienia |
+| datastore-preferences | 1.2.1 | Apache-2.0 | 5 | flagi aplikacji, w Etapie 9 ustawienia (D-048) |
 | backdrop / shapes | 2.0.1 / 1.2.1 | Apache-2.0 | 1 | szkło (D-006) |
 | room3 / sqlite-framework | 3.0.3 / 2.7.1 | Apache-2.0 | 2 | baza (D-004) |
 | sqlite-bundled-jvm | 2.7.1 | Apache-2.0 | 2 | tylko testy: Room na JVM (D-028) |

@@ -20,6 +20,8 @@ import androidx.sqlite.driver.AndroidSQLiteDriver
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.jaroszeek.gymtracker.core.database.GtDatabase
+import com.jaroszeek.gymtracker.core.notifications.LiveUpdateChecks
+import com.jaroszeek.gymtracker.core.notifications.WorkoutNotifications
 import com.jaroszeek.gymtracker.data.exercise.ExerciseRepository
 import com.jaroszeek.gymtracker.data.exercise.ExerciseSeeder
 import com.jaroszeek.gymtracker.data.routine.RoutineRepository
@@ -98,14 +100,17 @@ class WorkoutFlowTest {
     @Test
     fun startTickOffRestFinishAndApplyTargets() {
         val routinesViewModel = RoutinesViewModel(routines, manager)
-        val workoutViewModel = WorkoutViewModel(manager, exercises, routines)
+        val checks = LiveUpdateChecks(context, manager, WorkoutNotifications(context))
+        val workoutViewModel = WorkoutViewModel(manager, exercises, routines, checks, Dispatchers.Default)
+        // The background issues card (permissions differ per device) would push the exercises off screen
+        workoutViewModel.onHideIssues()
         val pickerViewModel = ExercisesViewModel(exercises, Dispatchers.Default)
         var onWorkout by mutableStateOf(false)
         compose.setContent {
             GymTrackerTheme {
                 GlassScaffold {
                     if (onWorkout) {
-                        WorkoutRoute(workoutViewModel, pickerViewModel, onClose = { onWorkout = false })
+                        WorkoutRoute(workoutViewModel, pickerViewModel, onClose = { onWorkout = false }, onDiagnostics = {})
                     } else {
                         RoutinesRoute(onEdit = {}, onNew = {}, onTemplates = {}, onOpenWorkout = { onWorkout = true }, viewModel = routinesViewModel)
                     }

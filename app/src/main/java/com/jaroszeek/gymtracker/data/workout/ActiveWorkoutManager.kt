@@ -35,7 +35,7 @@ import kotlinx.coroutines.withContext
 data class FinishedWorkout(val workout: ActiveWorkout, val endedAt: Long)
 
 /**
- * Owns the workout in progress: the single source of truth for the UI (and the service in Etap 5).
+ * Owns the workout in progress: the single source of truth for the UI and the workout notification.
  * Every change is saved to [ActiveWorkoutStore] with a debounce and restored after process death;
  * a workout untouched for over 24 h is not brought back (D-038).
  */
@@ -71,8 +71,9 @@ class ActiveWorkoutManager @Inject constructor(
             // Ends the rest at its absolute end time; a new or adjusted rest restarts the wait
             _workout.map { it?.rest?.endsAt }.distinctUntilChanged().collectLatest { endsAt ->
                 if (endsAt == null) return@collectLatest
-                delay(endsAt - clock.millis())
-                _workout.update { it?.endRestIfDue(clock.millis()) }
+                // The delay runs on the monotonic clock, which stops in deep sleep; the rest alarm (Etap 5) ends it on time then
+                while (clock.millis() < endsAt) delay(endsAt - clock.millis())
+                endRestIfDue()
             }
         }
     }
@@ -111,6 +112,9 @@ class ActiveWorkoutManager @Inject constructor(
     fun adjustRest(deltaSeconds: Int) = mutate { it.adjustRest(deltaSeconds, clock.millis()) }
 
     fun skipRest() = mutate { it.skipRest() }
+
+    /** Ends the rest once its time is up; the rest alarm calls it when the device wakes up for it. */
+    fun endRestIfDue() = _workout.update { it?.endRestIfDue(clock.millis()) }
 
     /**
      * Saves the ticked-off sets to history and ends the workout. Throws when saving fails; the workout

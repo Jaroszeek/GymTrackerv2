@@ -274,4 +274,62 @@
     <string name="changes_value">%1$s → %2$s</string>
     <string name="change_apply">Zastosuj jako nowe cele</string>
     <string name="change_keep">Zostaw stare</string>
+    <!-- Workout notification and Live Update -->
+    <string name="notification_channel_workout">Trening w toku</string>
+    <string name="notification_channel_workout_description">Czas treningu, postęp serii i odliczanie przerwy. Bez dźwięku; koniec przerwy sygnalizuje wibracja.</string>
+    <string name="notification_set">%1$s • seria %2$d</string>
+    <string name="notification_rest_next">Przerwa • następne: %1$s</string>
+    <string name="notification_rest_last">Przerwa • to była ostatnia seria</string>
+    <string name="notification_all_done">Wszystkie serie ukończone</string>
+    <string name="notification_complete_set">Ukończ serię</string>
+    <string name="notification_skip_rest">Pomiń przerwę</string>
+    <string name="notification_prompt_title">Powiadomienie treningu</string>
+    <string name="notification_prompt_text">W trakcie treningu GymTracker pokazuje czas, postęp serii i odliczanie przerwy w powiadomieniu, na ekranie blokady i w Now Bar. Powiadomienie jest ciche; koniec przerwy sygnalizuje wibracja. Bez zgody trening działa, ale tego nie zobaczysz.</string>
+    <string name="notification_prompt_allow">Zezwól</string>
+    <string name="notification_prompt_later">Nie teraz</string>
+
+    <!-- Workout: background issues -->
+    <string name="background_title">Trening w tle</string>
+    <string name="background_notifications">Powiadomienia są wyłączone: przerwy i treningu nie zobaczysz na ekranie blokady ani w Now Bar.</string>
+    <string name="background_notifications_action">Włącz powiadomienia</string>
+    <string name="background_battery">Telefon może zamknąć GymTracker w tle i przerwać odliczanie. Ustaw baterię aplikacji na „Bez ograniczeń”.</string>
+    <string name="background_battery_action">Ustawienia baterii</string>
+    <string name="background_exact_alarms">Zgoda „Alarmy i przypomnienia” pozwala obudzić telefon dokładnie na koniec przerwy. Bez niej telefon nie zasypia przez całą przerwę.</string>
+    <string name="background_exact_alarms_action">Zezwól na alarmy</string>
+    <string name="background_diagnostics">Diagnostyka</string>
+    <string name="background_hide">Ukryj</string>
+
+    <!-- Live Update diagnostics -->
+    <string name="diagnostics_title">Diagnostyka powiadomień na żywo</string>
+    <string name="diagnostics_intro">Wszystko, od czego zależy, czy trening pokazuje się jako powiadomienie na żywo (Now Bar) i czy przerwa działa przy wygaszonym ekranie. Po zmianie ustawień wróć tutaj, lista się odświeży.</string>
+    <string name="diagnostics_android">Android</string>
+    <string name="diagnostics_device">Urządzenie</string>
+    <string name="diagnostics_notifications">Powiadomienia aplikacji</string>
+    <string name="diagnostics_channel">Kanał „Trening w toku”</string>
+    <string name="diagnostics_can_post_promoted">Zgoda na powiadomienia na żywo</string>
+    <string name="diagnostics_promotable">Powiadomienie spełnia wymagania</string>
+    <string name="diagnostics_promoted">Powiadomienie jest na żywo</string>
+    <string name="diagnostics_exact_alarms">Alarmy i przypomnienia</string>
+    <string name="diagnostics_battery">Bateria</string>
+    <string name="diagnostics_yes">Tak</string>
+    <string name="diagnostics_no">Nie</string>
+    <string name="diagnostics_enabled">Włączone</string>
+    <string name="diagnostics_disabled">Wyłączone</string>
+    <string name="diagnostics_allowed">Dozwolone</string>
+    <string name="diagnostics_not_available">Brak w tej wersji Androida</string>
+    <string name="diagnostics_no_workout">Brak trwającego treningu</string>
+    <string name="diagnostics_channel_missing">Powstanie przy pierwszym treningu</string>
+    <string name="diagnostics_channel_min">Ważność minimalna (blokuje)</string>
+    <string name="diagnostics_exact_alarms_missing">Niedozwolone (zapasowo blokada uśpienia)</string>
+    <string name="diagnostics_battery_unrestricted">Bez ograniczeń</string>
+    <string name="diagnostics_battery_optimized">Optymalizowana</string>
+    <string name="diagnostics_battery_restricted">Ograniczona</string>
+    <string name="diagnostics_samsung_title">One UI (Samsung)</string>
+    <string name="diagnostics_samsung_text">Now Bar pokazuje tylko aplikacje dopuszczone w Ustawienia → Ekran blokady i AOD → Now Bar. Na części wersji One UI trzeba też włączyć w Opcjach programisty „Live notifications for all apps”. Opcje programisty włączysz, stukając 7 razy w „Numer wersji” (Informacje o telefonie → Informacje o oprogramowaniu); przycisk niżej otwiera ten ekran, dopóki są wyłączone.</string>
+    <string name="diagnostics_open_notifications">Ustawienia powiadomień</string>
+    <string name="diagnostics_open_live_updates">Powiadomienia na żywo</string>
+    <string name="diagnostics_open_battery">Bateria (informacje o aplikacji)</string>
+    <string name="diagnostics_open_exact_alarms">Alarmy i przypomnienia</string>
+    <string name="diagnostics_open_developer">Opcje programisty</string>
+    <string name="diagnostics_refresh">Odśwież</string>
 </resources>
