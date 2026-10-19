@@ -84,6 +84,10 @@ fun GymTrackerRoot(openWorkoutRequests: Int = 0) {
     LaunchedEffect(openWorkoutRequests) { if (openWorkoutRequests > 0) navigator.open(TopLevelTab.Workout, ActiveWorkoutKey) }
     val density = LocalDensity.current
     val hideOnScroll = remember(density) { HideOnScrollState(threshold = with(density) { GtSizes.HideBarThreshold.toPx() }) }
+    // Every screen starts with the navbar: the one before may have scrolled it away, and a screen
+    // that does not scroll (Start, Profil) could not bring it back
+    val topKey = navigator.stacks.getValue(navigator.currentTab).lastOrNull()
+    LaunchedEffect(topKey) { hideOnScroll.show() }
 
     val entryProvider = remember(navigator) { entryProvider(navigator) }
     val workoutBar: WorkoutBarViewModel = hiltViewModel()
