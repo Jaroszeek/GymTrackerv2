@@ -143,19 +143,18 @@ class HealthConnectViewModel @Inject constructor(
 
     fun onRequestLaunched() = local.update { it.copy(request = null, pending = it.request) }
 
-    /** After the permission dialog: a granted toggle turns on; a missing permission gets a hint where to grant it. */
-    fun onPermissionsResult() {
-        val feature = local.value.pending ?: return
+    /**
+     * After the permission dialog with what it [granted]: a granted toggle turns on, even when Android ended
+     * the app meanwhile; a missing permission gets a hint where to grant it.
+     */
+    fun onPermissionsResult(granted: Set<String>) {
+        val feature = local.value.pending
         viewModelScope.launch {
-            val granted = refresh().connected(feature)
-            if (granted) {
-                when (feature) {
-                    HealthFeature.Background -> setBackground(true)
-                    HealthFeature.WriteWorkouts -> preferences.setHealthWriteWorkouts(true)
-                    else -> Unit
-                }
-            }
-            local.update { it.copy(pending = null, denied = feature.takeUnless { granted }) }
+            // Only the toggles ask for these
+            if (granted.containsAll(HealthFeature.Background.permissions)) setBackground(true)
+            if (granted.containsAll(HealthFeature.WriteWorkouts.permissions)) preferences.setHealthWriteWorkouts(true)
+            val access = refresh()
+            local.update { it.copy(pending = null, denied = feature?.takeUnless(access::connected)) }
         }
     }
 

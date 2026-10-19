@@ -59,7 +59,7 @@ import kotlin.math.roundToInt
 fun HealthConnectRoute(viewModel: HealthConnectViewModel, onBack: () -> Unit, onPrivacy: () -> Unit) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val permissions = rememberLauncherForActivityResult(HealthConnect.permissionContract) { viewModel.onPermissionsResult() }
+    val permissions = rememberLauncherForActivityResult(HealthConnect.permissionContract, viewModel::onPermissionsResult)
     LaunchedEffect(state.request) {
         val feature = state.request ?: return@LaunchedEffect
         viewModel.onRequestLaunched()
