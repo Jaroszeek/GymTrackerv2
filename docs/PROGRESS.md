@@ -10,7 +10,7 @@
 | 3 | Rutyny i szablony | ✅ zakończony (2026-10-19) |
 | 4 | Aktywny trening | ✅ zakończony (2026-10-19) |
 | 5 | Powiadomienie, Live Update, przerwa w tle | ✅ zaakceptowany (2026-10-19), wyniki testu na telefonie jeszcze niezgłoszone |
-| 6 | Historia i postępy | 🔍 do akceptacji (PR, 2026-10-19) |
+| 6 | Historia i postępy | ✅ zaakceptowany (2026-10-19), wydanie `preview-stage-6`, wyniki testu na telefonie jeszcze niezgłoszone |
 | 7 | Health Connect | — |
 | 8 | Start i Profil | — |
 | 9 | Ustawienia i kopia zapasowa | — |
@@ -19,8 +19,8 @@
 
 ## Bieżący stan
 
-- **Etapy 1–5** zmergowane (PR #1–#5). D-038 (porzucony trening trafia do historii) zostaje jako domyślne, właściciel nie zgłosił zmiany.
-- **Etap 6** gotowy do akceptacji (PR na branchu `feat/stage-6-history-progress`):
+- **Etapy 1–6** zmergowane (PR #1–#6). D-038 (porzucony trening trafia do historii) zostaje jako domyślne, właściciel nie zgłosił zmiany.
+- **Etap 6** zaakceptowany przez właściciela bez wyników testu na telefonie. Wydanie testowe `preview-stage-6` (D-058); od teraz każdy etap dostaje takie wydanie razem z PR. Galeria komponentów bez ikony w launcherze (D-058).
   - Zrobione: zakładka Postępy (Historia, Ćwiczenia, Rutyny, Partie), szczegóły treningu z rekordami, edycja i usuwanie z przeliczeniem rekordów, e1RM (Epley, Brzycki), rekordy i tygodniowe serie w `domain/`, rekordy w trakcie treningu (glow i haptyka) i na podsumowaniu, wykres na Canvas z zakresami i przeciąganiem, wykres i rekordy w szczegółach ćwiczenia, postęp rutyny, agregaty w Room, generator danych w debug. Decyzje D-053…D-057.
   - Sprawdzone na emulatorze (36.0): wszystkie nowe ekrany w motywie ciemnym i jasnym, wykres w Onyx i Porcelain z ograniczoną przezroczystością, edycja serii daje rekord, usunięcie treningu przelicza rekordy późniejszego, rekord w trakcie treningu i na podsumowaniu, płynność przy 300 treningach (D-057). Testy: JVM 145/145, UI 4/4, lint bez nowych ostrzeżeń.
   - Otwarte: test na telefonie (instrukcja niżej), wyniki testu Etapu 5 na telefonie.
@@ -30,7 +30,7 @@
   - Wydanie testowe `preview-stage-5` (pre-release z APK debug, D-051) na prośbę właściciela.
   - Otwarte: test na telefonie (instrukcja niżej). Chipa na pasku stanu nie dało się obejrzeć na emulatorze.
 - **Tryb pracy:** plan etapu nie czeka na akceptację (D-032), akceptacja na PR.
-- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-057).
+- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-058).
 - **Środowisko:**
   - Android Studio 2026.2.1 w `C:\Program Files\Android\Android Studio1` (JBR 25). Gdy `java` z PATH nie startuje, ustaw `$env:JAVA_HOME` na JBR.
   - `adb`: `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe`.
@@ -42,7 +42,7 @@
 
 ## Etap 6 — test na telefonie
 
-1. Instalacja: `.\gradlew.bat assembleDebug`, potem `adb install -r app\build\outputs\apk\debug\app-debug.apk`.
+1. Instalacja: APK z wydania `preview-stage-6` na GitHubie albo `.\gradlew.bat assembleDebug`, potem `adb install -r app\build\outputs\apk\debug\app-debug.apk`.
 2. Dane testowe (opcjonalnie, tylko dodaje treningi): `adb shell am start -n com.jaroszeek.gymtracker.debug/com.jaroszeek.gymtracker.designsystem.gallery.GalleryActivity --ei seedWorkouts 300`; w logu `adb logcat -s DebugData` pojawi się „Added 300 workouts”.
 3. Postępy → Historia: przewiń szybko całą listę. Czy przewijanie jest płynne?
 4. Tap w trening → szczegóły → ołówek: zmień ciężar jednej serii na wyższy niż kiedykolwiek → Zapisz. Czy seria dostała odznakę rekordu? Usuń ten trening (kosz): czy rekordy w szczegółach ćwiczenia wróciły do poprzednich?
@@ -68,5 +68,5 @@
 
 ## Następny krok
 
-- Akceptacja Etapu 6 (PR), potem Etap 7 — Health Connect.
+- Etap 7 — Health Connect.
 - Wyniki testów Etapów 5 i 6 na telefonie (wyżej), gdy właściciel je przekaże.
