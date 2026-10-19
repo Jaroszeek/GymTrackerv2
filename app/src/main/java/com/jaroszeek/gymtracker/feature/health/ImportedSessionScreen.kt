@@ -38,6 +38,8 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
 import com.jaroszeek.gymtracker.domain.health.HealthSession
 import com.jaroszeek.gymtracker.domain.health.HeartRateSample
+import com.jaroszeek.gymtracker.domain.health.HeartRateSummary
+import com.jaroszeek.gymtracker.domain.health.summarize
 import com.jaroszeek.gymtracker.feature.progress.fullDate
 import com.jaroszeek.gymtracker.feature.progress.timeLabel
 import com.jaroszeek.gymtracker.feature.workout.durationLabel
@@ -60,7 +62,7 @@ sealed interface ImportedSessionUiState {
 
     data object Error : ImportedSessionUiState
 
-    data class Content(val session: HealthSession, val heartRate: List<HeartRateSample>, val maxHeartRate: Int?) : ImportedSessionUiState
+    data class Content(val session: HealthSession, val heartRate: List<HeartRateSample>, val summary: HeartRateSummary?) : ImportedSessionUiState
 }
 
 @HiltViewModel(assistedFactory = ImportedSessionViewModel.Factory::class)
@@ -73,7 +75,7 @@ class ImportedSessionViewModel @AssistedInject constructor(
 
     val state: StateFlow<ImportedSessionUiState> =
         combine(repository.observeSession(id), repository.observeHeartRate(id), preferences.observeMaxHeartRate(clock)) { session, heartRate, maxHeartRate ->
-            if (session == null) ImportedSessionUiState.NotFound else ImportedSessionUiState.Content(session, heartRate, maxHeartRate)
+            if (session == null) ImportedSessionUiState.NotFound else ImportedSessionUiState.Content(session, heartRate, summarize(heartRate, maxHeartRate))
         }
             .catch { e ->
                 Log.e(TAG, "Loading session $id failed", e)
@@ -135,7 +137,7 @@ fun ImportedSessionScreen(state: ImportedSessionUiState, onBack: () -> Unit, mod
                             style = GtTheme.typography.label,
                         )
                     }
-                    HeartRateCard(session, state.heartRate, state.maxHeartRate)
+                    HeartRateCard(session, state.heartRate, state.summary)
                     Text(stringResource(R.string.session_imported_text), color = colors.textTertiary, style = GtTheme.typography.bodySmall)
                 }
                 ImportedSessionUiState.NotFound -> Message(stringResource(R.string.session_not_found))
@@ -168,6 +170,6 @@ private fun ImportedSessionScreenPreview() {
     val session = HealthSession("1", "com.sec.android.app.shealth", 56, "Bieg poranny", start, start + 2_700_000, activeKcal = 380.0, totalKcal = 455.0)
     val samples = List(180) { HeartRateSample(start + it * 15_000L, 120 + (it % 30)) }
     GymTrackerTheme {
-        GlassScaffold { ImportedSessionScreen(ImportedSessionUiState.Content(session, samples, 188), onBack = {}) }
+        GlassScaffold { ImportedSessionScreen(ImportedSessionUiState.Content(session, samples, summarize(samples, maxHeartRate = 188)), onBack = {}) }
     }
 }

@@ -165,7 +165,7 @@ private fun WatchSession(
 ) {
     when {
         health.session != null -> {
-            HeartRateCard(health.session, health.heartRate, health.maxHeartRate)
+            HeartRateCard(health.session, health.heartRate, health.heartRateSummary)
             GlassButton(
                 stringResource(R.string.link_unlink),
                 onClick = onUnlink,

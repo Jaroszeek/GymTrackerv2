@@ -28,17 +28,17 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
 import com.jaroszeek.gymtracker.domain.health.HealthSession
 import com.jaroszeek.gymtracker.domain.health.HeartRateSample
+import com.jaroszeek.gymtracker.domain.health.HeartRateSummary
 import com.jaroszeek.gymtracker.domain.health.ZONES
 import com.jaroszeek.gymtracker.domain.health.summarize
 import com.jaroszeek.gymtracker.feature.progress.timeLabel
 import com.jaroszeek.gymtracker.feature.workout.durationLabel
 import kotlin.math.roundToInt
 
-/** A watch session's heart rate (A6): average and maximum, the chart, time in zones, and the calories. */
+/** A watch session's heart rate (A6): average and maximum, the chart, time in zones, and the calories; [summary] null without samples. */
 @Composable
-fun HeartRateCard(session: HealthSession, samples: List<HeartRateSample>, maxHeartRate: Int?, modifier: Modifier = Modifier) {
+fun HeartRateCard(session: HealthSession, samples: List<HeartRateSample>, summary: HeartRateSummary?, modifier: Modifier = Modifier) {
     val colors = GtTheme.colors
-    val summary = remember(samples, maxHeartRate) { summarize(samples, maxHeartRate) }
     val points = remember(samples) { samples.map { ChartPoint(it.time, it.bpm.toDouble()) } }
     val resources = LocalResources.current
     val bpm = remember(resources) { { value: Double -> resources.getString(R.string.value_bpm, value.roundToInt()) } }
@@ -110,7 +110,7 @@ private fun HeartRateCardPreview() {
             HeartRateCard(
                 session = HealthSession("1", "com.sec.android.app.shealth", 70, null, start, start + 3_600_000, activeKcal = 412.0, totalKcal = 530.0),
                 samples = samples,
-                maxHeartRate = 188,
+                summary = summarize(samples, maxHeartRate = 188),
                 modifier = Modifier.padding(GtSpacing.xl),
             )
         }

@@ -11,8 +11,10 @@ import com.jaroszeek.gymtracker.data.workout.WorkoutRepository
 import com.jaroszeek.gymtracker.domain.exercise.Exercise
 import com.jaroszeek.gymtracker.domain.health.HealthSession
 import com.jaroszeek.gymtracker.domain.health.HeartRateSample
+import com.jaroszeek.gymtracker.domain.health.HeartRateSummary
 import com.jaroszeek.gymtracker.domain.health.bestMatch
 import com.jaroszeek.gymtracker.domain.health.linkCandidates
+import com.jaroszeek.gymtracker.domain.health.summarize
 import com.jaroszeek.gymtracker.domain.progress.RecordType
 import com.jaroszeek.gymtracker.domain.workout.LoggedWorkout
 import dagger.assisted.Assisted
@@ -63,7 +65,7 @@ data class WorkoutHealth(
     /** Linked and imported; a link to a session that is no longer imported counts as none. */
     val session: HealthSession? = null,
     val heartRate: List<HeartRateSample> = emptyList(),
-    val maxHeartRate: Int? = null,
+    val heartRateSummary: HeartRateSummary? = null,
     /** An overlapping session, while nothing is linked and no proposal was turned down. */
     val proposal: HealthSession? = null,
     /** To link by hand: started within 12 h and not linked to another workout. */
@@ -104,7 +106,7 @@ class WorkoutDetailViewModel @AssistedInject constructor(
         WorkoutHealth(
             session = session,
             heartRate = heartRate,
-            maxHeartRate = maxHeartRate,
+            heartRateSummary = summarize(heartRate, maxHeartRate),
             proposal = if (link != null && session == null && !link.dismissed) bestMatch(link.startedAt, link.endedAt, free) else null,
             // ponytail: the sheet does not scroll; a scrolling one if 12 h ever hold more sessions
             candidates = if (link != null && session == null) linkCandidates(link.startedAt, free).take(MAX_CANDIDATES) else emptyList(),
