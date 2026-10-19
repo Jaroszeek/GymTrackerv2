@@ -19,7 +19,6 @@ import javax.inject.Singleton
 data class WorkoutNotificationContent(
     val title: String,
     val text: String,
-    val shortText: String?,
     val segments: List<Int>,
     val progress: Int,
     /** Session start, or the end of the rest while [countDown]. */
@@ -51,8 +50,9 @@ class WorkoutNotifications @Inject constructor(@ApplicationContext private val c
 
     /**
      * What the notification shows: name, "exercise • set", set progress and the session clock; while
-     * resting the clock counts the rest down, which the status chip shows as a timer. [names] maps
-     * exercise ids to their names. Equal contents need no repost (typing a weight changes nothing here).
+     * resting the clock counts the rest down. No short critical text, so the status bar chip ("fasolka")
+     * shows the clock too (D-044). [names] maps exercise ids to their names. Equal contents need no
+     * repost (typing a weight changes nothing here).
      */
     fun content(workout: ActiveWorkout, names: Map<Long, String>): WorkoutNotificationContent {
         val rest = workout.rest
@@ -61,12 +61,6 @@ class WorkoutNotifications @Inject constructor(@ApplicationContext private val c
         return WorkoutNotificationContent(
             title = workout.name,
             text = text(workout, next, names),
-            // While resting (or with no sets yet) no short text, so the chip shows the clock (D-044)
-            shortText = if (rest == null && workout.totalSets > 0) {
-                context.getString(R.string.notification_progress_short, workout.doneSets, workout.totalSets)
-            } else {
-                null
-            },
             segments = workout.exercises.map { it.sets.size }.ifEmpty { listOf(1) },
             progress = workout.doneSets,
             clockBase = rest?.endsAt ?: workout.startedAt,
@@ -100,7 +94,6 @@ class WorkoutNotifications @Inject constructor(@ApplicationContext private val c
                     .setProgressSegments(content.segments.map { NotificationCompat.ProgressStyle.Segment(it) })
                     .setProgress(content.progress),
             )
-        content.shortText?.let { builder.setShortCriticalText(it) }
         if (content.countDown) {
             builder.addAction(R.drawable.ic_timer, context.getString(R.string.notification_skip_rest), serviceIntent(WorkoutService.ACTION_SKIP_REST))
         }

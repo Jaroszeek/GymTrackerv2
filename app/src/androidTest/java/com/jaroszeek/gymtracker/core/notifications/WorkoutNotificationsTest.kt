@@ -42,8 +42,10 @@ class WorkoutNotificationsTest {
         val notification = notifications.build(workout, names)
         notification.assertPromotable()
         assertEquals("Bench Press • seria 1", notification.text)
-        assertEquals("0/5", notification.shortText)
+        // No short text: the status bar chip shows the session clock
+        assertNull(notification.shortText)
         assertEquals(1_000L, notification.`when`)
+        assertTrue(notification.extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER))
         assertEquals(listOf("Ukończ serię"), notification.actions.map { it.title.toString() })
     }
 
@@ -54,7 +56,7 @@ class WorkoutNotificationsTest {
         val notification = notifications.build(resting, names)
         notification.assertPromotable()
         assertEquals("Przerwa • następne: Bench Press • seria 2", notification.text)
-        // No short text, so the status chip shows the countdown
+        // The chip counts the rest down
         assertNull(notification.shortText)
         assertEquals(130_000L, notification.`when`)
         assertTrue(notification.extras.getBoolean(Notification.EXTRA_CHRONOMETER_COUNT_DOWN))
@@ -66,7 +68,6 @@ class WorkoutNotificationsTest {
         val notification = notifications.build(ActiveWorkout(null, "Push", 0, 0), emptyMap())
         notification.assertPromotable()
         assertEquals("Dodaj pierwsze ćwiczenie, żeby zacząć.", notification.text)
-        // No "0/0" in the chip: it shows the session clock instead
         assertNull(notification.shortText)
         assertEquals(0, notification.actions?.size ?: 0)
     }
