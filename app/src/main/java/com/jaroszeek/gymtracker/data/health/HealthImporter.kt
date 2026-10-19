@@ -152,6 +152,7 @@ internal class HealthImporter(
         } else {
             database.withWriteTransaction {
                 if (type != SyncedType.Steps && type != SyncedType.Distance) dao.markSessionsStaleSince(Long.MIN_VALUE)
+                // ponytail: after a token expired (30 days without a sync) older days than these stay unsummed (D-061)
                 if (type != SyncedType.HeartRate) markDays(today().minusDays(if (history) HISTORY_DAYS else RECENT_DAYS), today())
             }
         }
@@ -207,18 +208,17 @@ internal class HealthImporter(
 
     /** Heart rate and calories of the sessions marked stale, newest first, a limited number per run. */
     private suspend fun refreshSessions(granted: Set<String>) {
-        var heartRate = SyncedType.HeartRate.permission in granted
-        var metrics = buildSet<AggregateMetric<*>> {
+        val heartRate = SyncedType.HeartRate.permission in granted
+        val metrics = buildSet<AggregateMetric<*>> {
             if (SyncedType.ActiveCalories.permission in granted) add(ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL)
             if (SyncedType.TotalCalories.permission in granted) add(TotalCaloriesBurnedRecord.ENERGY_TOTAL)
         }
         dao.staleSessions(MAX_SESSION_REFRESHES).forEach { session ->
             val range = TimeRangeFilter.between(Instant.ofEpochMilli(session.startTime), Instant.ofEpochMilli(session.endTime))
-            // Without access, revoked even during this run, a session keeps the heart rate it has
-            val samples = if (heartRate) readOrNull("heart rate") { heartRate(session, range) } else null
-            if (samples == null) heartRate = false
-            val calories = if (metrics.isEmpty()) null else readOrNull("calories") { client.aggregate(AggregateRequest(metrics, range)) }
-            if (calories == null) metrics = emptySet()
+            // Without the permission a session keeps the heart rate it has. Access lost during the run (revoked, or the
+            // app left the foreground without the background permission) leaves the rest stale for the next run
+            val samples = if (!heartRate) null else readOrNull("heart rate") { heartRate(session, range) } ?: return
+            val calories = if (metrics.isEmpty()) null else readOrNull("calories") { client.aggregate(AggregateRequest(metrics, range)) } ?: return
             database.withWriteTransaction {
                 if (samples != null) {
                     dao.deleteHeartRate(session.id)

@@ -481,7 +481,7 @@ class HealthImporterTest {
     }
 
     @Test
-    fun aSecurityExceptionForHeartRateStillRefreshesCaloriesAndDays() = runTest {
+    fun heartRateLostDuringTheRunLeavesTheSessionStaleForTheNextRun() = runTest {
         val start = at(yesterday, 18)
         val end = at(yesterday, 19)
         client.upsert(
@@ -490,13 +490,36 @@ class HealthImporterTest {
             activeCalories("burned", start, end, 300.0),
             steps("steps", today, 1_000),
         )
+        // Granted, yet refused: as when the app leaves the foreground without the background permission
         client.denied += HeartRateRecord::class
+        val granted = granted(SyncedType.Sessions, SyncedType.HeartRate, SyncedType.ActiveCalories, SyncedType.Steps)
 
-        importer.run(granted(SyncedType.Sessions, SyncedType.HeartRate, SyncedType.ActiveCalories, SyncedType.Steps))
+        importer.run(granted)
 
         assertTrue(heartRateOf("run").isEmpty())
-        assertEquals(300.0, session("run").activeKcal!!, 0.0)
+        assertTrue(session("run").stale)
+        assertNull(session("run").activeKcal)
         assertEquals(1_000L, days()[today]?.steps)
+
+        client.denied.clear()
+        importer.run(granted)
+
+        assertEquals(setOf(150), heartRateOf("run").map { it.bpm }.toSet())
+        assertFalse(session("run").stale)
+        assertEquals(300.0, session("run").activeKcal!!, 0.0)
+    }
+
+    @Test
+    fun withoutTheHeartRatePermissionSessionsStillGetTheirCalories() = runTest {
+        val start = at(yesterday, 18)
+        val end = at(yesterday, 19)
+        client.upsert(exercise("run", WATCH, start, end), heartRate("hr", WATCH, start, end, bpm = 150), activeCalories("burned", start, end, 300.0))
+
+        importer.run(granted(SyncedType.Sessions, SyncedType.ActiveCalories))
+
+        assertTrue(heartRateOf("run").isEmpty())
+        assertFalse(session("run").stale)
+        assertEquals(300.0, session("run").activeKcal!!, 0.0)
     }
 
     @Test
