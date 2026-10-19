@@ -421,4 +421,18 @@
     <string name="routine_progress_max_weight">Najcięższa seria</string>
     <string name="routine_progress_sessions">Treningi</string>
     <string name="routine_progress_not_found">Tej rutyny już nie ma.</string>
+
+    <!-- Privacy policy (A6), also opened by Health Connect -->
+    <string name="privacy_title">Polityka prywatności</string>
+    <string name="privacy_intro">GymTracker działa w całości na tym telefonie: bez konta, serwera, reklam i analityki. Dane z Health Connect odczytuje tylko za Twoją zgodą, osobno dla każdej funkcji.</string>
+    <string name="privacy_read_title">Co odczytujemy</string>
+    <string name="privacy_read_text">Sesje ćwiczeń, tętno i kalorie; wagę, wzrost i skład ciała; kroki i dystans; sen, tętno spoczynkowe i HRV. Za dodatkowymi zgodami także dane starsze niż 30 dni i odczyt w tle.</string>
+    <string name="privacy_why_title">Po co</string>
+    <string name="privacy_why_text">Żeby pokazać tętno, strefy i kalorie przy treningach połączonych z sesją z zegarka, sesje z zegarka w historii, kroki i pomiary ciała oraz orientacyjną gotowość do treningu.</string>
+    <string name="privacy_write_title">Co zapisujemy</string>
+    <string name="privacy_write_text">Nic, dopóki nie włączysz zapisu treningów. Wtedy każdy zakończony trening trafia do Health Connect jako sesja treningu siłowego: nazwa, początek i koniec.</string>
+    <string name="privacy_where_title">Gdzie są dane</string>
+    <string name="privacy_where_text">Odczytane dane trafiają do osobnej bazy na tym telefonie, którą pomija kopia zapasowa Androida. Aplikacja nigdy ich nie wysyła ani nie udostępnia. Z internetu korzysta tylko po zdjęcia ćwiczeń.</string>
+    <string name="privacy_control_title">Jak to zmienić</string>
+    <string name="privacy_control_text">Zgody cofniesz w każdej chwili w Health Connect. „Rozłącz” na ekranie Health Connect w aplikacji cofa wszystkie zgody i usuwa zaimportowane dane; Twoje treningi zostają.</string>
 </resources>
