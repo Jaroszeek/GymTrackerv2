@@ -247,6 +247,36 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 - Na emulatorze lista i galeria mają w tych samych warunkach identyczne wyniki, a praca wątku UI na klatkę to mediana ok. 1,4 ms — lista nie dokłada nic ponad samo szkło. Emulator jest niestabilny (galeria: 28 ms p50 przy Etapie 1, 93 ms dziś po restarcie emulatora), więc liczby nie nadają się do oceny. Pomiar na telefonie razem z Etapem 1 (D-023).
 - Emulator: Gboard pokazywał samouczek rysika i przechwytywał tekst wpisywany przez `adb`; wyłączone `settings put secure stylus_handwriting_enabled 0` (tylko emulator).
 
+## 2026-10-19 — Etap 3 (rutyny i szablony)
+
+### D-032 Tryb pracy
+- Właściciel: „nie musisz się za każdym razem pytać, po prostu rób”. Od Etapu 3 plan etapu nie czeka na akceptację; decyzje i tak trafiają tutaj, a akceptacja odbywa się na PR. To odstępstwo od punktu 2 „Sposobu pracy” w CLAUDE.md.
+
+### D-033 Schemat v2 i migracja
+- Tabele `routines`, `routine_blocks` (CASCADE z rutyny), `routine_variants` (CASCADE z bloku, **RESTRICT** na ćwiczenie). Migracja automatyczna 1 → 2 (tylko nowe tabele); schemat `app/schemas/.../2.json`.
+- **Test migracji na JVM:** baza w starej wersji budowana z wyeksportowanego JSON-a schematu (to samo robi `MigrationTestHelper`), potem otwierana przez obecny Room — migracja i walidacja schematu idą w CI. Wzorzec dla kolejnych wersji: `MigrationTest.createFromSchema(version)`.
+- **Ochrona ćwiczeń w użyciu** (zamyka D-026): `deleteCustom` najpierw sprawdza, czy ćwiczenie jest w jakiejś rutynie (`DeleteResult.InUse`), a FK RESTRICT jest siatką bezpieczeństwa. Sprawdzenie zamiast łapania wyjątku, bo sterownik systemowy i testowy zgłaszają naruszenie FK różnymi typami wyjątków. Etap 4 dopisze tabele treningów do tego sprawdzenia.
+
+### D-034 Edycja rutyn
+- **Zapis różnicowy:** zapisane bloki i warianty zachowują id (aktualizacja pozycji i celów, usuwanie tylko tego, czego nie ma w szkicu). Etap 4 łączy treningi z wariantami, więc „usuń wszystko i wstaw od nowa” zerwałoby te powiązania.
+- **Szkic** (`RoutineDraft`, domain) ma czyste operacje; nowe elementy dostają ujemne tymczasowe id, które są też kluczami listy i drag & drop.
+- **Wybór ćwiczenia** to warstwa w edytorze, która używa listy z Etapu 2 w trybie wyboru (osobny `ExercisesViewModel` per edytor) — bez przekazywania wyników między ekranami nawigacji.
+- **Cele** edytowane w arkuszu i stosowane na „Gotowe”; normalizacja (min. 1 seria i powtórzenie, odwrócony zakres zamieniany, 0 = brak ciężaru / przerwa domyślna).
+- **Wyjście z niezapisanymi zmianami** pyta o odrzucenie (porównanie szkicu z ostatnio zapisanym).
+- Kolejność rutyn: data utworzenia. „Start” to zaślepka do Etapu 4.
+
+### D-035 Szablony
+- Zawartość z planu Etapu 3 (PPL, Upper/Lower, FBW A/B; 43 bloki, warianty jako bloki z alternatywą), w `assets/templates/templates.json`, ćwiczenia po `external_id`. Test sprawdza, że każde ćwiczenie szablonu istnieje w seedzie.
+- Nazwy programów i rutyn są w JSON-ie (to nazwy własne, po skopiowaniu stają się danymi użytkownika); opisy programów są w `strings.xml`.
+- Kopia tworzy wszystkie rutyny programu pod ich nazwami („Push”, „Pull”, „Legs”).
+
+### D-036 Double progression (`domain/routine/DoubleProgression`)
+- Gdy wszystkie serie robocze (robocze i do upadku; bez rozgrzewkowych i drop setów), co najmniej tyle ile cel, osiągnęły górę zakresu przy co najmniej docelowym ciężarze → następny ciężar = najmniejszy użyty ciężar + krok (domyślnie 2,5 kg, zaokrąglenie do 0,01). W przeciwnym razie brak propozycji (zostań przy ciężarze). Bez ciężaru (masa ciała) lub bez historii — brak propozycji. UI w Etapie 4.
+
+### D-037 Zależność: Reorderable 3.1.0
+- `sh.calvin.reorderable:reorderable` 3.1.0 (Apache-2.0, kandydat z planu Etapu 0): drag & drop w `LazyColumn` z autoscrollem; zależy od Compose 1.7, BOM 1.12 wygrywa. Rozmiar: ok. 17 KB dexu. Alternatywa: własna implementacja gestów (ok. 150 linii trudnej logiki).
+- Release: 3,7 MB, rozmiar pobierania 2,1 MB.
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |
@@ -264,7 +294,7 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 | sqlite-bundled-jvm | 2.7.1 | Apache-2.0 | 2 | tylko testy: Room na JVM (D-028) |
 | hilt-lifecycle-viewmodel-compose / lifecycle-viewmodel-navigation3, lifecycle-runtime-compose | 1.4.0 / 2.11.0 | Apache-2.0 | 2 | ViewModele per wpis nawigacji, `collectAsStateWithLifecycle` |
 | Coil 3 + OkHttp | 3.6.3 / 5.5.0 | Apache-2.0 | 2 | zdjęcia ćwiczeń (D-012) |
-| reorderable (Calvin-LL), kandydat | 3.1.0 | Apache-2.0 | 3 | drag & drop; decyzja w Etapie 3 (alternatywa: własna implementacja) |
+| reorderable (Calvin-LL) | 3.1.0 | Apache-2.0 | 3 | drag & drop w edytorze rutyn (D-037), ok. 17 KB |
 | work-runtime-ktx / hilt-work | 2.12.0 / 1.4.0 | Apache-2.0 | 7 | synchronizacja HC w tle |
 | health connect-client | 1.1.0 | Apache-2.0 | 7 | Health Connect (D-011) |
 | profileinstaller / baselineprofile / benchmark-macro | 1.4.1 / 1.5.0 / 1.5.0 | Apache-2.0 | 1 (pomiar), 10 | Baseline Profile, pomiary |
