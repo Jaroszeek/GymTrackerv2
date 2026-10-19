@@ -47,7 +47,7 @@
 8. Akcje z powiadomienia: „Pomiń przerwę”, „Ukończ serię”; tapnięcie w powiadomienie otwiera trening.
 9. Usuń aplikację z ostatnich (przesunięcie): powiadomienie zostaje albo znika razem z procesem, ale nie zostaje „martwe”; po otwarciu aplikacji trening i powiadomienie wracają.
 10. Zakończ trening: powiadomienie znika.
-11. Do raportu: zrzuty z punktów 5–6, log z punktu 2 oraz `adb shell dumpsys notification --noredact | Select-String -Pattern "gymtracker" -Context 0,40 | Out-File -Encoding utf8 notif.txt` (pole `flags=0x…`: bit `0x40000` = `FLAG_PROMOTED_ONGOING`).
+11. Do raportu: zrzuty z punktów 5–6, log z punktu 2 oraz `adb shell "dumpsys notification --noredact | grep -A 30 'NotificationRecord.*gymtracker'" | Out-File -Encoding utf8 notif.txt` (pole `flags=`: `PROMOTED_ONGOING` albo bit `0x40000` = promocja). Wariant debug nazywa się „GymTracker Debug” — tak też będzie na liście Now Bar.
 
 ## Następny krok
 
