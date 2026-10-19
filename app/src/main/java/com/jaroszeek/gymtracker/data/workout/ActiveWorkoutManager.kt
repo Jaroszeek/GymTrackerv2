@@ -83,7 +83,7 @@ class ActiveWorkoutManager @Inject constructor(
         routineId = routine.id,
         name = routine.name,
         blocks = routine.blocks.map { block ->
-            block.variants.map { WorkoutVariant(it.exercise.id, it.id, it.targets, workouts.lastSession(it.exercise.id)) }
+            block.variants.map { WorkoutVariant(it.exercise.id, it.id, it.targets, workouts.lastSession(it.exercise.id), workouts.personalBests(it.exercise.id)) }
         },
     )
 
@@ -91,7 +91,8 @@ class ActiveWorkoutManager @Inject constructor(
 
     suspend fun addExercise(exerciseId: Long) {
         val previous = workouts.lastSession(exerciseId)
-        mutate { it.addExercise(listOf(WorkoutVariant(exerciseId, previous = previous))) }
+        val bests = workouts.personalBests(exerciseId)
+        mutate { it.addExercise(listOf(WorkoutVariant(exerciseId, previous = previous, bests = bests))) }
     }
 
     fun selectVariant(exerciseId: Long, index: Int) = mutate { it.selectVariant(exerciseId, index) }

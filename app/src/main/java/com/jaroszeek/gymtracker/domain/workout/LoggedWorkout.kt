@@ -14,9 +14,12 @@ data class LoggedSet(val id: Long, val type: SetType, val weightKg: Double?, val
 /** [id] is the entry in the workout, [exerciseId] the exercise done. */
 data class LoggedExercise(val id: Long, val exerciseId: Long, val routineVariantId: Long?, val sets: List<LoggedSet>)
 
+/** A row of the history list. */
+data class WorkoutListItem(val id: Long, val name: String, val startedAt: Long, val summary: WorkoutSummary)
+
 /**
- * A finished workout from history, also the draft its editor works on. Ids of entries and sets are
- * unique within the workout. Times are epoch millis UTC.
+ * A finished workout from history, also the draft its editor works on. Entry ids are unique among the
+ * entries and set ids among all sets of the workout. Times are epoch millis UTC.
  */
 data class LoggedWorkout(
     val id: Long,
