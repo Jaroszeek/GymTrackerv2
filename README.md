@@ -19,7 +19,7 @@ Natywna aplikacja na Androida do śledzenia treningów siłowych. Działa lokaln
 - Baza 902 ćwiczeń: free-exercise-db (zdjęcia z CDN, cache na dysku) i warianty z programów Jeffa Nipparda; wyszukiwanie także po polskich nazwach, filtry partii ciała i sprzętu, własne ćwiczenia.
 - Historia, rekordy, szacowany 1RM, wykresy postępów.
 - Health Connect: tętno, sen, HRV, skład ciała, kroki. Dane zdrowotne nie opuszczają telefonu.
-- Kopia zapasowa do pliku i aktualizacje z GitHub Releases.
+- Kopia zapasowa do pliku (także import kopii z pierwszej wersji GymTrackera) i aktualizacje z GitHub Releases.
 
 ## Stack
 
@@ -72,7 +72,7 @@ Macrobenchmark przewija galerię pod szklanym navbarem na buildzie `benchmark` (
 
 ## Powiadomienie treningu i Now Bar (One UI)
 
-W trakcie treningu działa usługa pierwszoplanowa z cichym powiadomieniem: nazwa rutyny, „ćwiczenie • seria”, czas treningu, pasek postępu serii, a w czasie przerwy odliczanie i akcja „Pomiń przerwę”. Powiadomienie prosi system o promocję do Live Update (powiadomienie na żywo), więc na Androidzie 16 QPR1 (36.1) i nowszym trafia do paska stanu jako chip z postępem („3/8”) albo z czasem przerwy, a na Samsungu do Now Bar. Koniec przerwy wibruje także przy wygaszonym ekranie.
+W trakcie treningu działa usługa pierwszoplanowa z cichym powiadomieniem: nazwa rutyny, „ćwiczenie • seria”, czas treningu, pasek postępu serii, a w czasie przerwy odliczanie i akcja „Pomiń przerwę”. Powiadomienie prosi system o promocję do Live Update (powiadomienie na żywo), więc na Androidzie 16 QPR1 (36.1) i nowszym po wyjściu z aplikacji widać go na pasku stanu jako chip z zegarem (czas treningu, w przerwie odliczanie), a na Samsungu w Now Bar. Koniec przerwy wibruje także przy wygaszonym ekranie.
 
 Samsung dokłada własne przełączniki. Żeby trening był widoczny w Now Bar:
 

@@ -326,7 +326,7 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
   - prośba o promocję → `NotificationCompat.Builder.setRequestPromotedOngoing(true)` (ustawia extra na każdym API, D-022);
   - `ongoing`, tytuł (nazwa rutyny), bez `customContentView`, bez `setGroupSummary`, bez `setColorized(true)` → spełnione;
   - kanał nie może mieć `IMPORTANCE_MIN` → kanał „Trening w toku” ma `IMPORTANCE_DEFAULT`, bez dźwięku, wibracji i odznaki. Najpierw był `IMPORTANCE_LOW` (zalecenie OneSignal), ale test na emulatorze pokazał, że Android traktuje go jako cichy i domyślnie chowa z ekranu blokady (`lock_screen_show_silent_notifications`), a A5.4 wymaga tam odliczania przerwy. Kanał bez dźwięku nie hałasuje także przy `DEFAULT`; heads-up jest dopiero od `IMPORTANCE_HIGH`.
-- Chip na pasku stanu: poza przerwą `setShortCriticalText("3/8")`; w przerwie bez krótkiego tekstu, za to `setWhen(koniec przerwy)` + `setUsesChronometer` + `setChronometerCountDown`, więc chip pokazuje odliczanie (dokumentacja: „Chronometer timer is shown in the chip as long as it is positive”). Kolejności priorytetu krótki tekst / czas dokumentacja nie opisuje, dlatego w przerwie krótkiego tekstu nie ustawiamy.
+- Chip na pasku stanu („fasolka”, widoczny po wyjściu z aplikacji) pokazuje zegar: czas treningu (`setWhen(start)` + `setUsesChronometer`), a w przerwie odliczanie (`setWhen(koniec przerwy)` + `setChronometerCountDown`). Dokumentacja: „A timer in the chip can be shown when using Chronometer for when time… The Chronometer timer is shown in the chip as long as it is positive”. Krótkiego tekstu (`setShortCriticalText`) nie ustawiamy: dokumentacja nie opisuje, co wygrywa, gdy są oba, a tekst mógłby zastąpić zegar. Najpierw chip pokazywał postęp „3/8” (A7); właściciel poprosił o zegar, A7 zmienione 2026-10-19. Postęp serii zostaje na pasku postępu powiadomienia.
 - Akcje: „Ukończ serię” (poza przerwą, gdy bieżąca seria ma powtórzenia) i „Pomiń przerwę” (w przerwie). Dokumentacja nie zabrania akcji.
 - Odrzucone przez użytkownika powiadomienie nie wraca, dopóki nie otworzy aplikacji (`setDeleteIntent`; dokumentacja: „Don't repost Live Updates that the user dismissed”).
 - API: według `api-versions.xml` z SDK 37 `canPostPromotedNotifications()`, `hasPromotableCharacteristics()` i `FLAG_PROMOTED_ONGOING` są od API 36, a samo promowanie działa od Androida 16 QPR1 (36.1; D-022). `Settings.ACTION_MANAGE_APP_PROMOTED_NOTIFICATIONS` z dokumentacji i A7 w SDK nie istnieje; używamy `ACTION_APP_NOTIFICATION_PROMOTION_SETTINGS`.
@@ -373,6 +373,17 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
   - 36.0: koniec przerwy przy wygaszonym ekranie wibruje (blokada uśpienia, a po włączeniu zgody alarm dokładny także w wymuszonym głębokim Doze); odliczanie na ekranie blokady (po zmianie kanału na `DEFAULT`, D-044); usunięcie z „ostatnich” nie zatrzymuje serwisu; tap w powiadomienie bez zadania otwiera trening; odrzucenie usuwa powiadomienie; deep-linki (powiadomienia, informacje o aplikacji, „Alarmy i przypomnienia”, a ekranu promocji brak i jest fallback). `connectedDebugAndroidTest` 4/4.
   - Chipa na pasku stanu i Now Bar nie dało się obejrzeć: chip widać dopiero z aplikacją w tle, a na 36.1 wyjście w tło wywala emulator. Sprawdzenie na telefonie (PROGRESS.md).
 - Release: 3,88 MB (było 3,6 MB; +0,28 MB, głównie DataStore).
+
+### D-051 Wydanie testowe przed v1.0.0
+- Na polecenie właściciela (2026-10-19) GitHub Release `preview-stage-5`: oznaczony jako pre-release, z APK debug zbudowanym lokalnie z brancha etapu.
+- APK debug, bo ma osobny `applicationId` (`.debug`, nazwa „GymTracker Debug”): instaluje się obok przyszłej wersji podpisanej kluczem właściciela i jej nie blokuje. Kolejne podglądy budowane na tym samym komputerze mają ten sam klucz debug, więc instalują się jako aktualizacja bez utraty danych. Build debug nie ma R8, więc animacje mogą być mniej płynne niż w wydaniu.
+- Tag poza schematem `v*`: A8 rezerwuje `v*` dla podpisanych wydań (versionCode z tagu), a Etap 11 zaczyna od `v1.0.0`. Aktualizator z A5.11 czyta `releases/latest`, które pomija pre-release, więc podglądu nie zaproponuje.
+- Odrzucone: release podpisany kluczem debug (po zainstalowaniu zablokowałby właściwą wersję — inny podpis, trzeba by odinstalować i stracić dane), tag `v0.5.0` (miesza się ze schematem wersji z A8).
+
+### D-052 Import kopii z GymTracker v1 (zakres)
+- Na prośbę właściciela (2026-10-19) dopisany do A5.10 i Etapu 9: v2 wczytuje kopię zapasową z pierwszej wersji. Z repo `Jaroszeek/GymTracker` bierzemy tylko format pliku kopii, i to dopiero w Etapie 9; kodu, UI ani funkcji v1 nie przenosimy.
+- Domyślnie import kopii v1 zastępuje dane v2 jak zwykły import (poprzednia baza zostaje w kopii). Łączenie z danymi v2 wymagałoby deduplikacji ćwiczeń i treningów — do decyzji właściciela w planie Etapu 9.
+- Test na syntetycznej kopii w formacie v1; prawdziwa kopia właściciela nie trafia do repo (dane zdrowotne).
 
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
