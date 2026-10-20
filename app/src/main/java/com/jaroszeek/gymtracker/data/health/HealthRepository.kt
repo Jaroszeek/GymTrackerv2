@@ -5,6 +5,7 @@ import com.jaroszeek.gymtracker.core.database.HealthSessionEntity
 import com.jaroszeek.gymtracker.core.datastore.AppPreferences
 import com.jaroszeek.gymtracker.core.di.IoDispatcher
 import com.jaroszeek.gymtracker.domain.health.BASELINE_DAYS
+import com.jaroszeek.gymtracker.domain.health.DailyActivity
 import com.jaroszeek.gymtracker.domain.health.DailyRecovery
 import com.jaroszeek.gymtracker.domain.health.HealthMetric
 import com.jaroszeek.gymtracker.domain.health.HealthSession
@@ -53,6 +54,11 @@ class HealthRepository @Inject constructor(
 
     fun observeSummary(): Flow<ImportSummary> =
         dao.observeCounts().map { ImportSummary(it.sessions, it.measurements, it.nights, it.days) }.flowOn(io)
+
+    /** Days from [from] to [to] with totals; days without data are missing. */
+    fun observeActivity(from: LocalDate, to: LocalDate): Flow<List<DailyActivity>> = dao.observeDays(from.toEpochDay(), to.toEpochDay())
+        .map { rows -> rows.map { DailyActivity(LocalDate.ofEpochDay(it.day), it.steps, it.activeKcal, it.totalKcal) } }
+        .flowOn(io)
 
     /**
      * Today and the days of the readiness baseline: sleep counts on the day it ended, several values

@@ -15,7 +15,14 @@ data class LoggedSet(val id: Long, val type: SetType, val weightKg: Double?, val
 data class LoggedExercise(val id: Long, val exerciseId: Long, val routineVariantId: Long?, val sets: List<LoggedSet>)
 
 /** A row of the history list; [healthSessionId] is the linked watch session (Etap 7). */
-data class WorkoutListItem(val id: Long, val name: String, val startedAt: Long, val summary: WorkoutSummary, val healthSessionId: String? = null)
+data class WorkoutListItem(
+    val id: Long,
+    val name: String,
+    val startedAt: Long,
+    val summary: WorkoutSummary,
+    val healthSessionId: String? = null,
+    val routineId: Long? = null,
+)
 
 /** A workout's link to a watch session in Health Connect; [dismissed] = no session is proposed any more. */
 data class HealthLink(val startedAt: Long, val endedAt: Long, val sessionId: String?, val dismissed: Boolean)
@@ -44,9 +51,12 @@ data class LoggedWorkout(
     }
 
     /** Records per set id, given each exercise's bests before this workout. */
-    fun records(bests: Map<Long, PersonalBests>): Map<Long, Set<RecordType>> = recordsByExercise(
-        exercises.flatMap { exercise -> exercise.sets.map { RecordEntry(exercise.exerciseId, it.id, it.performed) } },
-    ) { bests[it] }
+    fun records(bests: Map<Long, PersonalBests>): Map<Long, Set<RecordType>> = recordsByExercise(recordEntries()) { bests[it] }
+
+    /** As after a workout: per exercise and record type the set that set it. */
+    fun recordHits(bests: Map<Long, PersonalBests>): List<RecordHit> = recordHitsOf(recordEntries(), records(bests))
+
+    private fun recordEntries() = exercises.flatMap { exercise -> exercise.sets.map { RecordEntry(exercise.exerciseId, it.id, it.performed) } }
 
     fun updateSet(exerciseId: Long, setId: Long, change: (LoggedSet) -> LoggedSet): LoggedWorkout = updateExercise(exerciseId) { exercise ->
         exercise.copy(sets = exercise.sets.map { if (it.id == setId) change(it) else it })

@@ -13,6 +13,7 @@ import com.jaroszeek.gymtracker.domain.progress.PersonalBests
 import com.jaroszeek.gymtracker.domain.routine.PerformedSet
 import com.jaroszeek.gymtracker.domain.routine.SetType
 import com.jaroszeek.gymtracker.domain.workout.ActiveWorkout
+import com.jaroszeek.gymtracker.domain.workout.ExerciseRecords
 import com.jaroszeek.gymtracker.domain.workout.HealthLink
 import com.jaroszeek.gymtracker.domain.workout.LoggedExercise
 import com.jaroszeek.gymtracker.domain.workout.LoggedSet
@@ -79,11 +80,26 @@ class WorkoutRepository @Inject constructor(
 
     fun observeHistory(): Flow<List<WorkoutListItem>> = dao.observeHistory()
         .map { rows ->
-            rows.map { WorkoutListItem(it.id, it.name, it.startedAt, WorkoutSummary(it.endedAt - it.startedAt, it.volumeKg, it.sets, it.exercises), it.hcSessionId) }
+            rows.map {
+                WorkoutListItem(it.id, it.name, it.startedAt, WorkoutSummary(it.endedAt - it.startedAt, it.volumeKg, it.sets, it.exercises), it.hcSessionId, it.routineId)
+            }
         }
         .flowOn(io)
 
     fun observeWorkout(id: Long): Flow<LoggedWorkout?> = dao.observeWorkout(id).map { it?.toDomain() }.flowOn(io)
+
+    /** Records set by the workouts started since [since], per workout (newest first) and exercise. */
+    fun observeRecordsSince(since: Long): Flow<List<ExerciseRecords>> = dao.observeWorkoutsSince(since)
+        .map { rows ->
+            val workouts = rows.map { it.toDomain() }
+            val names = dao.exerciseNames(workouts.flatMap { workout -> workout.exercises.map { it.exerciseId } }.toSet()).associate { it.id to it.name }
+            workouts.flatMap { workout ->
+                workout.recordHits(bestsBefore(workout)).groupBy { it.exerciseId }.mapNotNull { (exerciseId, hits) ->
+                    names[exerciseId]?.let { ExerciseRecords(workout.id, workout.startedAt, exerciseId, it, hits.mapTo(HashSet()) { hit -> hit.type }) }
+                }
+            }
+        }
+        .flowOn(io)
 
     /**
      * Replaces the workout's name, end and sets with the edited ones; false when none of its exercises

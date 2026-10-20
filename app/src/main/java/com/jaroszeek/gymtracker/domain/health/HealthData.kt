@@ -1,5 +1,7 @@
 package com.jaroszeek.gymtracker.domain.health
 
+import java.time.LocalDate
+
 /** Body and recovery values read from Health Connect; [key] is stored. Units: kg, m, %, bpm and ms. */
 enum class HealthMetric(val key: String) {
     Weight("weight"),
@@ -37,6 +39,9 @@ data class HealthSession(
 data class HeartRateSample(val time: Long, val bpm: Int)
 
 data class SleepSession(val id: String, val origin: String, val startTime: Long, val endTime: Long, val asleepMinutes: Int)
+
+/** Totals of a local day, summed by Health Connect across apps. */
+data class DailyActivity(val day: LocalDate, val steps: Long?, val activeKcal: Double?, val totalKcal: Double?)
 
 /** How much is imported, for the Health Connect screen. */
 data class ImportSummary(val sessions: Int = 0, val measurements: Int = 0, val nights: Int = 0, val days: Int = 0)

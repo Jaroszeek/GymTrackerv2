@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -52,6 +53,11 @@ class AppPreferences @Inject constructor(private val store: DataStore<Preference
     /** Entered by the user; overrides the age-based estimate. */
     val maxHeartRate: Flow<Int?> = data.map { it[MAX_HEART_RATE] }.distinctUntilChanged()
 
+    /** Start's widgets as [com.jaroszeek.gymtracker.domain.home.HomeLayout.encode] stores them; null is the default layout. */
+    val homeLayout: Flow<String?> = data.map { it[HOME_LAYOUT] }.distinctUntilChanged()
+
+    suspend fun setHomeLayout(value: String?) = set(HOME_LAYOUT, value)
+
     suspend fun setHealthSyncOnOpen(value: Boolean) = set(HEALTH_SYNC_ON_OPEN, value)
 
     suspend fun setHealthBackgroundSync(value: Boolean) = set(HEALTH_BACKGROUND_SYNC, value)
@@ -87,5 +93,6 @@ class AppPreferences @Inject constructor(private val store: DataStore<Preference
         val HEALTH_HISTORY_IMPORTED = booleanPreferencesKey("health_history_imported")
         val BIRTH_YEAR = intPreferencesKey("birth_year")
         val MAX_HEART_RATE = intPreferencesKey("max_heart_rate")
+        val HOME_LAYOUT = stringPreferencesKey("home_layout")
     }
 }

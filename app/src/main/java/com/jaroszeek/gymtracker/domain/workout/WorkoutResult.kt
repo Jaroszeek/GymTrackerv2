@@ -44,6 +44,9 @@ fun ActiveWorkout.targetChanges(): List<TargetChange> = exercises.mapNotNull { e
     TargetChange(variant.exerciseId, variantId, old, new).takeIf { new != old }
 }
 
+/** Records of an exercise in a past workout, for Start (A5.1). */
+data class ExerciseRecords(val workoutId: Long, val startedAt: Long, val exerciseId: Long, val exerciseName: String, val types: Set<RecordType>)
+
 /** A record of the workout for the summary: the set that set it and the value; reps records show the set itself. */
 data class RecordHit(val exerciseId: Long, val type: RecordType, val set: PerformedSet, val valueKg: Double?)
 
@@ -54,9 +57,10 @@ fun ActiveWorkout.records(): Map<Long, Set<RecordType>> {
 }
 
 /** Per exercise and record type the last set that set it, which is the best one. */
-fun ActiveWorkout.recordHits(): List<RecordHit> {
-    val records = records()
-    return recordEntries().groupBy { it.exerciseId }.flatMap { (exerciseId, entries) ->
+fun ActiveWorkout.recordHits(): List<RecordHit> = recordHitsOf(recordEntries(), records())
+
+internal fun recordHitsOf(all: List<RecordEntry>, records: Map<Long, Set<RecordType>>): List<RecordHit> =
+    all.groupBy { it.exerciseId }.flatMap { (exerciseId, entries) ->
         val sessionVolume = entries.filter { it.set.type != SetType.Warmup }.sumOf { it.set.volumeKg }
         RecordType.entries.mapNotNull { type ->
             val entry = entries.lastOrNull { type in records[it.setId].orEmpty() } ?: return@mapNotNull null
@@ -70,7 +74,6 @@ fun ActiveWorkout.recordHits(): List<RecordHit> {
             RecordHit(exerciseId, type, entry.set, value)
         }
     }
-}
 
 private fun ActiveWorkout.recordEntries() = exercises.flatMap { exercise ->
     exercise.sets.filter { it.done }.map { RecordEntry(exercise.variant.exerciseId, it.id, PerformedSet(it.weightKg, it.reps ?: 0, it.type)) }

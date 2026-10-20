@@ -27,6 +27,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.reflect.KClass
+import kotlinx.coroutines.CancellationException
 
 enum class HealthAvailability { Available, UpdateRequired, Unavailable }
 
@@ -70,6 +71,16 @@ class HealthConnect @Inject constructor(@ApplicationContext private val context:
     /** Empty without Health Connect and after [revokeAll]. Throws when its service fails, like every other call. */
     suspend fun granted(): Set<String> = if (revoked) emptySet() else client()?.permissionController?.getGrantedPermissions().orEmpty()
 
+    /** [granted], or none when Health Connect fails to answer (logged): the screens then offer to connect. */
+    suspend fun grantedOrNone(): Set<String> = try {
+        granted()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Log.e(TAG, "Reading permissions failed", e)
+        emptySet()
+    }
+
     suspend fun revokeAll() {
         val client = client() ?: return
         client.permissionController.revokeAllPermissions()
@@ -87,6 +98,7 @@ class HealthConnect @Inject constructor(@ApplicationContext private val context:
     }
 
     companion object {
+        private const val TAG = "HealthConnect"
         val permissionContract = PermissionController.createRequestPermissionResultContract()
     }
 }
