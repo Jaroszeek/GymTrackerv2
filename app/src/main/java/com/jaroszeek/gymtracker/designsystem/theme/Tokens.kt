@@ -77,6 +77,9 @@ object GtSizes {
     val ChartGutter = 8.dp
     val SegmentInset = 3.dp
     val BarHeight = 8.dp
+    val MiniChartHeight = 64.dp
+    val MiniBarMin = 4.dp
+    val TodayOutline = 1.5.dp
 }
 
 object GtAlpha {
