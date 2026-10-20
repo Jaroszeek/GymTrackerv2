@@ -12,3 +12,6 @@ Pomysły, które pojawiły się w trakcie pracy, ale nie należą do bieżącego
 | 2026-10-19 | Polskie tłumaczenie instrukcji ćwiczeń | Źródło jest po angielsku (D-025); ręczne tłumaczenie ok. 4500 zdań. |
 | 2026-10-19 | Zapis serii do Health Connect jako segmentów sesji (ćwiczenie, powtórzenia) | Zapis treningu (D-064) daje tylko sesję: nazwę, początek i koniec. |
 | 2026-10-19 | Propozycja połączenia z sesją z zegarka zaraz po zakończeniu treningu (podsumowanie albo powiadomienie) | Teraz propozycja pojawia się w szczegółach treningu, gdy zegarek zsynchronizuje sesję (D-062). |
+| 2026-10-20 | Ręczny pomiar ciała z wybraną datą i godziną | Nowy pomiar dostaje bieżący czas (D-071); przyda się przy dopisywaniu starszych ważeń. |
+| 2026-10-20 | Sesje z zegarka (HC) zaznaczone w kalendarzu aktywności na Starcie | Kalendarz pokazuje tylko treningi z aplikacji (D-070). |
+| 2026-10-20 | Masa beztłuszczowa z HC (`LeanBodyMassRecord`), gdy nie ma tkanki tłuszczowej | Teraz liczona tylko z wagi i tkanki tłuszczowej (D-071). |

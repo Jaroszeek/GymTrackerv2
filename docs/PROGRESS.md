@@ -11,45 +11,30 @@
 | 4 | Aktywny trening | ✅ zakończony (2026-10-19) |
 | 5 | Powiadomienie, Live Update, przerwa w tle | ✅ zaakceptowany (2026-10-19), wyniki testu na telefonie jeszcze niezgłoszone |
 | 6 | Historia i postępy | ✅ zaakceptowany (2026-10-19), wydanie `preview-stage-6`, wyniki testu na telefonie jeszcze niezgłoszone |
-| 7 | Health Connect | 🔄 PR otwarty (2026-10-19), wydanie `preview-stage-7`; czeka na test na telefonie i akceptację |
-| 8 | Start i Profil | — |
+| 7 | Health Connect | ✅ zaakceptowany (2026-10-20), wydanie `preview-stage-7`, wyniki testu na telefonie jeszcze niezgłoszone |
+| 8 | Start i Profil | 🔄 PR otwarty (2026-10-20), wydanie `preview-stage-8`; czeka na akceptację |
 | 9 | Ustawienia i kopia zapasowa | — |
 | 10 | Szlif, wydajność, QA | — |
 | 11 | Wydanie i aktualizator | — |
 
 ## Bieżący stan
 
-- **Etap 7** (branch `feat/stage-7-health-connect`, PR otwarty, wydanie testowe `preview-stage-7`).
+- **Etap 8** (branch `feat/stage-8-home-profile`, PR otwarty, wydanie testowe `preview-stage-8`).
   - Zrobione:
-    - import z HC do osobnej bazy z changes tokens: sesje, tętno, kalorie, kroki, dystans, pomiary ciała, sen, tętno spoczynkowe, HRV;
-    - synchronizacja przy starcie, ręczna, po nadaniu zgód i w tle;
-    - ekran Health Connect ze zgodami per funkcja, statusem, strefami tętna i rozłączeniem;
-    - polityka prywatności przez `activity-alias`;
-    - łączenie treningu z sesją z zegarka (propozycja, ręcznie, odłączanie) z tętnem, wykresem, strefami i kaloriami;
-    - zaimportowane sesje w historii;
-    - gotowość w `domain/` i na Start;
-    - opcjonalny zapis treningów do HC;
-    - generator danych testowych w buildzie `benchmark`;
-    - decyzje D-059…D-066.
-  - Sprawdzone na emulatorze (36.0, dane z generatora):
-    - zgody per funkcja, także „Częściowo”;
-    - import (2 sesje, 21 pomiarów, 9 nocy, 31 dni) i powtórna synchronizacja bez duplikatów;
-    - propozycja połączenia, połączenie, odłączenie i wybór z listy;
-    - tętno, wykres, strefy i kalorie przy treningu;
-    - historia z sesjami; ekran zaimportowanej sesji;
-    - gotowość „Niska” zgodna z danymi;
-    - zapis treningu widoczny w HC;
-    - zaplanowana praca w tle (bez wymuszonego uruchomienia: WorkManager nie odpala okresowej pracy przed czasem);
-    - polityka prywatności z ekranu uprawnień HC;
-    - rozłączenie;
-    - motyw ciemny i jasny.
-  - Testy: JVM 208/208, lint 0 błędów (1 znane ostrzeżenie o targetSdk 36).
-  - Poprawki po przeglądzie kodu (testy JVM, bez ponownego sprawdzenia na emulatorze): utrata dostępu w trakcie synchronizacji zostawia sesje do następnego przebiegu; prośba o synchronizację w trakcie przebiegu uruchamia kolejny; rozłączenie przerywa synchronizację i nie da się go zatrzymać wyjściem z ekranu; przełączniki „W tle” i „Zapis” idą za wynikiem okna zgód; ikona zegarka tylko przy zaimportowanej sesji; `health.db-journal` poza kopią; podsumowanie tętna liczone w ViewModelach.
-  - Poprawione po teście na emulatorze:
-    - navbar nie wracał po powrocie na Start/Profil;
-    - nagłówek karty tętna ściskał się przy długiej nazwie źródła;
-    - ekran po rozłączeniu dalej pokazywał „Połączono” (D-065).
-  - Otwarte: test na telefonie z prawdziwymi danymi z Samsung Health (instrukcja niżej).
+    - Start: powitanie z datą, ikony edycji układu i ustawień, karta „Szybki start” (następna rutyna w kolejności albo powrót do trwającego treningu);
+    - widżety: seria tygodni z tym tygodniem, ostatni trening, gotowość, rekordy z 7 dni, kalendarz aktywności, kroki z wykresem, waga z BMI i trendem;
+    - tryb edycji: przeciąganie, ukrywanie, przywrócenie domyślnego; układ w DataStore;
+    - `domain/`: seria tygodni, statystyki tygodnia, proponowana rutyna, układ Startu, BMI z kategoriami WHO, deduplikacja pomiarów, podsumowanie składu ciała;
+    - Profil: waga, wzrost, wiek, BMI, skład ciała (tkanka tłuszczowa, masa tłuszczu i beztłuszczowa, mięśnie szkieletowe ręcznie), wykresy wagi, BMI i tkanki tłuszczowej, ręczny pomiar, dziennik pomiarów ze źródłem i usuwaniem ręcznych, kalorie z HC;
+    - pomiary ręczne w bazie (schemat v5, migracja automatyczna 4 → 5 z testem);
+    - tymczasowy ekran Ustawienia (Health Connect, diagnostyka) do Etapu 9;
+    - wykres słupkowy i sparkline w design systemie i w galerii;
+    - decyzje D-067…D-073.
+  - Sprawdzone na emulatorze (36.0, dane testowe wstawione do bazy): Start pusty i z danymi, tryb edycji (przeciąganie, ukrywanie, układ po ponownym uruchomieniu), Profil pusty i z danymi, dodanie pomiaru, Ustawienia; motyw ciemny i jasny. Bez HC: karty z „Połącz”.
+  - Niesprawdzone na emulatorze: kroki i kalorie z prawdziwymi danymi HC (sprawdzi test na telefonie).
+  - Testy: JVM 234/234, lint 0 błędów (1 znane ostrzeżenie o targetSdk 36).
+  - Otwarte: test na telefonie (instrukcja niżej).
+- **Etap 7** zaakceptowany i zmergowany (PR #7) bez wyników testu na telefonie; instrukcja testu zostaje niżej.
 - **Etapy 1–6** zmergowane (PR #1–#6). D-038 (porzucony trening trafia do historii) zostaje jako domyślne, właściciel nie zgłosił zmiany.
 - **Etap 6** zaakceptowany przez właściciela bez wyników testu na telefonie. Wydanie testowe `preview-stage-6` (D-058); od teraz każdy etap dostaje takie wydanie razem z PR. Galeria komponentów bez ikony w launcherze (D-058).
   - Zrobione: zakładka Postępy (Historia, Ćwiczenia, Rutyny, Partie), szczegóły treningu z rekordami, edycja i usuwanie z przeliczeniem rekordów, e1RM (Epley, Brzycki), rekordy i tygodniowe serie w `domain/`, rekordy w trakcie treningu (glow i haptyka) i na podsumowaniu, wykres na Canvas z zakresami i przeciąganiem, wykres i rekordy w szczegółach ćwiczenia, postęp rutyny, agregaty w Room, generator danych w debug. Decyzje D-053…D-057.
@@ -61,7 +46,7 @@
   - Wydanie testowe `preview-stage-5` (pre-release z APK debug, D-051) na prośbę właściciela.
   - Otwarte: test na telefonie (instrukcja niżej). Chipa na pasku stanu nie dało się obejrzeć na emulatorze.
 - **Tryb pracy:** plan etapu nie czeka na akceptację (D-032), akceptacja na PR.
-- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-066).
+- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-073).
 - **Środowisko:**
   - Android Studio 2026.2.1 w `C:\Program Files\Android\Android Studio1` (JBR 25). Gdy `java` z PATH nie startuje, ustaw `$env:JAVA_HOME` na JBR.
   - `adb`: `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe`.
@@ -69,7 +54,21 @@
   - Pamięć hosta: emulator + demon Gradle + demon Kotlina potrafią wyczerpać plik stronicowania. Przy pracy z emulatorem buduj z `-Pkotlin.compiler.execution.strategy=in-process` i zatrzymuj demona (`.\gradlew.bat --stop`).
   - Na emulatorze: język aplikacji pl-PL i wyłączone pismo rysikiem.
   - Test UI: `.\gradlew.bat :app:connectedDebugAndroidTest` (D-042).
+  - Gdy emulator przestaje rysować (czarny ekran, tapnięcia bez reakcji, w logu `lowmemorykiller … device is not responding` i ANR „no focused window”), pomaga zimny start: `adb emu kill`, potem `emulator -avd gt-api36 -no-snapshot-load`.
 - **vynox:** sklonowany do `%TEMP%\vynox-ref`, tylko do odczytu.
+
+## Etap 8 — test na telefonie
+
+1. Instalacja: APK z wydania `preview-stage-8` albo `.\gradlew.bat assembleDebug`, potem `adb install -r app\build\outputs\apk\debug\app-debug.apk`.
+2. Start bez danych: powitanie z dzisiejszą datą, „Szybki start” z „Pusty trening” i „Utwórz rutynę”, widżety z pustymi stanami. Czy wyglądają dobrze?
+3. Utwórz dwie rutyny i zrób krótki trening z pierwszej. Start: „Szybki start” proponuje drugą, seria tygodni = 1, „Ostatni trening” i dzień w kalendarzu.
+4. Rozpocznij trening i wróć na Start: „Szybki start” pokazuje „Wróć do treningu”.
+5. Ołówek → przeciągnij widżety, ukryj dwa → „Gotowe”. Zamknij aplikację (usuń z ostatnich) i otwórz: układ został. „Przywróć domyślny” wraca do kolejności fabrycznej.
+6. Profil: wpisz wagę i wzrost (tap w kafelek albo „Dodaj pomiar”), wiek. BMI z kategorią, wykres wagi. Dodaj tkankę tłuszczową i mięśnie szkieletowe: masa tłuszczu i beztłuszczowa.
+7. Z Samsung Health (Profil → Health Connect → „Pomiary ciała” i „Aktywność” → Połącz): ważenie z Samsung Health pojawia się w dzienniku z nazwą źródła. Wpisz tu tę samą wagę w ciągu 30 minut od ważenia: w dzienniku zostaje jeden wpis („Wpisane ręcznie”).
+8. Start: kroki z dziś i wykres 7 dni. Profil → Kalorie: aktywne i łączne z dziś oraz średnia z 7 dni. Porównaj z Samsung Health.
+9. Ustawienia (zębatka na Starcie albo Profilu): wejścia do Health Connect i diagnostyki.
+10. Do raportu: zrzuty Startu, trybu edycji i Profilu oraz różnice kroków i kalorii względem Samsung Health.
 
 ## Etap 7 — test na telefonie (Samsung Health)
 
@@ -117,5 +116,5 @@
 
 ## Następny krok
 
-- Akceptacja Etapu 7 po teście na telefonie (wyżej), potem Etap 8 — Start i Profil.
-- Wyniki testów Etapów 5 i 6 na telefonie (wyżej), gdy właściciel je przekaże.
+- Akceptacja Etapu 8, potem Etap 9 — Ustawienia i kopia zapasowa.
+- Wyniki testów Etapów 5–8 na telefonie (wyżej), gdy właściciel je przekaże.
