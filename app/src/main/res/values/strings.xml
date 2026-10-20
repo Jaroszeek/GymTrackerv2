@@ -658,7 +658,7 @@
     <string name="home_last_empty">Tu pojawi się Twój ostatni trening z czasem, seriami i objętością.</string>
     <string name="home_last_start">Zacznij trening</string>
     <string name="home_records_title">Rekordy z 7 dni</string>
-    <string name="home_records_empty">W tym tygodniu jeszcze bez rekordów. Każdy trening to nowa szansa.</string>
+    <string name="home_records_empty">Przez ostatnie 7 dni bez rekordów. Każdy trening to nowa szansa.</string>
     <plurals name="home_records_more">
         <item quantity="one">i %d inne ćwiczenie</item>
         <item quantity="few">i %d inne ćwiczenia</item>
@@ -723,6 +723,8 @@
     <string name="profile_history_empty">Brak pomiarów. Dodaj pierwszy albo połącz Health Connect, żeby pobrać je z wagi lub zegarka.</string>
     <string name="profile_history_all">Pokaż wszystkie (%1$d)</string>
     <string name="profile_source_manual">Wpisane ręcznie</string>
+    <!-- Date, time and source of a measurement -->
+    <string name="profile_measurement_meta">%1$s %2$s • %3$s</string>
     <string name="profile_delete_title">Usunąć pomiar?</string>
     <string name="profile_delete_text">%1$s z %2$s zniknie z profilu i wykresów.</string>
     <string name="profile_kcal_title">Kalorie</string>

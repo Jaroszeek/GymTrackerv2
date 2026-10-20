@@ -4,6 +4,8 @@ import com.jaroszeek.gymtracker.domain.progress.Week
 import com.jaroszeek.gymtracker.domain.workout.WorkoutListItem
 import com.jaroszeek.gymtracker.domain.workout.WorkoutSummary
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.ZoneOffset
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -58,6 +60,26 @@ class HomeTest {
         )
         assertEquals(WeekStats(2, 105 * 60_000, 8_000.0, 27), weekStats(workouts, week, zone))
         assertEquals(WeekStats(), weekStats(emptyList(), week, zone))
+    }
+
+    @Test
+    fun weekStatsFollowTheLocalWeekAcrossTheClockChange() {
+        // The week of 25 October 2026, whose Sunday has 25 hours in Warsaw
+        val zone = ZoneId.of("Europe/Warsaw")
+        val week = Week.of(LocalDate.of(2026, 10, 25))
+        fun workout(at: LocalDateTime) = WorkoutListItem(
+            id = at.toEpochSecond(ZoneOffset.UTC),
+            name = "Push",
+            startedAt = at.atZone(zone).toInstant().toEpochMilli(),
+            summary = WorkoutSummary(60_000, 100.0, 1, 1),
+        )
+        val workouts = listOf(
+            workout(LocalDateTime.of(2026, 10, 19, 0, 0)),
+            workout(LocalDateTime.of(2026, 10, 25, 23, 30)),
+            workout(LocalDateTime.of(2026, 10, 18, 23, 59)),
+            workout(LocalDateTime.of(2026, 10, 26, 0, 0)),
+        )
+        assertEquals(2, weekStats(workouts, week, zone).workouts)
     }
 
     @Test

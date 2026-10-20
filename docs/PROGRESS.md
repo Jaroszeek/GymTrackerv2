@@ -32,7 +32,8 @@
     - decyzje D-067…D-073.
   - Sprawdzone na emulatorze (36.0, dane testowe wstawione do bazy): Start pusty i z danymi, tryb edycji (przeciąganie, ukrywanie, układ po ponownym uruchomieniu), Profil pusty i z danymi, dodanie pomiaru, Ustawienia; motyw ciemny i jasny. Bez HC: karty z „Połącz”.
   - Niesprawdzone na emulatorze: kroki i kalorie z prawdziwymi danymi HC (sprawdzi test na telefonie).
-  - Testy: JVM 234/234, lint 0 błędów (1 znane ostrzeżenie o targetSdk 36).
+  - Testy: JVM 239/239, lint 0 błędów (1 znane ostrzeżenie o targetSdk 36).
+  - Poprawki po przeglądzie kodu (testy JVM, Wstecz w edycji i wykres sprawdzone na emulatorze): średnia kalorii bez dzisiejszego, niedokończonego dnia (liczona w `domain/`); edycja układu dopiero po jego wczytaniu; gest wstecz zamyka tryb edycji; kalendarz przechodzi na nowy miesiąc; nazwy ćwiczeń w rekordach odświeżają się po zmianie; punkty wykresów Profilu liczone w ViewModelu; jedno zapytanie o zgody HC zamiast kilku.
   - Otwarte: test na telefonie (instrukcja niżej).
 - **Etap 7** zaakceptowany i zmergowany (PR #7) bez wyników testu na telefonie; instrukcja testu zostaje niżej.
 - **Etapy 1–6** zmergowane (PR #1–#6). D-038 (porzucony trening trafia do historii) zostaje jako domyślne, właściciel nie zgłosił zmiany.

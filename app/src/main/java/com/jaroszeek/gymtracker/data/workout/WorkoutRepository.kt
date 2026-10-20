@@ -23,10 +23,12 @@ import com.jaroszeek.gymtracker.domain.workout.WorkoutSummary
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -89,14 +91,20 @@ class WorkoutRepository @Inject constructor(
     fun observeWorkout(id: Long): Flow<LoggedWorkout?> = dao.observeWorkout(id).map { it?.toDomain() }.flowOn(io)
 
     /** Records set by the workouts started since [since], per workout (newest first) and exercise. */
+    // Names come from their own query, so renaming an exercise shows up too
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun observeRecordsSince(since: Long): Flow<List<ExerciseRecords>> = dao.observeWorkoutsSince(since)
         .map { rows ->
-            val workouts = rows.map { it.toDomain() }
-            val names = dao.exerciseNames(workouts.flatMap { workout -> workout.exercises.map { it.exerciseId } }.toSet()).associate { it.id to it.name }
-            workouts.flatMap { workout ->
-                workout.recordHits(bestsBefore(workout)).groupBy { it.exerciseId }.mapNotNull { (exerciseId, hits) ->
-                    names[exerciseId]?.let { ExerciseRecords(workout.id, workout.startedAt, exerciseId, it, hits.mapTo(HashSet()) { hit -> hit.type }) }
+            rows.map { it.toDomain() }.flatMap { workout ->
+                workout.recordHits(bestsBefore(workout)).groupBy { it.exerciseId }.map { (exerciseId, hits) ->
+                    ExerciseRecords(workout.id, workout.startedAt, exerciseId, exerciseName = "", hits.mapTo(HashSet()) { it.type })
                 }
+            }
+        }
+        .flatMapLatest { records ->
+            dao.observeExerciseNames(records.mapTo(HashSet()) { it.exerciseId }).map { rows ->
+                val names = rows.associate { it.id to it.name }
+                records.mapNotNull { record -> names[record.exerciseId]?.let { record.copy(exerciseName = it) } }
             }
         }
         .flowOn(io)

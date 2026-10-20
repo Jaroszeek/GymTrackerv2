@@ -47,7 +47,6 @@ import com.jaroszeek.gymtracker.designsystem.component.GlassNumberField
 import com.jaroszeek.gymtracker.designsystem.component.GlassScaffold
 import com.jaroszeek.gymtracker.designsystem.component.GlassSegmentedControl
 import com.jaroszeek.gymtracker.designsystem.component.navBarContentPadding
-import com.jaroszeek.gymtracker.designsystem.component.within
 import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
@@ -56,16 +55,14 @@ import com.jaroszeek.gymtracker.domain.body.BodyMeasurement
 import com.jaroszeek.gymtracker.domain.body.BodyMetric
 import com.jaroszeek.gymtracker.domain.body.BodySummary
 import com.jaroszeek.gymtracker.domain.body.bmiCategory
-import com.jaroszeek.gymtracker.domain.body.bmiSeries
 import com.jaroszeek.gymtracker.domain.body.bodySummary
+import com.jaroszeek.gymtracker.domain.health.Calories
 import com.jaroszeek.gymtracker.feature.health.HealthConnectEntry
 import com.jaroszeek.gymtracker.feature.health.kcalLabel
 import com.jaroszeek.gymtracker.feature.health.sourceLabel
 import com.jaroszeek.gymtracker.feature.progress.StatColumn
 import com.jaroszeek.gymtracker.feature.progress.shortDate
 import com.jaroszeek.gymtracker.feature.progress.timeLabel
-import java.time.Instant
-import java.time.ZoneId
 import kotlin.math.roundToInt
 
 @Composable
@@ -267,15 +264,6 @@ private fun CompositionCard(summary: BodySummary, onAdd: (BodyMetric) -> Unit) {
 @Composable
 private fun ChartsCard(state: ProfileUiState, onChart: (BodyChart) -> Unit, onRange: (ChartRange) -> Unit) {
     val resources = LocalResources.current
-    val zone = ZoneId.systemDefault()
-    val now = remember(state.measurements) { Instant.now() }
-    val points = remember(state.measurements, state.chart) {
-        when (state.chart) {
-            BodyChart.Weight -> state.measurements.filter { it.metric == BodyMetric.Weight }.map { ChartPoint(it.time, it.value) }
-            BodyChart.Bmi -> state.measurements.bmiSeries().map { (time, bmi) -> ChartPoint(time, bmi) }
-            BodyChart.BodyFat -> state.measurements.filter { it.metric == BodyMetric.BodyFat }.map { ChartPoint(it.time, it.value) }
-        }
-    }
     GlassCard(Modifier.fillMaxWidth()) {
         Text(stringResource(R.string.profile_charts_title), style = GtTheme.typography.title)
         GlassSegmentedControl(
@@ -284,7 +272,7 @@ private fun ChartsCard(state: ProfileUiState, onChart: (BodyChart) -> Unit, onRa
             onSelect = { onChart(BodyChart.entries[it]) },
         )
         GlassLineChart(
-            points = points.within(state.range, now, zone),
+            points = state.chartPoints,
             valueLabel = { value ->
                 when (state.chart) {
                     BodyChart.Weight -> resources.getString(R.string.value_kg, decimalLabel(value))
@@ -293,7 +281,7 @@ private fun ChartsCard(state: ProfileUiState, onChart: (BodyChart) -> Unit, onRa
                 }
             },
             dateLabel = { shortDate(it) },
-            emptyText = stringResource(if (state.chart == BodyChart.Bmi && points.isEmpty()) R.string.profile_chart_bmi_empty else R.string.profile_chart_empty),
+            emptyText = stringResource(if (state.chart == BodyChart.Bmi && state.chartEmpty) R.string.profile_chart_bmi_empty else R.string.profile_chart_empty),
             axisLabel = { decimalLabel(it) },
         )
         ChartRangeSelector(state.range, onSelect = onRange)
@@ -311,7 +299,7 @@ private fun CaloriesCard(calories: Calories?, onConnect: () -> Unit) {
                 Text(stringResource(R.string.profile_kcal_connect), color = colors.textSecondary, style = GtTheme.typography.bodySmall)
                 GlassButton(stringResource(R.string.health_connect), onClick = onConnect, style = GlassButtonStyle.Secondary, icon = R.drawable.ic_link)
             }
-            calories.activeAverage == null && calories.totalAverage == null ->
+            calories.isEmpty ->
                 Text(stringResource(R.string.profile_kcal_none), color = colors.textSecondary, style = GtTheme.typography.bodySmall)
             else -> {
                 listOf(
@@ -344,7 +332,7 @@ private fun MeasurementRow(measurement: BodyMeasurement, onDelete: () -> Unit) {
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    stringResource(R.string.routine_meta, "${shortDate(measurement.time)} ${timeLabel(measurement.time)}", source),
+                    stringResource(R.string.profile_measurement_meta, shortDate(measurement.time), timeLabel(measurement.time), source),
                     color = colors.textTertiary,
                     style = GtTheme.typography.labelSmall,
                     maxLines = 1,
@@ -428,6 +416,8 @@ private fun ProfileScreenPreview() {
             summary = bodySummary(measurements),
             age = 29,
             calories = Calories(420.0, 2_350.0, 510.0, 2_480.0),
+            chartPoints = measurements.filter { it.metric == BodyMetric.Weight }.map { ChartPoint(it.time, it.value) },
+            chartEmpty = false,
         ),
     )
 }

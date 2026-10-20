@@ -253,7 +253,7 @@ private const val MAX_RECORDS = 5
 fun ActivityCalendarCard(workoutDays: Set<LocalDate>, today: LocalDate, modifier: Modifier = Modifier) {
     val colors = GtTheme.colors
     val current = YearMonth.from(today)
-    var month by rememberSaveable { mutableStateOf(current) }
+    var month by rememberSaveable(current) { mutableStateOf(current) }
     WidgetCard(
         R.drawable.ic_calendar_month,
         monthLabel(month),

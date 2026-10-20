@@ -128,7 +128,7 @@ class HomeViewModel @Inject constructor(
         ) { training, records, (activity, permitted), measurements, (layout, evening) ->
             val (stored, edited, overlay) = layout
             val days = training.history.mapTo(HashSet()) { Instant.ofEpochMilli(it.startedAt).atZone(zone).toLocalDate() }
-            val weightsFrom = startOf(today.minusDays(TREND_DAYS))
+            val weightsFrom = startOf(today.minusDays(TREND_DAYS - 1))
             HomeUiState(
                 loading = false,
                 today = today,
@@ -163,13 +163,18 @@ class HomeViewModel @Inject constructor(
     fun onRefresh() {
         now.value = now()
         viewModelScope.launch {
-            activityPermitted.value = withContext(io) { HealthFeature.Activity.permissions.any { it in healthConnect.grantedOrNone() } }
+            val granted = withContext(io) { healthConnect.grantedOrNone() }
+            activityPermitted.value = HealthFeature.Activity.permissions.any { it in granted }
         }
     }
 
     // Edit mode: every change is saved at once, so leaving the app keeps it
 
-    fun onEdit() = draft.update { state.value.layout }
+    /** Only once the saved layout is loaded, or the first change would save the default over it. */
+    fun onEdit() {
+        val current = state.value
+        if (!current.loading && !current.error) draft.update { current.layout }
+    }
 
     fun onEditDone() = draft.update { null }
 

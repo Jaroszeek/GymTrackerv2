@@ -79,7 +79,7 @@ interface WorkoutDao {
     fun observeWorkoutsSince(since: Long): Flow<List<WorkoutWithExercises>>
 
     @Query("SELECT id, name FROM exercises WHERE id IN (:ids)")
-    suspend fun exerciseNames(ids: Collection<Long>): List<ExerciseNameRow>
+    fun observeExerciseNames(ids: Collection<Long>): Flow<List<ExerciseNameRow>>
 
     @Query("UPDATE workouts SET name = :name, ended_at = :endedAt WHERE id = :id")
     suspend fun updateWorkout(id: Long, name: String, endedAt: Long)

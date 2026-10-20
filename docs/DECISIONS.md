@@ -539,7 +539,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 - Widżety i domyślna kolejność: seria tygodni z tym tygodniem, ostatni trening, gotowość, rekordy z 7 dni, kalendarz aktywności, kroki, waga i BMI. Treningi są na górze, bo to główna funkcja aplikacji; dane z HC niżej, bo bez zgód pokazują tylko „Połącz”.
 - „Szybki start” to stała karta pod powitaniem, a nie widżet: w A5.1 jest osobnym punktem, a ukrycie jedynego skrótu do treningu na Starcie nie ma sensu.
 - Układ w DataStore jako jeden tekst, np. `hero,last_workout,-steps` (minus = ukryty). Nieznane i powtórzone klucze są pomijane, a widżety dodane w nowszej wersji trafiają na koniec jako widoczne, więc nie trzeba migracji.
-- Każda zmiana w trybie edycji zapisuje się od razu (przeciągnięcie, przełącznik, „Przywróć domyślny”); „Gotowe” tylko zamyka tryb. Gdy wszystkie widżety są ukryte, Start pokazuje kartę z wejściem do edycji.
+- Każda zmiana w trybie edycji zapisuje się od razu (przeciągnięcie, przełącznik, „Przywróć domyślny”); „Gotowe” i gest wstecz tylko zamykają tryb. Ikona edycji pojawia się dopiero po wczytaniu zapisanego układu. Gdy wszystkie widżety są ukryte, Start pokazuje kartę z wejściem do edycji.
 - Alternatywa: zapis dopiero po „Gotowe” — odrzucona, bo wyjście z aplikacji w trakcie edycji gubiłoby zmiany.
 
 ### D-068 Seria tygodni i statystyki tygodnia
@@ -565,7 +565,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 
 ### D-072 Kroki i kalorie
 - Kroki z 7 dni i kalorie (aktywne i łączne) z dziennych sum zaimportowanych w Etapie 7 (Aggregate API, D-060). Bez zgody „Aktywność” i bez danych karta pokazuje „Połącz” z przejściem do ekranu Health Connect.
-- Kalorie: dziś oraz średnia z dni z ostatniego tygodnia, które mają wartość (dzień bez danych nie zaniża średniej).
+- Kalorie: dziś oraz średnia z 7 poprzednich dni, które mają wartość. Dzisiejszy dzień nie wchodzi do średniej, bo jeszcze trwa, a dzień bez danych jej nie zaniża. Liczy to `domain/` (`calories`).
 
 ### D-073 Dane osobowe, Ustawienia i ikony
 - Nie potrzeba dodatkowych danych: BMI nie zależy od płci, strefy tętna liczą się z wieku (Tanaka, D-063). Wiek w Profilu to ten sam rok urodzenia co w strefach tętna. Pytanie z promptu etapu („zapytaj, jeśli potrzebne są inne dane”) więc odpada.

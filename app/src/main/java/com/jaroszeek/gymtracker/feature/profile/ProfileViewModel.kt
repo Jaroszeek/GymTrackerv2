@@ -10,11 +10,16 @@ import com.jaroszeek.gymtracker.core.health.HealthFeature
 import com.jaroszeek.gymtracker.data.body.BodyRepository
 import com.jaroszeek.gymtracker.data.health.HealthRepository
 import com.jaroszeek.gymtracker.data.health.observeAge
+import com.jaroszeek.gymtracker.designsystem.component.ChartPoint
 import com.jaroszeek.gymtracker.designsystem.component.ChartRange
+import com.jaroszeek.gymtracker.designsystem.component.within
 import com.jaroszeek.gymtracker.domain.body.BodyMeasurement
 import com.jaroszeek.gymtracker.domain.body.BodyMetric
 import com.jaroszeek.gymtracker.domain.body.BodySummary
+import com.jaroszeek.gymtracker.domain.body.bmiSeries
 import com.jaroszeek.gymtracker.domain.body.bodySummary
+import com.jaroszeek.gymtracker.domain.health.Calories
+import com.jaroszeek.gymtracker.domain.health.calories
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
 import java.time.LocalDate
@@ -37,9 +42,6 @@ import kotlinx.coroutines.withContext
 
 enum class BodyChart { Weight, Bmi, BodyFat }
 
-/** Active and total kcal today and on average over the days of the last week that have them; null where Health Connect has none. */
-data class Calories(val activeToday: Double?, val totalToday: Double?, val activeAverage: Double?, val totalAverage: Double?)
-
 /** The sheet for a new value; [invalid] after saving a value outside the metric's range. */
 data class NewMeasurement(val metric: BodyMetric = BodyMetric.Weight, val value: Double? = null, val invalid: Boolean = false)
 
@@ -54,6 +56,9 @@ data class ProfileUiState(
     val calories: Calories? = null,
     val chart: BodyChart = BodyChart.Weight,
     val range: ChartRange = ChartRange.ThreeMonths,
+    /** The [chart] within the [range]; [chartEmpty] when the chart has no points at all, e.g. BMI without a height. */
+    val chartPoints: List<ChartPoint> = emptyList(),
+    val chartEmpty: Boolean = true,
     val adding: NewMeasurement? = null,
     val confirmDelete: BodyMeasurement? = null,
     val showAll: Boolean = false,
@@ -83,21 +88,16 @@ class ProfileViewModel @Inject constructor(
     private val activityPermitted = MutableStateFlow(false)
     private val local = MutableStateFlow(Local())
 
-    private val calories = today.flatMapLatest { day ->
-        combine(health.observeActivity(day.minusDays(CALORIE_DAYS - 1), day), activityPermitted) { days, permitted ->
-            if (!permitted && days.none { it.activeKcal != null || it.totalKcal != null }) return@combine null
-            val todays = days.firstOrNull { it.day == day }
-            Calories(
-                activeToday = todays?.activeKcal,
-                totalToday = todays?.totalKcal,
-                activeAverage = days.mapNotNull { it.activeKcal }.takeIf { it.isNotEmpty() }?.average(),
-                totalAverage = days.mapNotNull { it.totalKcal }.takeIf { it.isNotEmpty() }?.average(),
-            )
+    /** Null while Health Connect gives none: the card offers to connect. */
+    private val todaysCalories = today.flatMapLatest { day ->
+        combine(health.observeActivity(day.minusDays(CALORIE_DAYS), day), activityPermitted) { days, permitted ->
+            calories(days, day).takeUnless { !permitted && it.isEmpty }
         }
     }
 
     val state: StateFlow<ProfileUiState> =
-        combine(body.observeMeasurements(), preferences.observeAge(clock), calories, local) { measurements, age, calories, local ->
+        combine(body.observeMeasurements(), preferences.observeAge(clock), todaysCalories, local) { measurements, age, calories, local ->
+            val points = chartPoints(measurements, local.chart)
             ProfileUiState(
                 loading = false,
                 measurements = measurements,
@@ -106,6 +106,8 @@ class ProfileViewModel @Inject constructor(
                 calories = calories,
                 chart = local.chart,
                 range = local.range,
+                chartPoints = points.within(local.range, clock.instant(), zone),
+                chartEmpty = points.isEmpty(),
                 adding = local.adding,
                 confirmDelete = local.confirmDelete,
                 showAll = local.showAll,
@@ -121,7 +123,8 @@ class ProfileViewModel @Inject constructor(
     fun onRefresh() {
         today.value = today()
         viewModelScope.launch {
-            activityPermitted.value = withContext(io) { HealthFeature.Activity.permissions.any { it in healthConnect.grantedOrNone() } }
+            val granted = withContext(io) { healthConnect.grantedOrNone() }
+            activityPermitted.value = HealthFeature.Activity.permissions.any { it in granted }
         }
     }
 
@@ -183,6 +186,12 @@ class ProfileViewModel @Inject constructor(
     }
 
     private fun today(): LocalDate = LocalDate.now(clock.withZone(zone))
+
+    private fun chartPoints(measurements: List<BodyMeasurement>, chart: BodyChart): List<ChartPoint> = when (chart) {
+        BodyChart.Weight -> measurements.filter { it.metric == BodyMetric.Weight }.map { ChartPoint(it.time, it.value) }
+        BodyChart.Bmi -> measurements.bmiSeries().map { (time, bmi) -> ChartPoint(time, bmi) }
+        BodyChart.BodyFat -> measurements.filter { it.metric == BodyMetric.BodyFat }.map { ChartPoint(it.time, it.value) }
+    }
 
     private companion object {
         const val TAG = "Profile"

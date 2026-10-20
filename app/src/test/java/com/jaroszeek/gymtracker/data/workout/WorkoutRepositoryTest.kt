@@ -25,11 +25,15 @@ import com.jaroszeek.gymtracker.testing.seeder
 import java.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -304,6 +308,29 @@ class WorkoutRepositoryTest {
         assertTrue(record.types.containsAll(setOf(RecordType.Weight, RecordType.E1rm, RecordType.SetVolume, RecordType.SessionVolume)))
         // The first bench workout set none either
         assertEquals(listOf(recent), workouts.observeRecordsSince(0).first().map { it.workoutId })
+    }
+
+    @Test
+    fun recentRecordsShowARenamedExercise() = runTest {
+        val draft = ExerciseDraft(name = "Landmine Press", primaryMuscles = setOf(Muscle.Shoulders))
+        val id = exercises.saveCustom(null, draft)
+        saveSets(1_000, id, listOf(PerformedSet(30.0, 10)))
+        saveSets(HOUR, id, listOf(PerformedSet(32.5, 10)))
+        // One collection: the rename after the first value has to come through on its own
+        val names = withContext(Dispatchers.Default) {
+            withTimeout(5_000) {
+                val seen = mutableListOf<String>()
+                workouts.observeRecordsSince(HOUR)
+                    .map { it.single().exerciseName }
+                    .onEach { name ->
+                        seen += name
+                        if (seen.size == 1) exercises.saveCustom(id, draft.copy(name = "Half-Kneeling Landmine Press"))
+                    }
+                    .first { it != draft.name }
+                seen
+            }
+        }
+        assertEquals(listOf("Landmine Press", "Half-Kneeling Landmine Press"), names)
     }
 
     @Test

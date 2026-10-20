@@ -85,7 +85,8 @@ class ReadinessViewModel @Inject constructor(
     fun onRefresh() {
         today.value = today()
         viewModelScope.launch {
-            permitted.value = withContext(io) { HealthFeature.Recovery.permissions.any { it in health.grantedOrNone() } }
+            val granted = withContext(io) { health.grantedOrNone() }
+            permitted.value = HealthFeature.Recovery.permissions.any { it in granted }
         }
     }
 

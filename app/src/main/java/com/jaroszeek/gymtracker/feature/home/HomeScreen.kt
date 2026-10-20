@@ -1,5 +1,6 @@
 package com.jaroszeek.gymtracker.feature.home
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -68,6 +69,7 @@ fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    BackHandler(enabled = state.editing, onBack = viewModel::onEditDone)
     LifecycleResumeEffect(viewModel) {
         viewModel.onRefresh()
         onPauseOrDispose {}
@@ -190,7 +192,7 @@ fun HomeScreen(
             return@LazyColumn
         }
 
-        item(key = "header") { Header(state.today, state.evening, onEdit, onSettings) }
+        item(key = "header") { Header(state.today, state.evening, onEdit.takeUnless { state.loading || state.error }, onSettings) }
         when {
             state.loading -> return@LazyColumn
             state.error -> {
@@ -230,15 +232,15 @@ fun HomeScreen(
     )
 }
 
-/** The greeting with today's date, without an app bar (A5.1). */
+/** The greeting with today's date, without an app bar (A5.1); no layout editing until the layout is loaded. */
 @Composable
-private fun Header(today: LocalDate, evening: Boolean, onEdit: () -> Unit, onSettings: () -> Unit) {
+private fun Header(today: LocalDate, evening: Boolean, onEdit: (() -> Unit)?, onSettings: () -> Unit) {
     Row(verticalAlignment = Alignment.Top) {
         Column(Modifier.weight(1f)) {
             Text(stringResource(if (evening) R.string.home_greeting_evening else R.string.home_greeting_day), style = GtTheme.typography.display)
             Text(todayLabel(today), color = GtTheme.colors.textSecondary, style = GtTheme.typography.label)
         }
-        GlassIconButton(R.drawable.ic_edit, stringResource(R.string.home_edit_layout), onClick = onEdit, style = GlassButtonStyle.Ghost)
+        if (onEdit != null) GlassIconButton(R.drawable.ic_edit, stringResource(R.string.home_edit_layout), onClick = onEdit, style = GlassButtonStyle.Ghost)
         GlassIconButton(R.drawable.ic_settings, stringResource(R.string.settings_title), onClick = onSettings, style = GlassButtonStyle.Ghost)
     }
 }
