@@ -14,8 +14,11 @@ data class LoggedSet(val id: Long, val type: SetType, val weightKg: Double?, val
 /** [id] is the entry in the workout, [exerciseId] the exercise done. */
 data class LoggedExercise(val id: Long, val exerciseId: Long, val routineVariantId: Long?, val sets: List<LoggedSet>)
 
-/** A row of the history list. */
-data class WorkoutListItem(val id: Long, val name: String, val startedAt: Long, val summary: WorkoutSummary)
+/** A row of the history list; [healthSessionId] is the linked watch session (Etap 7). */
+data class WorkoutListItem(val id: Long, val name: String, val startedAt: Long, val summary: WorkoutSummary, val healthSessionId: String? = null)
+
+/** A workout's link to a watch session in Health Connect; [dismissed] = no session is proposed any more. */
+data class HealthLink(val startedAt: Long, val endedAt: Long, val sessionId: String?, val dismissed: Boolean)
 
 /**
  * A finished workout from history, also the draft its editor works on. Entry ids are unique among the

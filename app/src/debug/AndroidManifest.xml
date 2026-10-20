@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Debug and benchmark builds only: component gallery and Live Update probe (D-014) -->
+<!-- Debug build only: component gallery and Live Update probe (D-014); src/benchmark has its own -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
-        <!-- Lets macrobenchmarks trace the release-like benchmark build -->
-        <profileable android:shell="true" />
-
         <!-- No launcher icon: started by adb and the macrobenchmark by its name (D-020) -->
         <activity
             android:name=".designsystem.gallery.GalleryActivity"

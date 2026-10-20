@@ -45,7 +45,7 @@ android {
         named("benchmark") {
             kotlin.directories += "src/debug/java"
             res.directories += "src/debug/res"
-            manifest.srcFile("src/debug/AndroidManifest.xml")
+            // Its own manifest (src/benchmark): the debug one plus the Health Connect test data writer
         }
     }
     compileOptions {
@@ -74,6 +74,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.health.connect.client)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -89,6 +90,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kyant.shapes)
     implementation(libs.reorderable)
+    implementation(libs.androidx.work.runtime.ktx)
     ksp(libs.androidx.room.compiler)
     ksp(libs.hilt.compiler)
     debugImplementation(libs.androidx.compose.ui.tooling)

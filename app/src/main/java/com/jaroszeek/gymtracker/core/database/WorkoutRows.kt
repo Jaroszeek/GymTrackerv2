@@ -9,10 +9,13 @@ data class WorkoutListRow(
     val name: String,
     val startedAt: Long,
     val endedAt: Long,
+    val hcSessionId: String?,
     val exercises: Int,
     val sets: Int,
     val volumeKg: Double,
 )
+
+data class WorkoutHealthRow(val startedAt: Long, val endedAt: Long, val hcSessionId: String?, val hcMatchDismissed: Boolean)
 
 data class WorkoutExerciseWithSets(
     @Embedded val exercise: WorkoutExerciseEntity,

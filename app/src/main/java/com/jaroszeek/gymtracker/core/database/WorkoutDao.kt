@@ -62,7 +62,7 @@ interface WorkoutDao {
     // History
 
     @Query(
-        "SELECT w.id, w.name, w.started_at AS startedAt, w.ended_at AS endedAt, COUNT(DISTINCT we.id) AS exercises, " +
+        "SELECT w.id, w.name, w.started_at AS startedAt, w.ended_at AS endedAt, w.hc_session_id AS hcSessionId, COUNT(DISTINCT we.id) AS exercises, " +
             "COUNT(CASE WHEN $WORK THEN 1 END) AS sets, COALESCE(SUM(CASE WHEN $WORK THEN $VOLUME END), 0) AS volumeKg " +
             "FROM $SETS GROUP BY w.id ORDER BY w.started_at DESC, w.id DESC",
     )
@@ -74,6 +74,23 @@ interface WorkoutDao {
 
     @Query("UPDATE workouts SET name = :name, ended_at = :endedAt WHERE id = :id")
     suspend fun updateWorkout(id: Long, name: String, endedAt: Long)
+
+    @Query("SELECT * FROM workouts WHERE id = :id")
+    suspend fun workout(id: Long): WorkoutEntity?
+
+    // The link to a watch session (Etap 7)
+
+    @Query("SELECT started_at AS startedAt, ended_at AS endedAt, hc_session_id AS hcSessionId, hc_match_dismissed AS hcMatchDismissed FROM workouts WHERE id = :id")
+    fun observeHealthLink(id: Long): Flow<WorkoutHealthRow?>
+
+    @Query("UPDATE workouts SET hc_session_id = :sessionId WHERE id = :id")
+    suspend fun setHealthSession(id: Long, sessionId: String?)
+
+    @Query("UPDATE workouts SET hc_match_dismissed = 1 WHERE id = :id")
+    suspend fun dismissHealthMatch(id: Long)
+
+    @Query("SELECT hc_session_id FROM workouts WHERE hc_session_id IS NOT NULL")
+    fun observeLinkedSessions(): Flow<List<String>>
 
     /** Sets go with them (cascade). */
     @Query("DELETE FROM workout_exercises WHERE workout_id = :workoutId")

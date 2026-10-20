@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Benchmark build only: what the debug manifest has, plus the Health Connect test data writer (Etap 7) -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- HealthSeedActivity writes these as a watch app would; never in debug or release -->
+    <uses-permission android:name="android.permission.health.WRITE_EXERCISE" />
+    <uses-permission android:name="android.permission.health.WRITE_HEART_RATE" />
+    <uses-permission android:name="android.permission.health.WRITE_ACTIVE_CALORIES_BURNED" />
+    <uses-permission android:name="android.permission.health.WRITE_TOTAL_CALORIES_BURNED" />
+    <uses-permission android:name="android.permission.health.WRITE_STEPS" />
+    <uses-permission android:name="android.permission.health.WRITE_DISTANCE" />
+    <uses-permission android:name="android.permission.health.WRITE_WEIGHT" />
+    <uses-permission android:name="android.permission.health.WRITE_SLEEP" />
+    <uses-permission android:name="android.permission.health.WRITE_RESTING_HEART_RATE" />
+    <uses-permission android:name="android.permission.health.WRITE_HEART_RATE_VARIABILITY" />
+
+    <application>
+        <!-- Lets macrobenchmarks trace the release-like benchmark build -->
+        <profileable android:shell="true" />
+
+        <!-- No launcher icon: started by adb and the macrobenchmark by its name (D-020) -->
+        <activity
+            android:name=".designsystem.gallery.GalleryActivity"
+            android:exported="true"
+            android:label="@string/gallery_launcher_label"
+            android:taskAffinity="com.jaroszeek.gymtracker.gallery" />
+
+        <activity
+            android:name=".HealthSeedActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+    </application>
+
+</manifest>

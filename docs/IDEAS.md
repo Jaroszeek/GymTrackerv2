@@ -10,3 +10,5 @@ Pomysły, które pojawiły się w trakcie pracy, ale nie należą do bieżącego
 | 2026-10-19 | Zmiana daty i godziny startu w edycji treningu | Edycja (D-053) zmienia nazwę, czas trwania i serie; start zostaje. Przyda się przy treningach zapisanych z opóźnieniem. |
 | 2026-10-19 | Tap w ćwiczenie w szczegółach treningu otwiera szczegóły ćwiczenia | Teraz do wykresu ćwiczenia prowadzi segment Ćwiczenia w Postępach. |
 | 2026-10-19 | Polskie tłumaczenie instrukcji ćwiczeń | Źródło jest po angielsku (D-025); ręczne tłumaczenie ok. 4500 zdań. |
+| 2026-10-19 | Zapis serii do Health Connect jako segmentów sesji (ćwiczenie, powtórzenia) | Zapis treningu (D-064) daje tylko sesję: nazwę, początek i koniec. |
+| 2026-10-19 | Propozycja połączenia z sesją z zegarka zaraz po zakończeniu treningu (podsumowanie albo powiadomienie) | Teraz propozycja pojawia się w szczegółach treningu, gdy zegarek zsynchronizuje sesję (D-062). |

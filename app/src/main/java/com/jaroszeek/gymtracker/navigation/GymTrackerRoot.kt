@@ -49,6 +49,12 @@ import com.jaroszeek.gymtracker.feature.exercises.ExerciseDetailViewModel
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseEditorRoute
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseEditorViewModel
 import com.jaroszeek.gymtracker.feature.exercises.ExercisesRoute
+import com.jaroszeek.gymtracker.feature.health.HealthConnectEntry
+import com.jaroszeek.gymtracker.feature.health.HealthConnectRoute
+import com.jaroszeek.gymtracker.feature.health.ImportedSessionRoute
+import com.jaroszeek.gymtracker.feature.health.ImportedSessionViewModel
+import com.jaroszeek.gymtracker.feature.health.PrivacyPolicyScreen
+import com.jaroszeek.gymtracker.feature.health.ReadinessRoute
 import com.jaroszeek.gymtracker.feature.placeholder.PlaceholderScreen
 import com.jaroszeek.gymtracker.feature.routines.RoutineEditorRoute
 import com.jaroszeek.gymtracker.feature.routines.RoutineEditorViewModel
@@ -78,6 +84,10 @@ fun GymTrackerRoot(openWorkoutRequests: Int = 0) {
     LaunchedEffect(openWorkoutRequests) { if (openWorkoutRequests > 0) navigator.open(TopLevelTab.Workout, ActiveWorkoutKey) }
     val density = LocalDensity.current
     val hideOnScroll = remember(density) { HideOnScrollState(threshold = with(density) { GtSizes.HideBarThreshold.toPx() }) }
+    // Every screen starts with the navbar: the one before may have scrolled it away, and a screen
+    // that does not scroll (Start, Profil) could not bring it back
+    val topKey = navigator.stacks.getValue(navigator.currentTab).lastOrNull()
+    LaunchedEffect(topKey) { hideOnScroll.show() }
 
     val entryProvider = remember(navigator) { entryProvider(navigator) }
     val workoutBar: WorkoutBarViewModel = hiltViewModel()
@@ -203,6 +213,13 @@ private fun entryProvider(navigator: TabNavigator): (NavKey) -> NavEntry<NavKey>
                 onOpenWorkout = { navigator.navigate(WorkoutDetailKey(it)) },
                 onOpenExercise = { navigator.navigate(ExerciseDetailKey(it)) },
                 onOpenRoutine = { navigator.navigate(RoutineProgressKey(it)) },
+                onOpenSession = { navigator.navigate(ImportedSessionKey(it)) },
+            )
+        }
+        is ImportedSessionKey -> NavEntry(key) {
+            ImportedSessionRoute(
+                viewModel = hiltViewModel<ImportedSessionViewModel, ImportedSessionViewModel.Factory> { it.create(key.id) },
+                onBack = navigator::back,
             )
         }
         is WorkoutDetailKey -> NavEntry(key) {
@@ -226,6 +243,20 @@ private fun entryProvider(navigator: TabNavigator): (NavKey) -> NavEntry<NavKey>
                 onOpenWorkout = { navigator.navigate(WorkoutDetailKey(it)) },
             )
         }
+        HomeKey -> NavEntry(key) {
+            PlaceholderScreen(TopLevelTab.Home) {
+                ReadinessRoute(onConnect = { navigator.open(TopLevelTab.Profile, HealthConnectKey) })
+            }
+        }
+        ProfileKey -> NavEntry(key) {
+            PlaceholderScreen(TopLevelTab.Profile) {
+                HealthConnectEntry(onClick = { navigator.navigate(HealthConnectKey) })
+            }
+        }
+        HealthConnectKey -> NavEntry(key) {
+            HealthConnectRoute(viewModel = hiltViewModel(), onBack = navigator::back, onPrivacy = { navigator.navigate(PrivacyPolicyKey) })
+        }
+        PrivacyPolicyKey -> NavEntry(key) { PrivacyPolicyScreen(onBack = navigator::back) }
         else -> NavEntry(key) { PlaceholderScreen(TopLevelTab.entries.first { it.root == key }) }
     }
 }

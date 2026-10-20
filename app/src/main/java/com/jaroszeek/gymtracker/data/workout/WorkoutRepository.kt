@@ -13,6 +13,7 @@ import com.jaroszeek.gymtracker.domain.progress.PersonalBests
 import com.jaroszeek.gymtracker.domain.routine.PerformedSet
 import com.jaroszeek.gymtracker.domain.routine.SetType
 import com.jaroszeek.gymtracker.domain.workout.ActiveWorkout
+import com.jaroszeek.gymtracker.domain.workout.HealthLink
 import com.jaroszeek.gymtracker.domain.workout.LoggedExercise
 import com.jaroszeek.gymtracker.domain.workout.LoggedSet
 import com.jaroszeek.gymtracker.domain.workout.LoggedWorkout
@@ -22,6 +23,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -32,6 +36,10 @@ class WorkoutRepository @Inject constructor(
     @IoDispatcher private val io: CoroutineDispatcher,
 ) {
     private val dao = database.workoutDao()
+    private val _changed = MutableSharedFlow<Long>(extraBufferCapacity = CHANGE_BUFFER)
+
+    /** Ids of workouts saved, edited, linked or unlinked, and deleted: what Health Connect gets a copy of. */
+    val changed: SharedFlow<Long> = _changed.asSharedFlow()
 
     /** Sets of the last finished session with [exerciseId]: the "last time" hints and the progression input. */
     suspend fun lastSession(exerciseId: Long): List<PerformedSet> = withContext(io) {
@@ -67,11 +75,11 @@ class WorkoutRepository @Inject constructor(
         )
         insertExercises(workoutId, kept)
         workoutId
-    }
+    }.also { id -> if (id != null) _changed.tryEmit(id) }
 
     fun observeHistory(): Flow<List<WorkoutListItem>> = dao.observeHistory()
         .map { rows ->
-            rows.map { WorkoutListItem(it.id, it.name, it.startedAt, WorkoutSummary(it.endedAt - it.startedAt, it.volumeKg, it.sets, it.exercises)) }
+            rows.map { WorkoutListItem(it.id, it.name, it.startedAt, WorkoutSummary(it.endedAt - it.startedAt, it.volumeKg, it.sets, it.exercises), it.hcSessionId) }
         }
         .flowOn(io)
 
@@ -88,9 +96,29 @@ class WorkoutRepository @Inject constructor(
         dao.deleteExercises(workout.id)
         insertExercises(workout.id, kept)
         true
+    }.also { if (it) _changed.tryEmit(workout.id) }
+
+    suspend fun delete(id: Long) {
+        withContext(io) { dao.deleteWorkout(id) }
+        _changed.tryEmit(id)
     }
 
-    suspend fun delete(id: Long) = withContext(io) { dao.deleteWorkout(id) }
+    fun observeHealthLink(id: Long): Flow<HealthLink?> =
+        dao.observeHealthLink(id).map { row -> row?.let { HealthLink(it.startedAt, it.endedAt, it.hcSessionId, it.hcMatchDismissed) } }.flowOn(io)
+
+    /** Linked session ids, which the history shows only as part of their workout. */
+    fun observeLinkedSessions(): Flow<Set<String>> = dao.observeLinkedSessions().map { it.toSet() }.flowOn(io)
+
+    /** [sessionId] null unlinks. */
+    suspend fun linkHealthSession(id: Long, sessionId: String?) {
+        withContext(io) { dao.setHealthSession(id, sessionId) }
+        _changed.tryEmit(id)
+    }
+
+    suspend fun dismissHealthMatch(id: Long) = withContext(io) { dao.dismissHealthMatch(id) }
+
+    /** The workout as Health Connect gets it: name, span and whether a watch session already stands for it. */
+    suspend fun forHealth(id: Long): WorkoutEntity? = withContext(io) { dao.workout(id) }
 
     private suspend fun progress(exerciseId: Long) =
         ExerciseProgress(dao.exerciseSessions(exerciseId).map { it.toDomain() }, dao.repsDone(exerciseId).map { it.toDomain() })
@@ -113,6 +141,8 @@ class WorkoutRepository @Inject constructor(
         }
     }
 }
+
+private const val CHANGE_BUFFER = 64
 
 private fun WorkoutWithExercises.toDomain() = LoggedWorkout(
     id = workout.id,

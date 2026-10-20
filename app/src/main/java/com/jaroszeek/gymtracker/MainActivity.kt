@@ -1,5 +1,6 @@
 package com.jaroszeek.gymtracker
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,8 +12,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.jaroszeek.gymtracker.core.notifications.WorkoutService
+import com.jaroszeek.gymtracker.data.health.HealthSync
 import com.jaroszeek.gymtracker.data.workout.ActiveWorkoutManager
+import com.jaroszeek.gymtracker.designsystem.component.GlassScaffold
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
+import com.jaroszeek.gymtracker.feature.health.PrivacyPolicyScreen
 import com.jaroszeek.gymtracker.navigation.GymTrackerRoot
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -26,12 +30,23 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var workouts: ActiveWorkoutManager
 
+    @Inject lateinit var healthSync: HealthSync
+
     /** Bumped by every tap on the workout notification; the root then opens the workout. */
     private var openWorkoutRequests by mutableIntStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        // Health Connect opens only the privacy policy, through the activity-alias (A6)
+        if (intent?.action == Intent.ACTION_VIEW_PERMISSION_USAGE) {
+            setContent {
+                GymTrackerTheme {
+                    GlassScaffold { PrivacyPolicyScreen(onBack = ::finish) }
+                }
+            }
+            return
+        }
         if (savedInstanceState == null && intent?.action == ACTION_OPEN_WORKOUT) openWorkoutRequests++
         addOnNewIntentListener { if (it.action == ACTION_OPEN_WORKOUT) openWorkoutRequests++ }
         lifecycleScope.launch {
@@ -45,6 +60,12 @@ class MainActivity : ComponentActivity() {
                 GymTrackerRoot(openWorkoutRequests)
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Sync on open (A6); the privacy policy alone, opened by Health Connect, does not count
+        if (intent?.action != Intent.ACTION_VIEW_PERMISSION_USAGE) healthSync.onAppStart()
     }
 
     companion object {

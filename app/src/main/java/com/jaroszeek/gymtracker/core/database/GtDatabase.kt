@@ -22,12 +22,14 @@ import kotlinx.serialization.json.Json
         WorkoutExerciseEntity::class,
         WorkoutSetEntity::class,
     ],
-    version = 3,
+    version = 4,
     autoMigrations = [
         // 1 -> 2: routine tables (Etap 3)
         AutoMigration(from = 1, to = 2),
         // 2 -> 3: workout tables (Etap 4)
         AutoMigration(from = 2, to = 3),
+        // 3 -> 4: the watch session linked to a workout (Etap 7)
+        AutoMigration(from = 3, to = 4),
     ],
 )
 @ColumnTypeConverters(StringListConverter::class)

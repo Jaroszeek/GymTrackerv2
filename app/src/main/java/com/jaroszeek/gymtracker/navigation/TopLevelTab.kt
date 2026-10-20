@@ -53,6 +53,17 @@ data class RoutineProgressKey(val id: Long) : NavKey
 @Serializable
 data class ExerciseEditorKey(val id: Long?) : NavKey
 
+/** Health Connect permissions, sync and settings (A6), on the Profil stack. */
+@Serializable
+data object HealthConnectKey : NavKey
+
+@Serializable
+data object PrivacyPolicyKey : NavKey
+
+/** A session another app wrote to Health Connect, from history. */
+@Serializable
+data class ImportedSessionKey(val id: String) : NavKey
+
 /** Navbar tabs in display order; Trening is the emphasized center (D-010). */
 enum class TopLevelTab(
     val root: NavKey,

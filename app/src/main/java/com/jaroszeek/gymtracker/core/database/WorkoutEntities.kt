@@ -24,6 +24,10 @@ data class WorkoutEntity(
     /** Epoch millis UTC. */
     @ColumnInfo(name = "started_at") val startedAt: Long,
     @ColumnInfo(name = "ended_at") val endedAt: Long,
+    /** Health Connect id of the watch session linked to it; the session itself is in [HealthDatabase]. */
+    @ColumnInfo(name = "hc_session_id") val hcSessionId: String? = null,
+    /** The user turned down the proposed link, so no session is proposed again. */
+    @ColumnInfo(name = "hc_match_dismissed", defaultValue = "0") val hcMatchDismissed: Boolean = false,
 )
 
 /** The exercise done (the chosen variant) and the routine variant whose targets it followed. */

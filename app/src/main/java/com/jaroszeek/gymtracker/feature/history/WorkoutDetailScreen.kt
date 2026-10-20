@@ -1,5 +1,6 @@
 package com.jaroszeek.gymtracker.feature.history
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,17 +18,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jaroszeek.gymtracker.R
+import com.jaroszeek.gymtracker.designsystem.component.GlassBottomSheet
 import com.jaroszeek.gymtracker.designsystem.component.GlassButton
 import com.jaroszeek.gymtracker.designsystem.component.GlassButtonStyle
 import com.jaroszeek.gymtracker.designsystem.component.GlassCard
@@ -41,12 +45,16 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
 import com.jaroszeek.gymtracker.domain.exercise.Exercise
+import com.jaroszeek.gymtracker.domain.health.HealthSession
 import com.jaroszeek.gymtracker.domain.progress.RecordType
 import com.jaroszeek.gymtracker.domain.routine.SetType
 import com.jaroszeek.gymtracker.domain.workout.LoggedExercise
 import com.jaroszeek.gymtracker.domain.workout.LoggedSet
 import com.jaroszeek.gymtracker.domain.workout.LoggedWorkout
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseImage
+import com.jaroszeek.gymtracker.feature.health.HeartRateCard
+import com.jaroszeek.gymtracker.feature.health.label
+import com.jaroszeek.gymtracker.feature.health.sourceLabel
 import com.jaroszeek.gymtracker.feature.progress.RecordBadges
 import com.jaroszeek.gymtracker.feature.progress.fullDate
 import com.jaroszeek.gymtracker.feature.progress.timeLabel
@@ -65,6 +73,11 @@ fun WorkoutDetailRoute(viewModel: WorkoutDetailViewModel, onBack: () -> Unit, on
         onDeleteRequest = viewModel::onDeleteRequest,
         onDeleteDismiss = viewModel::onDeleteDismiss,
         onDeleteConfirm = viewModel::onDeleteConfirm,
+        onLinkSession = viewModel::onLinkSession,
+        onUnlinkSession = viewModel::onUnlinkSession,
+        onDismissProposal = viewModel::onDismissProposal,
+        onChooseSession = viewModel::onChooseSession,
+        onChooseDismiss = viewModel::onChooseDismiss,
     )
 }
 
@@ -76,6 +89,11 @@ fun WorkoutDetailScreen(
     onDeleteRequest: () -> Unit,
     onDeleteDismiss: () -> Unit,
     onDeleteConfirm: () -> Unit,
+    onLinkSession: (String) -> Unit,
+    onUnlinkSession: () -> Unit,
+    onDismissProposal: () -> Unit,
+    onChooseSession: () -> Unit,
+    onChooseDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val content = state as? WorkoutDetailUiState.Content
@@ -94,7 +112,9 @@ fun WorkoutDetailScreen(
             when (state) {
                 is WorkoutDetailUiState.Content -> {
                     if (state.deleteFailed) Text(stringResource(R.string.workout_delete_failed), color = GtTheme.colors.danger, style = GtTheme.typography.bodySmall)
-                    WorkoutDetails(state.workout, state.exercises, state.records)
+                    WorkoutDetails(state.workout, state.exercises, state.records) {
+                        WatchSession(state.health, onLinkSession, onUnlinkSession, onDismissProposal, onChooseSession)
+                    }
                 }
                 WorkoutDetailUiState.NotFound, WorkoutDetailUiState.Deleted -> Message(stringResource(R.string.workout_detail_not_found))
                 WorkoutDetailUiState.Error -> Message(stringResource(R.string.progress_error))
@@ -124,10 +144,85 @@ fun WorkoutDetailScreen(
         confirmButton = { GlassButton(stringResource(R.string.action_delete), onClick = onDeleteConfirm) },
         dismissButton = { GlassButton(stringResource(R.string.action_cancel), onClick = onDeleteDismiss, style = GlassButtonStyle.Ghost) },
     )
+    GlassBottomSheet(visible = content?.choosingSession == true, onDismissRequest = onChooseDismiss) {
+        Text(stringResource(R.string.link_sheet_title), style = GtTheme.typography.headline)
+        val candidates = content?.health?.candidates.orEmpty()
+        if (candidates.isEmpty()) {
+            Text(stringResource(R.string.link_sheet_empty), color = GtTheme.colors.textSecondary, style = GtTheme.typography.body)
+        }
+        candidates.forEach { session -> SessionChoice(session, onClick = { onLinkSession(session.id) }) }
+    }
+}
+
+/** The linked session's heart rate, a proposal to link one, or the way to pick one by hand; nothing without sessions. */
+@Composable
+private fun WatchSession(
+    health: WorkoutHealth,
+    onLink: (String) -> Unit,
+    onUnlink: () -> Unit,
+    onDismissProposal: () -> Unit,
+    onChoose: () -> Unit,
+) {
+    when {
+        health.session != null -> {
+            HeartRateCard(health.session, health.heartRate, health.heartRateSummary)
+            GlassButton(
+                stringResource(R.string.link_unlink),
+                onClick = onUnlink,
+                style = GlassButtonStyle.Ghost,
+                icon = R.drawable.ic_link_off,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        health.proposal != null -> GlassCard(Modifier.fillMaxWidth()) {
+            val session = health.proposal
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+                Icon(painterResource(R.drawable.ic_watch), contentDescription = null, Modifier.size(GtSizes.IconSmall), tint = GtTheme.colors.accentText)
+                Text(stringResource(R.string.link_title), style = GtTheme.typography.title)
+            }
+            Text(
+                stringResource(R.string.link_proposal, session.label(), sourceLabel(session.origin), timeLabel(session.startTime), timeLabel(session.endTime)),
+                color = GtTheme.colors.textSecondary,
+                style = GtTheme.typography.bodySmall,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+                GlassButton(stringResource(R.string.link_confirm), onClick = { onLink(session.id) }, icon = R.drawable.ic_link)
+                GlassButton(stringResource(R.string.link_dismiss), onClick = onDismissProposal, style = GlassButtonStyle.Ghost)
+            }
+        }
+        health.candidates.isNotEmpty() -> GlassButton(
+            stringResource(R.string.link_choose),
+            onClick = onChoose,
+            style = GlassButtonStyle.Secondary,
+            icon = R.drawable.ic_watch,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
 }
 
 @Composable
-private fun WorkoutDetails(workout: LoggedWorkout, exercises: Map<Long, Exercise>, records: Map<Long, Set<RecordType>>) {
+private fun SessionChoice(session: HealthSession, onClick: () -> Unit) {
+    GlassCard(Modifier.fillMaxWidth().clickable(onClick = onClick), contentPadding = PaddingValues(GtSpacing.l)) {
+        Text(session.label(), style = GtTheme.typography.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(
+            stringResource(
+                R.string.routine_meta,
+                stringResource(R.string.workout_detail_time, timeLabel(session.startTime), timeLabel(session.endTime)),
+                sourceLabel(session.origin),
+            ),
+            color = GtTheme.colors.textSecondary,
+            style = GtTheme.typography.labelSmall,
+        )
+    }
+}
+
+@Composable
+private fun WorkoutDetails(
+    workout: LoggedWorkout,
+    exercises: Map<Long, Exercise>,
+    records: Map<Long, Set<RecordType>>,
+    watchSession: @Composable () -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
         Text(workout.name, style = GtTheme.typography.displaySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Text(
@@ -137,6 +232,7 @@ private fun WorkoutDetails(workout: LoggedWorkout, exercises: Map<Long, Exercise
         )
     }
     SummaryStats(workout.summary())
+    watchSession()
     workout.exercises.forEach { exercise -> ExerciseSets(exercise, exercises[exercise.exerciseId], records) }
 }
 
@@ -183,8 +279,13 @@ private fun WorkoutDetailScreenPreview() {
     GymTrackerTheme {
         GlassScaffold {
             WorkoutDetailScreen(
-                WorkoutDetailUiState.Content(workout, emptyMap(), mapOf(4L to setOf(RecordType.Weight, RecordType.E1rm))),
-                {}, {}, {}, {}, {},
+                WorkoutDetailUiState.Content(
+                    workout,
+                    emptyMap(),
+                    mapOf(4L to setOf(RecordType.Weight, RecordType.E1rm)),
+                    health = WorkoutHealth(proposal = HealthSession("s", "com.sec.android.app.shealth", 70, null, workout.startedAt, workout.endedAt)),
+                ),
+                {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
             )
         }
     }
