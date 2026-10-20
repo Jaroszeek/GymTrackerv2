@@ -22,7 +22,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,7 +48,6 @@ import com.jaroszeek.gymtracker.designsystem.component.GlassScaffold
 import com.jaroszeek.gymtracker.designsystem.component.GlassSegmentedControl
 import com.jaroszeek.gymtracker.designsystem.component.navBarContentPadding
 import com.jaroszeek.gymtracker.designsystem.component.within
-import com.jaroszeek.gymtracker.designsystem.theme.GtShapes
 import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
@@ -229,7 +227,7 @@ private fun DataCard(summary: BodySummary, age: Int?, onAge: (Int?) -> Unit, onA
 @Composable
 private fun ValueTile(metric: BodyMetric, measurement: BodyMeasurement?, modifier: Modifier, onAdd: (BodyMetric) -> Unit) {
     val colors = GtTheme.colors
-    Column(modifier.clip(GtShapes.Small).clickable { onAdd(metric) }, verticalArrangement = Arrangement.spacedBy(GtSpacing.xxs)) {
+    Column(modifier.clickable { onAdd(metric) }, verticalArrangement = Arrangement.spacedBy(GtSpacing.xxs)) {
         Text(stringResource(metric.label()), color = colors.textSecondary, style = GtTheme.typography.labelSmall)
         Text(measurement?.let { bodyValueLabel(metric, it.value) } ?: stringResource(R.string.number_empty), style = GtTheme.typography.numberM, maxLines = 1)
         Text(

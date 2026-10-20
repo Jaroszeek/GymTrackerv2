@@ -135,10 +135,13 @@ class ProfileViewModel @Inject constructor(
 
     fun onShowAll() = local.update { it.copy(showAll = true) }
 
-    /** [metric] is preselected, e.g. from the tile tapped. */
-    fun onAdd(metric: BodyMetric = BodyMetric.Weight) = local.update { it.copy(adding = NewMeasurement(metric)) }
+    /** [metric] is preselected, e.g. from the tile tapped; the field starts at its latest value. */
+    fun onAdd(metric: BodyMetric = BodyMetric.Weight) = local.update { it.copy(adding = NewMeasurement(metric, latestInput(metric))) }
 
-    fun onAddMetric(metric: BodyMetric) = local.update { it.copy(adding = it.adding?.copy(metric = metric, value = null, invalid = false)) }
+    fun onAddMetric(metric: BodyMetric) =
+        local.update { it.copy(adding = it.adding?.copy(metric = metric, value = latestInput(metric), invalid = false)) }
+
+    private fun latestInput(metric: BodyMetric): Double? = state.value.summary[metric]?.let { metric.toInput(it.value) }
 
     /** [value] as entered: centimetres for the height. */
     fun onAddValue(value: Double?) = local.update { it.copy(adding = it.adding?.copy(value = value, invalid = false)) }
