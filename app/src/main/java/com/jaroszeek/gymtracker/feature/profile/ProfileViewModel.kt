@@ -1,0 +1,189 @@
+package com.jaroszeek.gymtracker.feature.profile
+
+import android.util.Log
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.jaroszeek.gymtracker.core.datastore.AppPreferences
+import com.jaroszeek.gymtracker.core.di.IoDispatcher
+import com.jaroszeek.gymtracker.core.health.HealthConnect
+import com.jaroszeek.gymtracker.core.health.HealthFeature
+import com.jaroszeek.gymtracker.data.body.BodyRepository
+import com.jaroszeek.gymtracker.data.health.HealthRepository
+import com.jaroszeek.gymtracker.data.health.observeAge
+import com.jaroszeek.gymtracker.designsystem.component.ChartRange
+import com.jaroszeek.gymtracker.domain.body.BodyMeasurement
+import com.jaroszeek.gymtracker.domain.body.BodyMetric
+import com.jaroszeek.gymtracker.domain.body.BodySummary
+import com.jaroszeek.gymtracker.domain.body.bodySummary
+import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.Clock
+import java.time.LocalDate
+import java.time.Year
+import java.time.ZoneId
+import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+enum class BodyChart { Weight, Bmi, BodyFat }
+
+/** Active and total kcal today and on average over the days of the last week that have them; null where Health Connect has none. */
+data class Calories(val activeToday: Double?, val totalToday: Double?, val activeAverage: Double?, val totalAverage: Double?)
+
+/** The sheet for a new value; [invalid] after saving a value outside the metric's range. */
+data class NewMeasurement(val metric: BodyMetric = BodyMetric.Weight, val value: Double? = null, val invalid: Boolean = false)
+
+data class ProfileUiState(
+    val loading: Boolean = true,
+    val error: Boolean = false,
+    /** Oldest first, both sources, without duplicates. */
+    val measurements: List<BodyMeasurement> = emptyList(),
+    val summary: BodySummary = BodySummary(),
+    val age: Int? = null,
+    /** Null while Health Connect gives none: the card offers to connect. */
+    val calories: Calories? = null,
+    val chart: BodyChart = BodyChart.Weight,
+    val range: ChartRange = ChartRange.ThreeMonths,
+    val adding: NewMeasurement? = null,
+    val confirmDelete: BodyMeasurement? = null,
+    val showAll: Boolean = false,
+)
+
+private data class Local(
+    val chart: BodyChart = BodyChart.Weight,
+    val range: ChartRange = ChartRange.ThreeMonths,
+    val adding: NewMeasurement? = null,
+    val confirmDelete: BodyMeasurement? = null,
+    val showAll: Boolean = false,
+)
+
+@OptIn(ExperimentalCoroutinesApi::class)
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
+    private val body: BodyRepository,
+    health: HealthRepository,
+    private val preferences: AppPreferences,
+    private val healthConnect: HealthConnect,
+    private val clock: Clock,
+    @IoDispatcher private val io: CoroutineDispatcher,
+) : ViewModel() {
+
+    private val zone = ZoneId.systemDefault()
+    private val today = MutableStateFlow(today())
+    private val activityPermitted = MutableStateFlow(false)
+    private val local = MutableStateFlow(Local())
+
+    private val calories = today.flatMapLatest { day ->
+        combine(health.observeActivity(day.minusDays(CALORIE_DAYS - 1), day), activityPermitted) { days, permitted ->
+            if (!permitted && days.none { it.activeKcal != null || it.totalKcal != null }) return@combine null
+            val todays = days.firstOrNull { it.day == day }
+            Calories(
+                activeToday = todays?.activeKcal,
+                totalToday = todays?.totalKcal,
+                activeAverage = days.mapNotNull { it.activeKcal }.takeIf { it.isNotEmpty() }?.average(),
+                totalAverage = days.mapNotNull { it.totalKcal }.takeIf { it.isNotEmpty() }?.average(),
+            )
+        }
+    }
+
+    val state: StateFlow<ProfileUiState> =
+        combine(body.observeMeasurements(), preferences.observeAge(clock), calories, local) { measurements, age, calories, local ->
+            ProfileUiState(
+                loading = false,
+                measurements = measurements,
+                summary = bodySummary(measurements),
+                age = age,
+                calories = calories,
+                chart = local.chart,
+                range = local.range,
+                adding = local.adding,
+                confirmDelete = local.confirmDelete,
+                showAll = local.showAll,
+            )
+        }
+            .catch { e ->
+                Log.e(TAG, "Loading the profile failed", e)
+                emit(ProfileUiState(loading = false, error = true))
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), ProfileUiState())
+
+    /** On every return to the screen: a new day, or permissions changed in Health Connect. */
+    fun onRefresh() {
+        today.value = today()
+        viewModelScope.launch {
+            activityPermitted.value = withContext(io) { HealthFeature.Activity.permissions.any { it in healthConnect.grantedOrNone() } }
+        }
+    }
+
+    fun onAge(age: Int?) {
+        viewModelScope.launch { preferences.setBirthYear(age?.let { Year.now(clock.withZone(zone)).value - it }) }
+    }
+
+    fun onChart(chart: BodyChart) = local.update { it.copy(chart = chart) }
+
+    fun onRange(range: ChartRange) = local.update { it.copy(range = range) }
+
+    fun onShowAll() = local.update { it.copy(showAll = true) }
+
+    /** [metric] is preselected, e.g. from the tile tapped. */
+    fun onAdd(metric: BodyMetric = BodyMetric.Weight) = local.update { it.copy(adding = NewMeasurement(metric)) }
+
+    fun onAddMetric(metric: BodyMetric) = local.update { it.copy(adding = it.adding?.copy(metric = metric, value = null, invalid = false)) }
+
+    /** [value] as entered: centimetres for the height. */
+    fun onAddValue(value: Double?) = local.update { it.copy(adding = it.adding?.copy(value = value, invalid = false)) }
+
+    fun onAddDismiss() = local.update { it.copy(adding = null) }
+
+    fun onAddSave() {
+        val adding = local.value.adding ?: return
+        val value = adding.value?.let { adding.metric.fromInput(it) } ?: return
+        viewModelScope.launch {
+            val saved = try {
+                body.add(adding.metric, value)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e(TAG, "Saving a measurement failed", e)
+                false
+            }
+            local.update { if (saved) it.copy(adding = null) else it.copy(adding = it.adding?.copy(invalid = true)) }
+        }
+    }
+
+    fun onDeleteRequest(measurement: BodyMeasurement) = local.update { it.copy(confirmDelete = measurement) }
+
+    fun onDeleteDismiss() = local.update { it.copy(confirmDelete = null) }
+
+    fun onDeleteConfirm() {
+        val id = local.value.confirmDelete?.manualId ?: return
+        local.update { it.copy(confirmDelete = null) }
+        viewModelScope.launch {
+            try {
+                body.delete(id)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e(TAG, "Deleting measurement $id failed", e)
+            }
+        }
+    }
+
+    private fun today(): LocalDate = LocalDate.now(clock.withZone(zone))
+
+    private companion object {
+        const val TAG = "Profile"
+        const val STOP_TIMEOUT_MILLIS = 5_000L
+        const val CALORIE_DAYS = 7L
+    }
+}

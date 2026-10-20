@@ -83,13 +83,18 @@ import com.jaroszeek.gymtracker.designsystem.component.ChartPoint
 import com.jaroszeek.gymtracker.designsystem.component.ChartRange
 import com.jaroszeek.gymtracker.designsystem.component.ChartRangeSelector
 import com.jaroszeek.gymtracker.designsystem.component.GlassBar
+import com.jaroszeek.gymtracker.designsystem.component.GlassBarChart
 import com.jaroszeek.gymtracker.designsystem.component.GlassLineChart
+import com.jaroszeek.gymtracker.designsystem.component.GlassSparkline
 import com.jaroszeek.gymtracker.designsystem.component.GlassSegmentedControl
 import com.jaroszeek.gymtracker.designsystem.component.within
+import com.jaroszeek.gymtracker.feature.progress.weekdayLabel
 import com.jaroszeek.gymtracker.feature.routines.weightLabel
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.math.sin
 
@@ -104,6 +109,7 @@ private val NavItems = listOf(
 private const val FILLER_CARDS = 12
 private const val SAMPLE_SESSIONS = 120
 private const val SAMPLE_GAP_MILLIS = 3 * 86_400_000L
+private const val SPARKLINE_POINTS = 30
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -405,6 +411,14 @@ private fun Charts() {
         }
         GlassCard(Modifier.fillMaxWidth()) {
             listOf(0.15f, 0.6f, 1f).forEach { GlassBar(it) }
+        }
+        GlassCard(Modifier.fillMaxWidth()) {
+            GlassBarChart(
+                values = listOf(6_200.0, 9_800.0, 4_100.0, 0.0, 12_400.0, 8_000.0, 3_500.0),
+                labels = DayOfWeek.entries.map { weekdayLabel(it, TextStyle.SHORT_STANDALONE) },
+                description = stringResource(R.string.gallery_chart_title),
+            )
+            GlassSparkline(points.takeLast(SPARKLINE_POINTS), description = stringResource(R.string.gallery_chart_title))
         }
     }
 }

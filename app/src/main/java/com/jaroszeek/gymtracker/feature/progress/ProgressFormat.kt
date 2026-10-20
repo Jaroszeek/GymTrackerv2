@@ -13,11 +13,14 @@ import com.jaroszeek.gymtracker.domain.progress.Week
 import com.jaroszeek.gymtracker.feature.routines.weightLabel
 import com.jaroszeek.gymtracker.feature.workout.volumeLabel
 import java.text.DecimalFormatSymbols
+import java.text.NumberFormat
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 import java.util.Locale
 
 // Times are stored in UTC and shown in the device zone
@@ -44,6 +47,15 @@ fun dayLabel(millis: Long, zone: ZoneId = ZoneId.systemDefault()): String {
 fun fullDate(millis: Long, zone: ZoneId = ZoneId.systemDefault()): String = formatter("EEEE, d MMMM yyyy").format(millis.date(zone))
 
 fun timeLabel(millis: Long, zone: ZoneId = ZoneId.systemDefault()): String = formatter("HH:mm").format(Instant.ofEpochMilli(millis).atZone(zone))
+
+/** "Wtorek, 20 października": today on Start. */
+fun todayLabel(date: LocalDate): String = formatter("EEEE, d MMMM").format(date).replaceFirstChar { it.titlecase(Locale.getDefault()) }
+
+/** "P", "W", … in [TextStyle.NARROW_STANDALONE], "pon.", … in [TextStyle.SHORT_STANDALONE]. */
+fun weekdayLabel(day: DayOfWeek, style: TextStyle): String = day.getDisplayName(style, Locale.getDefault())
+
+/** Whole numbers with the locale's grouping: "12 400". */
+fun countLabel(value: Long): String = NumberFormat.getIntegerInstance(Locale.getDefault()).format(value)
 
 /** "Październik 2026". */
 fun monthLabel(month: YearMonth): String = formatter("LLLL yyyy").format(month).replaceFirstChar { it.titlecase(Locale.getDefault()) }
