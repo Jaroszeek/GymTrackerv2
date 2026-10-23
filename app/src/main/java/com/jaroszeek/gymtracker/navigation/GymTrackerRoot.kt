@@ -54,7 +54,6 @@ import com.jaroszeek.gymtracker.feature.home.HomeRoute
 import com.jaroszeek.gymtracker.feature.health.ImportedSessionRoute
 import com.jaroszeek.gymtracker.feature.health.ImportedSessionViewModel
 import com.jaroszeek.gymtracker.feature.health.PrivacyPolicyScreen
-import com.jaroszeek.gymtracker.feature.placeholder.PlaceholderScreen
 import com.jaroszeek.gymtracker.feature.profile.ProfileRoute
 import com.jaroszeek.gymtracker.feature.routines.RoutineEditorRoute
 import com.jaroszeek.gymtracker.feature.routines.RoutineEditorViewModel
@@ -269,7 +268,7 @@ private fun entryProvider(navigator: TabNavigator): (NavKey) -> NavEntry<NavKey>
             HealthConnectRoute(viewModel = hiltViewModel(), onBack = navigator::back, onPrivacy = { navigator.navigate(PrivacyPolicyKey) })
         }
         PrivacyPolicyKey -> NavEntry(key) { PrivacyPolicyScreen(onBack = navigator::back) }
-        else -> NavEntry(key) { PlaceholderScreen(TopLevelTab.entries.first { it.root == key }) }
+        else -> error("No screen for $key")
     }
 }
 

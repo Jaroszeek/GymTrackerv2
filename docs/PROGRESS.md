@@ -9,10 +9,10 @@
 | 2 | Ćwiczenia | ✅ zakończony (2026-10-19) |
 | 3 | Rutyny i szablony | ✅ zakończony (2026-10-19) |
 | 4 | Aktywny trening | ✅ zakończony (2026-10-19) |
-| 5 | Powiadomienie, Live Update, przerwa w tle | ✅ zaakceptowany (2026-10-19), wyniki testu na telefonie jeszcze niezgłoszone |
-| 6 | Historia i postępy | ✅ zaakceptowany (2026-10-19), wydanie `preview-stage-6`, wyniki testu na telefonie jeszcze niezgłoszone |
-| 7 | Health Connect | ✅ zaakceptowany (2026-10-20), wydanie `preview-stage-7`, wyniki testu na telefonie jeszcze niezgłoszone |
-| 8 | Start i Profil | 🔄 PR otwarty (2026-10-20), wydanie `preview-stage-8`; czeka na akceptację |
+| 5 | Powiadomienie, Live Update, przerwa w tle | ✅ zaakceptowany (2026-10-19), sprawdzony na telefonie (2026-10-23) |
+| 6 | Historia i postępy | ✅ zaakceptowany (2026-10-19), wydanie `preview-stage-6`, sprawdzony na telefonie (2026-10-23) |
+| 7 | Health Connect | ✅ zaakceptowany (2026-10-20), wydanie `preview-stage-7`, sprawdzony na telefonie (2026-10-23) |
+| 8 | Start i Profil | 🔄 PR otwarty (2026-10-20), wydanie `preview-stage-8`, sprawdzony na telefonie (2026-10-23); czeka na merge |
 | 9 | Ustawienia i kopia zapasowa | — |
 | 10 | Szlif, wydajność, QA | — |
 | 11 | Wydanie i aktualizator | — |
@@ -34,18 +34,17 @@
   - Niesprawdzone na emulatorze: kroki i kalorie z prawdziwymi danymi HC (sprawdzi test na telefonie).
   - Testy: JVM 239/239, lint 0 błędów (1 znane ostrzeżenie o targetSdk 36).
   - Poprawki po przeglądzie kodu (testy JVM, Wstecz w edycji i wykres sprawdzone na emulatorze): średnia kalorii bez dzisiejszego, niedokończonego dnia (liczona w `domain/`); edycja układu dopiero po jego wczytaniu; gest wstecz zamyka tryb edycji; kalendarz przechodzi na nowy miesiąc; nazwy ćwiczeń w rekordach odświeżają się po zmianie; punkty wykresów Profilu liczone w ViewModelu; jedno zapytanie o zgody HC zamiast kilku.
-  - Otwarte: test na telefonie (instrukcja niżej).
-- **Etap 7** zaakceptowany i zmergowany (PR #7) bez wyników testu na telefonie; instrukcja testu zostaje niżej.
+  - Sprawdzone na telefonie (2026-10-23): właściciel potwierdził, że Etapy 5–8 działają.
+  - Po odpowiedziach właściciela (2026-10-23): import kopii v1 zastępuje dane (D-052), galeria zostaje w debug (D-058); usunięte `PlaceholderScreen` (wszystkie zakładki mają już ekrany), logi `hs_err_pid*.log` i stary worktree agenta z jego branchem.
+- **Etap 7** zaakceptowany i zmergowany (PR #7).
 - **Etapy 1–6** zmergowane (PR #1–#6). D-038 (porzucony trening trafia do historii) zostaje jako domyślne, właściciel nie zgłosił zmiany.
-- **Etap 6** zaakceptowany przez właściciela bez wyników testu na telefonie. Wydanie testowe `preview-stage-6` (D-058); od teraz każdy etap dostaje takie wydanie razem z PR. Galeria komponentów bez ikony w launcherze (D-058).
+- **Etap 6** zaakceptowany przez właściciela. Wydanie testowe `preview-stage-6` (D-058); od teraz każdy etap dostaje takie wydanie razem z PR. Galeria komponentów bez ikony w launcherze (D-058).
   - Zrobione: zakładka Postępy (Historia, Ćwiczenia, Rutyny, Partie), szczegóły treningu z rekordami, edycja i usuwanie z przeliczeniem rekordów, e1RM (Epley, Brzycki), rekordy i tygodniowe serie w `domain/`, rekordy w trakcie treningu (glow i haptyka) i na podsumowaniu, wykres na Canvas z zakresami i przeciąganiem, wykres i rekordy w szczegółach ćwiczenia, postęp rutyny, agregaty w Room, generator danych w debug. Decyzje D-053…D-057.
   - Sprawdzone na emulatorze (36.0): wszystkie nowe ekrany w motywie ciemnym i jasnym, wykres w Onyx i Porcelain z ograniczoną przezroczystością, edycja serii daje rekord, usunięcie treningu przelicza rekordy późniejszego, rekord w trakcie treningu i na podsumowaniu, płynność przy 300 treningach (D-057). Testy: JVM 145/145, UI 4/4, lint bez nowych ostrzeżeń.
-  - Otwarte: test na telefonie (instrukcja niżej), wyniki testu Etapu 5 na telefonie.
-- **Etap 5** zaakceptowany przez właściciela bez wyników testu na telefonie (Now Bar i chip z zegarem niepotwierdzone na telefonie); jeśli test coś pokaże, poprawki osobnym PR. Uprawnienia z D-045 zaakceptowane razem z etapem.
+- **Etap 5** zaakceptowany przez właściciela. Uprawnienia z D-045 zaakceptowane razem z etapem.
   - Zrobione: `WorkoutService` (foreground `specialUse`, start tylko z pierwszego planu), powiadomienie jako Live Update (ProgressStyle, chronometr, chip na pasku stanu z zegarem treningu, a w przerwie z odliczaniem, akcje „Ukończ serię” i „Pomiń przerwę”), budzenie na koniec przerwy (exact alarm albo blokada uśpienia) z wibracją, prośba o zgodę przy pierwszym starcie (DataStore), karta „Trening w tle” na ekranie treningu, ekran „Diagnostyka powiadomień na żywo”, sekcja One UI w README, decyzje D-044…D-050.
   - Sprawdzone na emulatorze (D-050): promocja `FLAG_PROMOTED_ONGOING` na 36.1, akcje z panelu, wibracja na koniec przerwy przy wygaszonym ekranie (także w Doze), odliczanie na ekranie blokady, brak osieroconych powiadomień po `kill -9`, odtworzenie po powrocie. Testy: JVM 99/99, UI 4/4 (36.0), test powiadomienia 3/3 (36.1), lint 0 błędów.
   - Wydanie testowe `preview-stage-5` (pre-release z APK debug, D-051) na prośbę właściciela.
-  - Otwarte: test na telefonie (instrukcja niżej). Chipa na pasku stanu nie dało się obejrzeć na emulatorze.
 - **Tryb pracy:** plan etapu nie czeka na akceptację (D-032), akceptacja na PR.
 - **Decyzje:** `docs/DECISIONS.md` (D-001 … D-073).
 - **Środowisko:**

@@ -382,7 +382,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 
 ### D-052 Import kopii z GymTracker v1 (zakres)
 - Na prośbę właściciela (2026-10-19) dopisany do A5.10 i Etapu 9: v2 wczytuje kopię zapasową z pierwszej wersji. Z repo `Jaroszeek/GymTracker` bierzemy tylko format pliku kopii, i to dopiero w Etapie 9; kodu, UI ani funkcji v1 nie przenosimy.
-- Domyślnie import kopii v1 zastępuje dane v2 jak zwykły import (poprzednia baza zostaje w kopii). Łączenie z danymi v2 wymagałoby deduplikacji ćwiczeń i treningów — do decyzji właściciela w planie Etapu 9.
+- Decyzja właściciela (2026-10-23): import kopii v1 zastępuje dane v2 jak zwykły import, po potwierdzeniu w dialogu (poprzednia baza zostaje w kopii). Bez łączenia z danymi v2, więc bez deduplikacji ćwiczeń i treningów.
 - Test na syntetycznej kopii w formacie v1; prawdziwa kopia właściciela nie trafia do repo (dane zdrowotne).
 
 ### D-053 Historia i postępy: układ (Etap 6)
@@ -430,6 +430,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 ### D-058 Wydanie testowe po każdym etapie, galeria bez ikony
 - Na polecenie właściciela (2026-10-19) każdy etap dostaje wydanie testowe `preview-stage-<nr>` na zasadach z D-051 (pre-release, APK debug zbudowany lokalnie). Etap 6 dostał je po merge'u, z `main`. Kolejne etapy dostaną je razem z PR, żeby dało się je sprawdzić na telefonie przed akceptacją.
 - Galeria komponentów nie ma już ikony w launcherze, bo właściciel nie chce jej na telefonie. Zostaje jako narzędzie deweloperskie, bo CLAUDE.md wymaga galerii dla każdego komponentu. Otwiera ją `adb shell am start -n …` (README) i macrobenchmark, który startuje ją po nazwie.
+- Właściciel potwierdził (2026-10-23): galeria zostaje, tylko w wariancie debug.
 
 ### D-059 Etap 7: zależności i uprawnienia
 - **Zależności:** `androidx.health.connect:connect-client` 1.1.0 (najnowsza stabilna, 1.2.0 jest w alpha) i `androidx.work:work-runtime-ktx` 2.12.0 (synchronizacja w tle). Obie Apache-2.0. Release: 4,69 MB (4 920 572 B; po Etapie 6: 4,04 MB, +0,65 MB).
