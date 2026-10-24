@@ -180,7 +180,7 @@ fun GalleryScreen(settings: ThemeSettings, onSettingsChange: (ThemeSettings) -> 
             ),
             verticalArrangement = Arrangement.spacedBy(GtSpacing.xl),
         ) {
-            section(R.string.gallery_section_icon) { IconProposals() }
+            section(R.string.gallery_section_icon) { AppIcon() }
             section(R.string.gallery_section_theme) { ThemeControls(settings, onSettingsChange) }
             section(R.string.gallery_section_colors) { Swatches() }
             section(R.string.gallery_section_type) { TypeSamples() }

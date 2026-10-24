@@ -4,7 +4,7 @@
     <string name="gallery_launcher_label">GT Galeria</string>
     <string name="gallery_title">Galeria komponentów</string>
 
-    <string name="gallery_section_icon">Ikona aplikacji (propozycje)</string>
+    <string name="gallery_section_icon">Ikona aplikacji</string>
     <string name="gallery_section_theme">Motyw</string>
     <string name="gallery_section_colors">Kolory</string>
     <string name="gallery_section_type">Typografia</string>

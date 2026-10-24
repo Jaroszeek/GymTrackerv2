@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,23 +16,15 @@ import androidx.core.graphics.drawable.toDrawable
 import com.jaroszeek.gymtracker.R
 import com.jaroszeek.gymtracker.designsystem.component.GlassCard
 import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
-import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 
-/** Launcher icon proposals for the owner to choose from (Stage 10): full color, themed (monochrome) and small. */
+/** The launcher icon "Pierścień" (D-080): full color, themed (monochrome) and small. */
 @Composable
-internal fun IconProposals() {
+internal fun AppIcon() {
     GlassCard(Modifier.fillMaxWidth()) {
-        listOf(
-            "A" to R.drawable.icon_proposal_ring,
-            "B" to R.drawable.icon_proposal_bars,
-            "C" to R.drawable.icon_proposal_dumbbell,
-        ).forEach { (name, icon) ->
-            Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.l), verticalAlignment = Alignment.CenterVertically) {
-                Text(name, style = GtTheme.typography.headline)
-                LauncherIcon(icon, themed = false, size = 72.dp)
-                LauncherIcon(icon, themed = true, size = 72.dp)
-                LauncherIcon(icon, themed = false, size = 40.dp)
-            }
+        Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.l), verticalAlignment = Alignment.CenterVertically) {
+            LauncherIcon(R.drawable.ic_launcher_foreground, themed = false, size = 72.dp)
+            LauncherIcon(R.drawable.ic_launcher_foreground, themed = true, size = 72.dp)
+            LauncherIcon(R.drawable.ic_launcher_foreground, themed = false, size = 40.dp)
         }
     }
 }
