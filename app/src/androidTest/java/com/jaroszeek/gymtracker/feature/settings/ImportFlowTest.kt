@@ -1,7 +1,6 @@
 package com.jaroszeek.gymtracker.feature.settings
 
 import android.net.Uri
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -26,7 +25,6 @@ import com.jaroszeek.gymtracker.designsystem.component.GlassScaffold
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
 import java.io.File
 import java.time.Clock
-import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -59,6 +57,7 @@ class ImportFlowTest {
     private val databases = mutableListOf<GtDatabase>()
     private lateinit var live: GtDatabase
     private lateinit var viewModel: SettingsViewModel
+    @Volatile private var restarted = false
 
     private fun open(file: File): GtDatabase =
         Room.databaseBuilder<GtDatabase>(context, file.path).setDriver(AndroidSQLiteDriver()).build().also { databases += it }
@@ -76,6 +75,7 @@ class ImportFlowTest {
             seedExercises = { ExerciseSeeder(it, Dispatchers.IO, context).ensureSeeded() },
             emptyWorkoutName = "Trening",
             io = Dispatchers.IO,
+            restartApp = { restarted = true },
         )
         runBlocking {
             ExerciseSeeder(live, Dispatchers.IO, context).ensureSeeded()
@@ -106,9 +106,10 @@ class ImportFlowTest {
         compose.onNodeWithText("1 rutyna, ", substring = true).assertExists()
         compose.onNodeWithText("Zastąp").performClick()
         compose.waitUntil(TIMEOUT) { compose.onAllNodesWithText("Uruchamiam ponownie…").fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(TIMEOUT) { restarted }
 
         live.close()
-        assertTrue(BackupManager.applyPending(files, Instant.now()))
+        assertTrue(BackupManager.applyPending(files))
         val imported = open(files.database)
         assertEquals(listOf("Legs"), runBlocking { imported.routineDao().observeAll().first().map { it.routine.name } })
     }
@@ -132,7 +133,7 @@ class ImportFlowTest {
         compose.setContent {
             GymTrackerTheme {
                 GlassScaffold {
-                    val state by viewModel.state.collectAsStateWithLifecycle()
+                    val state = viewModel.state.collectAsStateWithLifecycle().value ?: return@GlassScaffold
                     SettingsScreen(
                         state = state,
                         version = "0.1.0",

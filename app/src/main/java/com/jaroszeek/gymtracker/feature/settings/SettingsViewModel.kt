@@ -22,6 +22,7 @@ import java.io.IOException
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -48,7 +49,7 @@ sealed interface BackupState {
     /** Checked and ready; replaces the data after confirmation. */
     data class Confirm(val summary: BackupSummary) : BackupState
 
-    /** Confirmed: the app starts again and the backup becomes the data. */
+    /** Confirmed: the backup is staged, the app starts again and it becomes the data. */
     data object Restarting : BackupState
 }
 
@@ -76,10 +77,11 @@ class SettingsViewModel @Inject constructor(
 
     private val training = combine(preferences.weightUnit, preferences.defaultRestSeconds, preferences.restAlert, ::Triple)
 
-    val state: StateFlow<SettingsUiState> =
+    /** Null until the settings are read, so nothing is changed from the defaults. */
+    val state: StateFlow<SettingsUiState?> =
         combine(preferences.theme, training, preferences.healthLastSync, workout.workout, backupState) { theme, (unit, rest, alert), lastSync, active, backup ->
             SettingsUiState(theme, unit, rest, alert, lastSync, workoutActive = active != null, backup = backup)
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), SettingsUiState())
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), null)
 
     fun onTheme(theme: ThemeSettings) {
         viewModelScope.launch { preferences.setTheme(theme) }
@@ -122,7 +124,7 @@ class SettingsViewModel @Inject constructor(
 
     /** [uri] from the system's file picker. */
     fun onImport(uri: Uri) {
-        if (state.value.workoutActive) return
+        if (state.value?.workoutActive != false) return
         backupState.value = BackupState.Checking
         viewModelScope.launch {
             val inspection = try {
@@ -143,20 +145,27 @@ class SettingsViewModel @Inject constructor(
 
     fun onConfirmImport() {
         val summary = (backupState.value as? BackupState.Confirm)?.summary ?: return
+        // At once: a second tap or a dismissal must not touch the backup being staged
+        backupState.value = BackupState.Restarting
         viewModelScope.launch {
-            backupState.value = try {
-                backup.confirm()
+            // Leaving the screen now must not leave a staged backup without the restart that swaps it in
+            withContext(NonCancellable) {
+                try {
+                    backup.confirm()
+                } catch (e: IOException) {
+                    Log.e(TAG, "Could not stage the backup", e)
+                    backupState.value = BackupState.Rejected(Rejection.Damaged)
+                    return@withContext
+                }
                 // The profile keeps an age already entered
                 summary.birthYear?.let { if (preferences.birthYear.first() == null) preferences.setBirthYear(it) }
-                BackupState.Restarting
-            } catch (e: IOException) {
-                Log.e(TAG, "Could not stage the backup", e)
-                BackupState.Rejected(Rejection.Damaged)
+                backup.restart()
             }
         }
     }
 
     fun onDismissBackup() {
+        if (backupState.value == BackupState.Restarting) return
         if (backupState.value is BackupState.Confirm) viewModelScope.launch(io) { backup.discard() }
         backupState.value = BackupState.Idle
     }

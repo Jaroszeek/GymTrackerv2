@@ -133,7 +133,7 @@ internal class V1Import(
         }
         return V1Result(
             skipped = SkippedKind.entries.mapNotNull { kind -> skipped[kind]?.takeIf { it > 0 }?.let { Skipped(kind, it) } },
-            birthYear = metrics.lastOrNull { (it.age ?: 0) > 0 }?.let { Instant.ofEpochMilli(it.date).atZone(ZoneOffset.UTC).year - it.age!! },
+            birthYear = metrics.lastOrNull { (it.age ?: 0) in 1..MAX_AGE }?.let { Instant.ofEpochMilli(it.date).atZone(ZoneOffset.UTC).year - it.age!! },
         )
     }
 
@@ -199,8 +199,8 @@ internal class V1Import(
             ),
         )
         // Sets in the order they were done, gathered by exercise in the order the exercises began
-        sets.groupBy { it.exerciseId }.values.forEachIndexed { position, exerciseSets ->
-            val exerciseId = exerciseFor(exerciseSets.first().exerciseId, exerciseSets.first().exerciseName)
+        // Two v1 exercises can become the same one here
+        sets.groupBy { exerciseFor(it.exerciseId, it.exerciseName) }.entries.forEachIndexed { position, (exerciseId, exerciseSets) ->
             val workoutExerciseId = dao.insertExercise(WorkoutExerciseEntity(workoutId = workoutId, exerciseId = exerciseId, position = position, routineVariantId = null))
             dao.insertSets(
                 exerciseSets.mapIndexed { index, set ->
@@ -369,6 +369,7 @@ internal class V1Import(
         private const val MAX_SETS = 20
         private const val MAX_REPS = 100
         private const val CM_PER_M = 100.0
+        private const val MAX_AGE = 120
 
         private val FREE_EXERCISE_DB_IMAGE = Regex("^https://raw\\.githubusercontent\\.com/yuhonas/free-exercise-db/main/exercises/([^/]+)/")
 

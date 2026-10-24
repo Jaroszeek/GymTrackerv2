@@ -1,6 +1,7 @@
 package com.jaroszeek.gymtracker.data.backup
 
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.room3.Room
 import androidx.room3.useReaderConnection
@@ -72,6 +73,7 @@ class BackupFiles(val database: File, val work: File) {
     internal val trial get() = File(work, "trial.db")
     internal val ready get() = File(work, "ready.db")
     internal val pending get() = File(work, "pending.db")
+    internal val export get() = File(work, "export.db")
     internal val previous get() = File(work, "previous")
 }
 
@@ -93,6 +95,8 @@ class BackupManager internal constructor(
     /** The name of a v1 workout saved without one. */
     private val emptyWorkoutName: String,
     private val io: CoroutineDispatcher,
+    /** Ends the process and opens the app again; the new process swaps in the staged backup. */
+    private val restartApp: () -> Unit,
 ) {
     @Inject
     constructor(
@@ -107,12 +111,17 @@ class BackupManager internal constructor(
         seedExercises = { ExerciseSeeder(it, io, context).ensureSeeded() },
         emptyWorkoutName = context.getString(R.string.backup_v1_workout_name),
         io = io,
+        restartApp = {
+            val launcher = context.packageManager.getLaunchIntentForPackage(context.packageName)?.component
+            if (launcher != null) context.startActivity(Intent.makeRestartActivityTask(launcher)) else Log.e(TAG, "No launcher activity to restart")
+            Runtime.getRuntime().exit(0)
+        },
     )
 
     /** The whole database, as of now, into [out]. */
     suspend fun export(out: OutputStream) = withContext(io) {
         files.work.mkdirs()
-        val snapshot = File(files.work, "export.db").apply { delete() }
+        val snapshot = files.export.apply { delete() }
         try {
             database.useWriterConnection { connection ->
                 connection.usePrepared("VACUUM INTO ?") {
@@ -154,10 +163,13 @@ class BackupManager internal constructor(
         }
     }
 
-    /** The inspected backup becomes the data at the next start of the process. */
+    /** The inspected backup becomes the data at the next start of the process ([restart]). */
     suspend fun confirm() = withContext(io) {
         if (!files.ready.renameTo(files.pending)) throw IOException("Could not stage the backup")
     }
+
+    /** Starts the app again right after [confirm], so nothing is written to data about to be replaced. */
+    fun restart() = restartApp()
 
     /** Drops an inspected backup that was not confirmed. */
     fun discard() = deleteWithJournal(files.ready)
@@ -213,6 +225,7 @@ class BackupManager internal constructor(
         }
         return when {
             tables.containsAll(V2_TABLES) -> when {
+                hasCode(connection) -> Kind.Unknown
                 version > GtDatabase.VERSION -> Kind.Newer
                 version >= 1 -> Kind.Current
                 else -> Kind.Unknown
@@ -221,6 +234,13 @@ class BackupManager internal constructor(
             else -> Kind.Unknown
         }
     }
+
+    /**
+     * Triggers and views: this app's schema has none (Room keeps its own in the temp schema), and
+     * a file with them would run foreign code on the data. A v1 file is only read, so they do not run.
+     */
+    private fun hasCode(connection: SQLiteConnection): Boolean =
+        connection.prepare("SELECT 1 FROM sqlite_master WHERE type IN ('trigger', 'view')").use { it.step() }
 
     /** Copies at most [MAX_BYTES]; false when the input is longer, which no backup is. */
     private fun copyLimited(input: InputStream, target: File): Boolean {
@@ -262,24 +282,38 @@ class BackupManager internal constructor(
 
         /**
          * Swaps in a confirmed backup; runs at the start of the process, before the database opens.
-         * The replaced database (with its WAL) moves to a timestamped copy; the last [KEPT_PREVIOUS] stay.
+         * The replaced database (with its WAL) moves to a copy stamped with the time the backup was checked;
+         * the last [KEPT_PREVIOUS] stay. If any file does not move, all move back and the swap waits.
          */
-        fun applyPending(files: BackupFiles, now: Instant): Boolean {
+        fun applyPending(files: BackupFiles): Boolean {
+            // Left by a process that ended during an import or export; a new process never continues one
+            listOf(files.candidate, files.trial, files.ready, files.export).forEach(::deleteWithJournal)
             if (!files.pending.exists()) return false
             files.previous.mkdirs()
-            val base = "gymtracker-${STAMP.format(now)}.db"
-            SUFFIXES.forEach { suffix ->
+            // The same name when a swap cut short by the end of the process is tried again
+            val base = "gymtracker-${STAMP.format(Instant.ofEpochMilli(files.pending.lastModified()))}.db"
+            val moved = mutableListOf<Pair<File, File>>()
+            for (suffix in SUFFIXES) {
                 val file = File(files.database.path + suffix)
-                if (file.exists() && !file.renameTo(File(files.previous, base + suffix))) Log.w(TAG, "Could not keep ${file.name}")
+                if (!file.exists()) continue
+                val kept = File(files.previous, base + suffix)
+                if (!file.renameTo(kept)) return rollBack(moved, "Could not keep ${file.name}")
+                moved += file to kept
             }
             files.database.parentFile?.mkdirs()
-            val swapped = files.pending.renameTo(files.database)
-            if (!swapped) Log.e(TAG, "Could not swap in the backup")
+            if (!files.pending.renameTo(files.database)) return rollBack(moved, "Could not swap in the backup")
             files.previous.listFiles { file -> file.name.endsWith(".db") }
                 ?.sortedByDescending { it.name }
                 ?.drop(KEPT_PREVIOUS)
                 ?.forEach { old -> SUFFIXES.forEach { File(old.path + it).delete() } }
-            return swapped
+            return true
+        }
+
+        /** A WAL left next to the swapped-in file would be replayed onto it, so a half swap goes back. */
+        private fun rollBack(moved: List<Pair<File, File>>, reason: String): Boolean {
+            Log.e(TAG, "$reason; the backup waits for the next start")
+            moved.forEach { (file, kept) -> if (!kept.renameTo(file)) Log.e(TAG, "Could not restore ${file.name}") }
+            return false
         }
 
         private fun deleteWithJournal(file: File) = SUFFIXES.forEach { File(file.path + it).delete() }

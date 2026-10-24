@@ -1,8 +1,5 @@
 package com.jaroszeek.gymtracker.feature.settings
 
-import android.app.Activity
-import android.content.Intent
-import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
@@ -22,15 +19,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -76,14 +73,11 @@ fun SettingsRoute(
     onDiagnostics: () -> Unit,
     onLicenses: () -> Unit,
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    val activity = LocalActivity.current
+    val loaded by viewModel.state.collectAsStateWithLifecycle()
+    val resources = LocalResources.current
     val export = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(BACKUP_MIME_TYPE)) { uri -> uri?.let(viewModel::onExport) }
     val import = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> uri?.let(viewModel::onImport) }
-    LaunchedEffect(state.backup) {
-        if (state.backup == BackupState.Restarting) activity?.restart()
-    }
+    val state = loaded ?: return
     SettingsScreen(
         state = state,
         version = BuildConfig.VERSION_NAME,
@@ -96,7 +90,7 @@ fun SettingsRoute(
             onRestVibration = viewModel::onRestVibration,
             onHealthConnect = onHealthConnect,
             onDiagnostics = onDiagnostics,
-            onExport = { export.launch(context.getString(R.string.backup_file_name, FILE_STAMP.format(LocalDateTime.now()))) },
+            onExport = { export.launch(resources.getString(R.string.backup_file_name, FILE_STAMP.format(LocalDateTime.now()))) },
             // Backups from file managers and clouds come with any type, often application/octet-stream
             onImport = { import.launch(arrayOf("*/*")) },
             onConfirmImport = viewModel::onConfirmImport,
@@ -104,12 +98,6 @@ fun SettingsRoute(
             onLicenses = onLicenses,
         ),
     )
-}
-
-/** A new process opens the swapped-in database (A5.10). */
-private fun Activity.restart() {
-    startActivity(Intent.makeRestartActivityTask(componentName))
-    Runtime.getRuntime().exit(0)
 }
 
 class SettingsActions(
@@ -190,7 +178,7 @@ private fun AppearanceCard(theme: ThemeSettings, onTheme: (ThemeSettings) -> Uni
         )
         if (fixed) Text(stringResource(R.string.settings_mode_fixed), color = colors.textSecondary, style = GtTheme.typography.bodySmall)
         Text(stringResource(R.string.settings_palette, stringResource(theme.palette.label())), style = GtTheme.typography.label)
-        FlowRow {
+        FlowRow(Modifier.selectableGroup()) {
             GtPalette.entries.forEach { palette ->
                 GlassSwatch(
                     color = gtColors(palette, colors.isDark).accent,

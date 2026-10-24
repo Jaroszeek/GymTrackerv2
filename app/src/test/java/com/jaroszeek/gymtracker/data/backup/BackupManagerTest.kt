@@ -15,7 +15,6 @@ import com.jaroszeek.gymtracker.core.database.WorkoutSetEntity
 import com.jaroszeek.gymtracker.testing.seeder
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.time.Instant
 import kotlin.random.Random
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -41,7 +40,7 @@ class BackupManagerTest {
     private fun open(file: File): GtDatabase = Room.databaseBuilder<GtDatabase>(file.path).setDriver(BundledSQLiteDriver()).build().also { opened += it }
 
     private fun manager(database: GtDatabase = live) =
-        BackupManager(database, files, BundledSQLiteDriver(), ::open, { seeder(it).ensureSeeded() }, "Trening", Dispatchers.IO)
+        BackupManager(database, files, BundledSQLiteDriver(), ::open, { seeder(it).ensureSeeded() }, "Trening", Dispatchers.IO, restartApp = {})
 
     @Before
     fun setUp() = runTest {
@@ -75,7 +74,8 @@ class BackupManagerTest {
         assertEquals(Inspection.Ready(BackupSummary(routines = 1, workouts = 2, measurements = 1, customExercises = 0, firstWorkout = START, lastWorkout = START + DAY)), inspection)
         manager().confirm()
         live.close()
-        assertTrue(BackupManager.applyPending(files, Instant.ofEpochMilli(START)))
+        files.pending.setLastModified(START)
+        assertTrue(BackupManager.applyPending(files))
         assertEquals(before, dump(open(files.database)))
         // The replaced database stays as a copy with a timestamp
         assertTrue(File(files.previous, "gymtracker-20231114-221320.db").exists())
@@ -92,7 +92,7 @@ class BackupManagerTest {
         assertEquals(1993, inspection.summary.birthYear)
         manager().confirm()
         live.close()
-        assertTrue(BackupManager.applyPending(files, Instant.ofEpochMilli(START)))
+        assertTrue(BackupManager.applyPending(files))
         val imported = open(files.database)
         assertEquals(listOf("Legacy", "Push"), imported.routineDao().observeAll().first().map { it.routine.name })
     }
@@ -142,7 +142,7 @@ class BackupManagerTest {
         manager().inspect(export().inputStream())
         manager().discard()
 
-        assertFalse(BackupManager.applyPending(files, Instant.ofEpochMilli(START)))
+        assertFalse(BackupManager.applyPending(files))
         assertEquals(before, dump(live))
         assertEquals(emptyList<String>(), files.work.listFiles().orEmpty().map { it.name })
     }
@@ -152,12 +152,36 @@ class BackupManagerTest {
         live.close()
         repeat(4) { index ->
             files.pending.apply { parentFile!!.mkdirs() }.writeBytes(files.database.readBytes())
-            BackupManager.applyPending(files, Instant.ofEpochMilli(START + index * DAY))
+            files.pending.setLastModified(START + index * DAY)
+            BackupManager.applyPending(files)
         }
         assertEquals(
             listOf("gymtracker-20231115-221320.db", "gymtracker-20231116-221320.db", "gymtracker-20231117-221320.db"),
             files.previous.list()!!.filter { it.endsWith(".db") }.sorted(),
         )
+    }
+
+    @Test
+    fun aSwapThatCannotMoveEveryFileGoesBack() = runTest {
+        val before = dump(live)
+        manager().inspect(export().inputStream())
+        manager().confirm()
+        live.close()
+        files.pending.setLastModified(START)
+        // The lock file, moved last, cannot go where a folder is
+        File(files.previous, "gymtracker-20231114-221320.db.lck").apply { mkdirs() }.resolve("blocker").writeText("")
+
+        assertFalse(BackupManager.applyPending(files))
+        assertTrue(files.pending.exists())
+        assertFalse(File(files.previous, "gymtracker-20231114-221320.db").exists())
+        assertEquals(before, dump(open(files.database)))
+    }
+
+    @Test
+    fun aBackupWithATriggerIsNotABackup() = runTest {
+        val file = folder.newFile("trigger.db").apply { writeBytes(export()) }
+        BundledSQLiteDriver().open(file.path).use { it.execSQL("CREATE TRIGGER wipe AFTER INSERT ON workouts BEGIN DELETE FROM routines; END") }
+        assertEquals(Inspection.Rejected(Rejection.NotABackup), manager().inspect(file.inputStream()))
     }
 
     private suspend fun export(): ByteArray = ByteArrayOutputStream().also { manager().export(it) }.toByteArray()
