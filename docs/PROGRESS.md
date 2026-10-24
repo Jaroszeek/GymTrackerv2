@@ -13,13 +13,13 @@
 | 6 | Historia i postępy | ✅ zaakceptowany (2026-10-19), wydanie `preview-stage-6`, sprawdzony na telefonie (2026-10-23) |
 | 7 | Health Connect | ✅ zaakceptowany (2026-10-20), wydanie `preview-stage-7`, sprawdzony na telefonie (2026-10-23) |
 | 8 | Start i Profil | ✅ zaakceptowany (2026-10-24), wydanie `preview-stage-8`, sprawdzony na telefonie (2026-10-23) |
-| 9 | Ustawienia i kopia zapasowa | 🔄 w toku (branch `feat/stage-9-settings-backup`) |
+| 9 | Ustawienia i kopia zapasowa | 🔄 PR #9 otwarty (2026-10-24), wydanie `preview-stage-9`; czeka na test na telefonie i merge |
 | 10 | Szlif, wydajność, QA | — |
 | 11 | Wydanie i aktualizator | — |
 
 ## Bieżący stan
 
-- **Etap 9** (branch `feat/stage-9-settings-backup`).
+- **Etap 9** (branch `feat/stage-9-settings-backup`, PR #9, wydanie testowe `preview-stage-9`).
   - Zrobione:
     - Ustawienia (A5.9): wygląd (tryb, paleta z próbek, AMOLED, Material You, ograniczenie przezroczystości), jednostka masy kg / lb we wszystkich ekranach, domyślna przerwa, dźwięk i wibracja na koniec przerwy, wejścia do Health Connect (z datą ostatniej synchronizacji) i diagnostyki, Aktualizacje jako zaślepka, O aplikacji z wersją i licencjami;
     - kopia zapasowa (A5.10): eksport przez SAF (`VACUUM INTO`), import z walidacją, próbną migracją, dialogiem z podsumowaniem, podmianą przy starcie procesu i kopią poprzedniej bazy;
