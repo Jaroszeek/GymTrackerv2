@@ -2,6 +2,7 @@ package com.jaroszeek.gymtracker.core.datastore
 
 import android.util.Log
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -9,6 +10,12 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.jaroszeek.gymtracker.designsystem.theme.GtPalette
+import com.jaroszeek.gymtracker.designsystem.theme.ThemeMode
+import com.jaroszeek.gymtracker.designsystem.theme.ThemeSettings
+import com.jaroszeek.gymtracker.domain.settings.RestAlert
+import com.jaroszeek.gymtracker.domain.settings.RestDefaults
+import com.jaroszeek.gymtracker.domain.settings.WeightUnit
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,7 +24,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
-/** Small app flags; the settings of Etap 9 join them here. */
+/** App flags and the settings (A5.9). */
 @Singleton
 class AppPreferences @Inject constructor(private val store: DataStore<Preferences>) {
 
@@ -31,6 +38,43 @@ class AppPreferences @Inject constructor(private val store: DataStore<Preference
     val notificationPromptShown: Flow<Boolean> = data.map { it[NOTIFICATION_PROMPT_SHOWN] == true }
 
     suspend fun setNotificationPromptShown() = set(NOTIFICATION_PROMPT_SHOWN, true)
+
+    // Settings (A5.9)
+
+    val theme: Flow<ThemeSettings> = data.map {
+        ThemeSettings(
+            mode = ThemeMode.entries.firstOrNull { mode -> mode.name == it[THEME_MODE] } ?: ThemeMode.System,
+            palette = GtPalette.entries.firstOrNull { palette -> palette.name == it[THEME_PALETTE] } ?: GtPalette.Volt,
+            amoled = it[THEME_AMOLED] == true,
+            dynamicColor = it[THEME_DYNAMIC_COLOR] == true,
+            reduceTransparency = it[THEME_REDUCE_TRANSPARENCY] == true,
+        )
+    }.distinctUntilChanged()
+
+    suspend fun setTheme(value: ThemeSettings) = edit {
+        it[THEME_MODE] = value.mode.name
+        it[THEME_PALETTE] = value.palette.name
+        it[THEME_AMOLED] = value.amoled
+        it[THEME_DYNAMIC_COLOR] = value.dynamicColor
+        it[THEME_REDUCE_TRANSPARENCY] = value.reduceTransparency
+    }
+
+    val weightUnit: Flow<WeightUnit> = data.map { WeightUnit.fromKey(it[WEIGHT_UNIT]) }.distinctUntilChanged()
+
+    suspend fun setWeightUnit(value: WeightUnit) = set(WEIGHT_UNIT, value.key)
+
+    /** Rest after a set whose routine sets none. */
+    val defaultRestSeconds: Flow<Int> = data.map { RestDefaults.coerce(it[DEFAULT_REST_SECONDS] ?: RestDefaults.SECONDS) }.distinctUntilChanged()
+
+    suspend fun setDefaultRestSeconds(value: Int) = set(DEFAULT_REST_SECONDS, RestDefaults.coerce(value))
+
+    val restAlert: Flow<RestAlert> = data.map {
+        RestAlert(sound = it[REST_SOUND] ?: RestAlert().sound, vibration = it[REST_VIBRATION] ?: RestAlert().vibration)
+    }.distinctUntilChanged()
+
+    suspend fun setRestSound(value: Boolean) = set(REST_SOUND, value)
+
+    suspend fun setRestVibration(value: Boolean) = set(REST_VIBRATION, value)
 
     // Health Connect (A6)
 
@@ -75,9 +119,11 @@ class AppPreferences @Inject constructor(private val store: DataStore<Preference
     private fun flag(key: Preferences.Key<Boolean>, default: Boolean) = data.map { it[key] ?: default }.distinctUntilChanged()
 
     /** Null removes the value. */
-    private suspend fun <T> set(key: Preferences.Key<T>, value: T?) {
+    private suspend fun <T> set(key: Preferences.Key<T>, value: T?) = edit { if (value == null) it.remove(key) else it[key] = value }
+
+    private suspend fun edit(change: (MutablePreferences) -> Unit) {
         try {
-            store.edit { if (value == null) it.remove(key) else it[key] = value }
+            store.edit(change)
         } catch (e: IOException) {
             Log.e(TAG, "Saving preferences failed", e)
         }
@@ -94,5 +140,14 @@ class AppPreferences @Inject constructor(private val store: DataStore<Preference
         val BIRTH_YEAR = intPreferencesKey("birth_year")
         val MAX_HEART_RATE = intPreferencesKey("max_heart_rate")
         val HOME_LAYOUT = stringPreferencesKey("home_layout")
+        val THEME_MODE = stringPreferencesKey("theme_mode")
+        val THEME_PALETTE = stringPreferencesKey("theme_palette")
+        val THEME_AMOLED = booleanPreferencesKey("theme_amoled")
+        val THEME_DYNAMIC_COLOR = booleanPreferencesKey("theme_dynamic_color")
+        val THEME_REDUCE_TRANSPARENCY = booleanPreferencesKey("theme_reduce_transparency")
+        val WEIGHT_UNIT = stringPreferencesKey("weight_unit")
+        val DEFAULT_REST_SECONDS = intPreferencesKey("default_rest_seconds")
+        val REST_SOUND = booleanPreferencesKey("rest_sound")
+        val REST_VIBRATION = booleanPreferencesKey("rest_vibration")
     }
 }

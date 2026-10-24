@@ -8,6 +8,7 @@ import com.jaroszeek.gymtracker.domain.routine.RoutineDraft
 import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
 import com.jaroszeek.gymtracker.testing.inMemoryDatabase
 import com.jaroszeek.gymtracker.testing.seeder
+import com.jaroszeek.gymtracker.testing.testPreferences
 import java.io.File
 import java.time.Clock
 import java.time.Instant
@@ -58,7 +59,7 @@ class ActiveWorkoutManagerTest {
     }
 
     private fun TestScope.manager(clock: Clock, scope: CoroutineScope = backgroundScope) =
-        ActiveWorkoutManager(ActiveWorkoutStore(file), workouts, clock, scope, StandardTestDispatcher(testScheduler))
+        ActiveWorkoutManager(ActiveWorkoutStore(file), workouts, testPreferences(backgroundScope, folder.newFolder()), clock, scope, StandardTestDispatcher(testScheduler))
 
     private suspend fun routine(): Routine {
         val bench = exercises.observeAll().first().single { it.name == "Barbell Bench Press - Medium Grip" }

@@ -29,9 +29,11 @@ data class WorkoutVariant(
     val previous: List<PerformedSet> = emptyList(),
     /** Bests from before the workout, captured with [previous]; ticked-off sets are compared with them. */
     val bests: PersonalBests = PersonalBests(),
+    /** The weight the progression adds, from the unit masses are shown in. */
+    val incrementKg: Double = DoubleProgression.DEFAULT_INCREMENT_KG,
 ) {
     /** Double progression suggestion (D-036) for this session. */
-    val progressionKg: Double? get() = targets?.let { DoubleProgression.nextWeight(it, previous) }
+    val progressionKg: Double? get() = targets?.let { DoubleProgression.nextWeight(it, previous, incrementKg) }
 }
 
 /** An exercise of the workout; a routine block with alternatives keeps all of them and one is [selected]. */
@@ -169,8 +171,6 @@ data class ActiveWorkout(
     private fun nextId(): Long = (exercises.flatMap { exercise -> exercise.sets.map { it.id } + exercise.id }.maxOrNull() ?: 0L) + 1
 
     companion object {
-        /** Global default until the setting arrives (Etap 9). */
-        const val DEFAULT_REST_SECONDS = 90
         private const val MILLIS_PER_SECOND = 1_000L
     }
 }

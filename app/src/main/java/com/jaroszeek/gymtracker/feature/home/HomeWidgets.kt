@@ -74,7 +74,7 @@ import com.jaroszeek.gymtracker.feature.progress.shortDate
 import com.jaroszeek.gymtracker.feature.progress.timeLabel
 import com.jaroszeek.gymtracker.feature.progress.weekdayLabel
 import com.jaroszeek.gymtracker.feature.workout.durationLabel
-import com.jaroszeek.gymtracker.feature.workout.volumeLabel
+import com.jaroszeek.gymtracker.feature.routines.massLabel
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -193,7 +193,7 @@ fun HeroCard(streak: Int, week: WeekStats, onClick: () -> Unit, modifier: Modifi
             StatColumn("${week.workouts}", stringResource(R.string.home_week_workouts), Modifier.weight(1f))
             StatColumn(durationLabel(week.durationMillis), stringResource(R.string.summary_duration), Modifier.weight(1f))
             StatColumn("${week.sets}", stringResource(R.string.progress_sets), Modifier.weight(1f))
-            StatColumn(stringResource(R.string.summary_volume_value, volumeLabel(week.volumeKg)), stringResource(R.string.summary_volume), Modifier.weight(1.3f))
+            StatColumn(massLabel(week.volumeKg, decimals = 0), stringResource(R.string.summary_volume), Modifier.weight(1.3f))
         }
     }
 }

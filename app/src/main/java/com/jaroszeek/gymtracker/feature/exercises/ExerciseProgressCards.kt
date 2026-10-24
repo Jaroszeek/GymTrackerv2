@@ -24,12 +24,13 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.domain.progress.ExerciseProgress
 import com.jaroszeek.gymtracker.domain.progress.OneRepMax
-import com.jaroszeek.gymtracker.feature.progress.e1rmLabel
-import com.jaroszeek.gymtracker.feature.progress.rememberKgLabel
+import com.jaroszeek.gymtracker.feature.progress.rememberMassLabel
+import com.jaroszeek.gymtracker.feature.progress.shownIn
 import com.jaroszeek.gymtracker.feature.progress.shortDate
+import com.jaroszeek.gymtracker.feature.routines.LocalWeightUnit
+import com.jaroszeek.gymtracker.feature.routines.massLabel
 import com.jaroszeek.gymtracker.feature.routines.weightLabel
 import com.jaroszeek.gymtracker.feature.workout.setValueLabel
-import com.jaroszeek.gymtracker.feature.workout.volumeLabel
 import java.time.Instant
 import java.time.ZoneId
 import kotlin.math.roundToInt
@@ -68,7 +69,8 @@ internal fun ExerciseChartCard(
         if (metrics.size > 1) {
             GlassSegmentedControl(metrics.map { stringResource(it.label) }, metrics.indexOf(shown), onSelect = { onMetric(metrics[it]) })
         }
-        val points = remember(progress, shown, range) {
+        val unit = LocalWeightUnit.current
+        val points = remember(progress, shown, range, unit) {
             progress.sessions
                 .mapNotNull { session ->
                     when (shown) {
@@ -78,9 +80,10 @@ internal fun ExerciseChartCard(
                     }?.let { ChartPoint(session.time, it) }
                 }
                 .within(range, Instant.now(), ZoneId.systemDefault())
+                .let { if (shown == ExerciseMetric.Reps) it else it.shownIn(unit) }
         }
         val resources = LocalResources.current
-        val kg = rememberKgLabel(decimals = if (shown == ExerciseMetric.E1rm) 1 else 2)
+        val kg = rememberMassLabel(decimals = if (shown == ExerciseMetric.E1rm) 1 else 2)
         GlassLineChart(
             points = points,
             valueLabel = if (shown == ExerciseMetric.Reps) { reps -> resources.getString(R.string.workout_set_value_bodyweight, reps.roundToInt()) } else kg,
@@ -103,19 +106,18 @@ internal fun ExerciseRecordsCard(progress: ExerciseProgress) {
             Text(stringResource(R.string.detail_records_empty), color = colors.textSecondary, style = GtTheme.typography.bodySmall)
             return@GlassCard
         }
-        val kg = rememberKgLabel()
-        records.weight?.let { RecordRow(stringResource(R.string.record_weight), kg(it.value), shortDate(it.time)) }
+        records.weight?.let { RecordRow(stringResource(R.string.record_weight), massLabel(it.value), shortDate(it.time)) }
         records.e1rm?.let { e1rm ->
             val from = records.e1rmFrom
             val brzycki = from?.weightKg?.let { OneRepMax.brzycki(it, from.reps) }
             RecordRow(
                 stringResource(R.string.record_e1rm),
-                stringResource(R.string.value_kg, e1rmLabel(e1rm.value)),
-                brzycki?.let { stringResource(R.string.record_e1rm_from, shortDate(e1rm.time), e1rmLabel(it)) } ?: shortDate(e1rm.time),
+                massLabel(e1rm.value, decimals = 1),
+                brzycki?.let { stringResource(R.string.record_e1rm_from, shortDate(e1rm.time), massLabel(it, decimals = 1)) } ?: shortDate(e1rm.time),
             )
         }
-        records.setVolume?.let { RecordRow(stringResource(R.string.record_set_volume), stringResource(R.string.summary_volume_value, volumeLabel(it.value)), shortDate(it.time)) }
-        records.sessionVolume?.let { RecordRow(stringResource(R.string.record_session_volume), stringResource(R.string.summary_volume_value, volumeLabel(it.value)), shortDate(it.time)) }
+        records.setVolume?.let { RecordRow(stringResource(R.string.record_set_volume), massLabel(it.value, decimals = 0), shortDate(it.time)) }
+        records.sessionVolume?.let { RecordRow(stringResource(R.string.record_session_volume), massLabel(it.value, decimals = 0), shortDate(it.time)) }
         if (records.reps.isNotEmpty()) {
             Text(stringResource(R.string.record_reps), style = GtTheme.typography.label, modifier = Modifier.padding(top = GtSpacing.s))
             records.reps.forEach { reps ->

@@ -63,7 +63,6 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
 private const val DRAGGED_SCALE = 1.03f
-private const val WEIGHT_STEP_KG = 2.5
 private const val REST_STEP_SECONDS = 15.0
 private const val MAX_REPS = 100.0
 private const val MAX_SETS = 20.0
@@ -279,14 +278,15 @@ private fun TargetsForm(exercise: Exercise, targets: RoutineTargets, onChange: (
             modifier = Modifier.weight(1f),
             range = 0.0..MAX_SETS,
         )
+        val unit = LocalWeightUnit.current
         GlassNumberField(
-            value = targets.weightKg,
-            onValueChange = { onChange(targets.copy(weightKg = it)) },
+            value = unit.input(targets.weightKg),
+            onValueChange = { onChange(targets.copy(weightKg = it?.let(unit::toKg))) },
             label = stringResource(R.string.label_weight),
             modifier = Modifier.weight(1f),
-            step = WEIGHT_STEP_KG,
-            decimals = 2,
-            unit = stringResource(R.string.unit_kg),
+            step = unit.step,
+            decimals = MASS_DECIMALS,
+            unit = stringResource(unit.label()),
         )
     }
     Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {

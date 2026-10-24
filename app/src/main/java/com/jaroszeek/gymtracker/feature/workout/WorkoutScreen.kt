@@ -76,10 +76,13 @@ import com.jaroszeek.gymtracker.feature.exercises.ExercisePicker
 import com.jaroszeek.gymtracker.feature.exercises.ExercisesViewModel
 import com.jaroszeek.gymtracker.feature.progress.RecordBadges
 import com.jaroszeek.gymtracker.feature.routines.summary
-import com.jaroszeek.gymtracker.feature.routines.weightLabel
+import com.jaroszeek.gymtracker.feature.routines.LocalWeightUnit
+import com.jaroszeek.gymtracker.feature.routines.MASS_DECIMALS
+import com.jaroszeek.gymtracker.feature.routines.input
+import com.jaroszeek.gymtracker.feature.routines.label
+import com.jaroszeek.gymtracker.feature.routines.massLabel
 import kotlinx.coroutines.delay
 
-private const val WEIGHT_STEP_KG = 2.5
 private const val MAX_REPS = 100.0
 private const val RECORD_HAPTIC_DELAY_MILLIS = 150L
 
@@ -309,7 +312,7 @@ fun ExerciseCard(
                 }
             }
         }
-        variant.progressionKg?.let { GlassBadge(stringResource(R.string.workout_progression, weightLabel(it)), tone = BadgeTone.Accent) }
+        variant.progressionKg?.let { GlassBadge(stringResource(R.string.workout_progression, massLabel(it)), tone = BadgeTone.Accent) }
         exercise.sets.forEachIndexed { index, set ->
             key(set.id) {
                 SetRow(
@@ -385,14 +388,15 @@ private fun SetRow(
         }
         if (expanded) {
             Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
+                val unit = LocalWeightUnit.current
                 GlassNumberField(
-                    value = set.weightKg,
-                    onValueChange = onWeightChange,
+                    value = unit.input(set.weightKg),
+                    onValueChange = { onWeightChange(it?.let(unit::toKg)) },
                     label = stringResource(R.string.workout_label_weight),
                     modifier = Modifier.weight(1f),
-                    step = WEIGHT_STEP_KG,
-                    decimals = 2,
-                    unit = stringResource(R.string.unit_kg),
+                    step = unit.step,
+                    decimals = MASS_DECIMALS,
+                    unit = stringResource(unit.label()),
                     placeholder = stringResource(R.string.number_empty),
                 )
                 GlassNumberField(

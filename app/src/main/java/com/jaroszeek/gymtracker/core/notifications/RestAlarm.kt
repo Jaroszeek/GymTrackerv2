@@ -5,11 +5,14 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.media.RingtoneManager
 import android.os.PowerManager
 import android.os.VibrationAttributes
 import android.os.VibrationEffect
 import android.os.VibratorManager
 import android.util.Log
+import com.jaroszeek.gymtracker.core.datastore.AppPreferences
 import com.jaroszeek.gymtracker.core.di.ApplicationScope
 import com.jaroszeek.gymtracker.data.workout.ActiveWorkoutManager
 import dagger.hilt.EntryPoint
@@ -23,17 +26,19 @@ import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
  * Wakes the device at the end of the rest, also with the screen off (A5.4): an exact alarm when the
- * user allows them, otherwise a partial wake lock held for the rest. At the end it vibrates and ends
- * the rest in the manager, whose own timer stops while the device sleeps.
+ * user allows them, otherwise a partial wake lock held for the rest. At the end it vibrates and plays a
+ * sound as set (A5.9) and ends the rest in the manager, whose own timer stops while the device sleeps.
  */
 @Singleton
 class RestAlarm @Inject constructor(
     @ApplicationContext private val context: Context,
     private val manager: ActiveWorkoutManager,
+    private val preferences: AppPreferences,
     private val clock: Clock,
     @ApplicationScope private val scope: CoroutineScope,
 ) {
@@ -70,14 +75,34 @@ class RestAlarm @Inject constructor(
         }
     }
 
-    /** The rest is over: vibrate (screen off too) and let the workout move on. */
+    /** The rest is over: vibrate and sound as set (screen off too) and let the workout move on. */
     fun ring() {
         Log.i(TAG, "Rest over")
-        context.getSystemService(VibratorManager::class.java).defaultVibrator.vibrate(
-            VibrationEffect.createWaveform(VIBRATION_PATTERN, -1),
-            VibrationAttributes.createForUsage(VibrationAttributes.USAGE_ALARM),
-        )
         manager.endRestIfDue()
+        // The receiver's wake lock covers this short read of the settings
+        scope.launch {
+            val alert = preferences.restAlert.first()
+            if (alert.vibration) {
+                context.getSystemService(VibratorManager::class.java).defaultVibrator.vibrate(
+                    VibrationEffect.createWaveform(VIBRATION_PATTERN, -1),
+                    VibrationAttributes.createForUsage(VibrationAttributes.USAGE_ALARM),
+                )
+            }
+            if (alert.sound) playSound()
+        }
+    }
+
+    /** The default notification sound; silent and Do Not Disturb modes keep it quiet. */
+    private fun playSound() {
+        val ringtone = RingtoneManager.getRingtone(context, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)) ?: run {
+            Log.w(TAG, "No notification sound to play")
+            return
+        }
+        ringtone.audioAttributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+        ringtone.play()
     }
 
     private fun cancel() {
