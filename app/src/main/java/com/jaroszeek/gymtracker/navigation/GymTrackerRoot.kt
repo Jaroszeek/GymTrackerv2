@@ -59,7 +59,8 @@ import com.jaroszeek.gymtracker.feature.routines.RoutineEditorRoute
 import com.jaroszeek.gymtracker.feature.routines.RoutineEditorViewModel
 import com.jaroszeek.gymtracker.feature.routines.RoutinesRoute
 import com.jaroszeek.gymtracker.feature.routines.TemplatesRoute
-import com.jaroszeek.gymtracker.feature.settings.SettingsScreen
+import com.jaroszeek.gymtracker.feature.settings.LicensesRoute
+import com.jaroszeek.gymtracker.feature.settings.SettingsRoute
 import com.jaroszeek.gymtracker.feature.workout.NotificationPrompt
 import com.jaroszeek.gymtracker.feature.workout.WorkoutBarViewModel
 import com.jaroszeek.gymtracker.feature.workout.WorkoutMiniBar
@@ -258,12 +259,15 @@ private fun entryProvider(navigator: TabNavigator): (NavKey) -> NavEntry<NavKey>
             ProfileRoute(onSettings = { navigator.navigate(SettingsKey) }, onHealthConnect = { navigator.navigate(HealthConnectKey) })
         }
         SettingsKey -> NavEntry(key) {
-            SettingsScreen(
+            SettingsRoute(
+                viewModel = hiltViewModel(),
                 onBack = navigator::back,
                 onHealthConnect = { navigator.navigate(HealthConnectKey) },
                 onDiagnostics = { navigator.navigate(LiveUpdateDiagnosticsKey) },
+                onLicenses = { navigator.navigate(LicensesKey) },
             )
         }
+        LicensesKey -> NavEntry(key) { LicensesRoute(viewModel = hiltViewModel(), onBack = navigator::back) }
         HealthConnectKey -> NavEntry(key) {
             HealthConnectRoute(viewModel = hiltViewModel(), onBack = navigator::back, onPrivacy = { navigator.navigate(PrivacyPolicyKey) })
         }

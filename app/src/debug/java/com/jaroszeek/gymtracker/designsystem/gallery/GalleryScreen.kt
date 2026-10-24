@@ -3,6 +3,11 @@ package com.jaroszeek.gymtracker.designsystem.gallery
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +42,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -44,7 +50,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import com.jaroszeek.gymtracker.R
 import com.jaroszeek.gymtracker.designsystem.component.BadgeTone
+import com.jaroszeek.gymtracker.designsystem.component.ChartPoint
+import com.jaroszeek.gymtracker.designsystem.component.ChartRange
+import com.jaroszeek.gymtracker.designsystem.component.ChartRangeSelector
 import com.jaroszeek.gymtracker.designsystem.component.GlassBadge
+import com.jaroszeek.gymtracker.designsystem.component.GlassBar
+import com.jaroszeek.gymtracker.designsystem.component.GlassBarChart
 import com.jaroszeek.gymtracker.designsystem.component.GlassBottomSheet
 import com.jaroszeek.gymtracker.designsystem.component.GlassButton
 import com.jaroszeek.gymtracker.designsystem.component.GlassButtonStyle
@@ -53,19 +64,24 @@ import com.jaroszeek.gymtracker.designsystem.component.GlassChip
 import com.jaroszeek.gymtracker.designsystem.component.GlassDialog
 import com.jaroszeek.gymtracker.designsystem.component.GlassFullScreenOverlay
 import com.jaroszeek.gymtracker.designsystem.component.GlassIconButton
+import com.jaroszeek.gymtracker.designsystem.component.GlassLineChart
 import com.jaroszeek.gymtracker.designsystem.component.GlassMiniBar
-import com.jaroszeek.gymtracker.designsystem.component.GlassProgressRing
 import com.jaroszeek.gymtracker.designsystem.component.GlassNavBar
 import com.jaroszeek.gymtracker.designsystem.component.GlassNavItem
 import com.jaroszeek.gymtracker.designsystem.component.GlassNumberField
 import com.jaroszeek.gymtracker.designsystem.component.GlassPanel
+import com.jaroszeek.gymtracker.designsystem.component.GlassProgressRing
 import com.jaroszeek.gymtracker.designsystem.component.GlassScaffold
 import com.jaroszeek.gymtracker.designsystem.component.GlassSearchField
+import com.jaroszeek.gymtracker.designsystem.component.GlassSegmentedControl
+import com.jaroszeek.gymtracker.designsystem.component.GlassSparkline
+import com.jaroszeek.gymtracker.designsystem.component.GlassSwatch
 import com.jaroszeek.gymtracker.designsystem.component.GlassSwitch
 import com.jaroszeek.gymtracker.designsystem.component.GlassTextField
 import com.jaroszeek.gymtracker.designsystem.component.GlassTopBar
 import com.jaroszeek.gymtracker.designsystem.component.HideOnScrollState
 import com.jaroszeek.gymtracker.designsystem.component.navBarContentPadding
+import com.jaroszeek.gymtracker.designsystem.component.within
 import com.jaroszeek.gymtracker.designsystem.theme.GtPalette
 import com.jaroszeek.gymtracker.designsystem.theme.GtShapes
 import com.jaroszeek.gymtracker.designsystem.theme.GtSizes
@@ -73,21 +89,7 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.ThemeMode
 import com.jaroszeek.gymtracker.designsystem.theme.ThemeSettings
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.ui.platform.LocalResources
-import com.jaroszeek.gymtracker.designsystem.component.ChartPoint
-import com.jaroszeek.gymtracker.designsystem.component.ChartRange
-import com.jaroszeek.gymtracker.designsystem.component.ChartRangeSelector
-import com.jaroszeek.gymtracker.designsystem.component.GlassBar
-import com.jaroszeek.gymtracker.designsystem.component.GlassBarChart
-import com.jaroszeek.gymtracker.designsystem.component.GlassLineChart
-import com.jaroszeek.gymtracker.designsystem.component.GlassSparkline
-import com.jaroszeek.gymtracker.designsystem.component.GlassSegmentedControl
-import com.jaroszeek.gymtracker.designsystem.component.within
+import com.jaroszeek.gymtracker.designsystem.theme.gtColors
 import com.jaroszeek.gymtracker.feature.progress.weekdayLabel
 import com.jaroszeek.gymtracker.feature.routines.weightLabel
 import java.time.DayOfWeek
@@ -224,9 +226,14 @@ private fun LazyListScope.section(title: Int, content: @Composable () -> Unit) {
 @Composable
 private fun ThemeControls(settings: ThemeSettings, onChange: (ThemeSettings) -> Unit) {
     GlassCard(Modifier.fillMaxWidth()) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+        FlowRow {
             GtPalette.entries.forEach { palette ->
-                GlassChip(palette.name, selected = settings.palette == palette, onClick = { onChange(settings.copy(palette = palette)) })
+                GlassSwatch(
+                    gtColors(palette, GtTheme.colors.isDark).accent,
+                    selected = settings.palette == palette,
+                    onClick = { onChange(settings.copy(palette = palette)) },
+                    label = palette.name,
+                )
             }
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
