@@ -14,12 +14,23 @@
 | 7 | Health Connect | ✅ zaakceptowany (2026-10-20), wydanie `preview-stage-7`, sprawdzony na telefonie (2026-10-23) |
 | 8 | Start i Profil | ✅ zaakceptowany (2026-10-24), wydanie `preview-stage-8`, sprawdzony na telefonie (2026-10-23) |
 | 9 | Ustawienia i kopia zapasowa | ✅ zaakceptowany (2026-10-24), wydanie `preview-stage-9`; czeka na test na telefonie |
-| 10 | Szlif, wydajność, QA | 🟡 PR #10 otwarty, poprawki designu, ikona A, tętno w ćwiczeniu i automatyczne łączenie z zegarkiem wdrożone; czeka na akceptację |
-| 11 | Wydanie i aktualizator | — |
+| 10 | Szlif, wydajność, QA | ✅ zaakceptowany (2026-10-24), wydania `preview-stage-10`, `10.1`, `10.2`; czeka na test na telefonie |
+| 11 | Wydanie i aktualizator | 🟡 PR otwarty, czeka na akceptację; potem klucz i sekrety od właściciela, v1.0.0 i test v1.0.1 na telefonie |
 
 ## Bieżący stan
 
-- **Etap 10** (branch `feat/stage-10-polish`) gotowy do przeglądu.
+- **Etap 11** (branch `feat/stage-11-release`) gotowy do przeglądu.
+  - Zrobione:
+    - wersja z tagu (`-PappVersion`, D-085), podpis release z `keystore.properties` albo sekretów CI (D-086);
+    - `.github/workflows/release.yml` na tag `vX.Y.Z` z opisem z `CHANGELOG.md` (D-087); `CHANGELOG.md` z sekcją 1.0.0;
+    - aktualizator (A5.11): sprawdzanie przy starcie co 24 h i ręcznie, dialog z notatkami, pobranie, weryfikacja podpisu, instalacja przez `PackageInstaller`, zgoda „Instaluj nieznane aplikacje” (D-088, D-090); karta w Ustawieniach;
+    - uprawnienie `REQUEST_INSTALL_PACKAGES` (D-089, do akceptacji);
+    - testy porównania wersji, terminu sprawdzania, notatek i parsowania odpowiedzi GitHuba;
+    - finalne README (A9): zrzuty, instalacja APK, przeniesienie danych z wersji testowej, wydawanie wersji z `keytool` i `gh secret set`.
+  - Sprawdzone na emulatorze (API 36, buildy `benchmark` z lokalnym serwerem): aktualizacja 1.0.0 → 1.0.1 → 1.0.2 z poziomu aplikacji, dane zostają; zgoda na instalację, potwierdzenie systemu i jego anulowanie, odrzucenie APK z innym kluczem, „Masz najnowszą wersję”, brak sieci; motyw ciemny i jasny.
+  - Sprawdzone lokalnie: `assembleRelease` bez klucza (niepodpisany) i z jednorazowym kluczem testowym (podpisany, `apksigner`). Workflow wydania jeszcze nie działał na GitHubie (pierwszy przebieg przy v1.0.0).
+  - Testy: JVM 305/305, UI 6/6 na emulatorze API 36, lint 0 błędów (1 znane ostrzeżenie o targetSdk 36).
+- **Etap 10** zaakceptowany i zmergowany (PR #10, 2026-10-24). Wydania testowe `preview-stage-10`, `10.1`, `10.2`.
   - Zrobione:
     - Baseline Profile z osobnym profilem startu (D-079); zimny start na emulatorze: mediana 696 ms z profilem i 754 ms bez;
     - pomiar przewijania historii z rozmyciem i bez: rozmycie nie dodaje mierzalnego kosztu (D-079);
@@ -86,7 +97,7 @@
   - Sprawdzone na emulatorze (D-050): promocja `FLAG_PROMOTED_ONGOING` na 36.1, akcje z panelu, wibracja na koniec przerwy przy wygaszonym ekranie (także w Doze), odliczanie na ekranie blokady, brak osieroconych powiadomień po `kill -9`, odtworzenie po powrocie. Testy: JVM 99/99, UI 4/4 (36.0), test powiadomienia 3/3 (36.1), lint 0 błędów.
   - Wydanie testowe `preview-stage-5` (pre-release z APK debug, D-051) na prośbę właściciela.
 - **Tryb pracy:** plan etapu nie czeka na akceptację (D-032), akceptacja na PR.
-- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-084).
+- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-090).
 - **Środowisko:**
   - Android Studio 2026.2.1 w `C:\Program Files\Android\Android Studio1` (JBR 25). Gdy `java` z PATH nie startuje, ustaw `$env:JAVA_HOME` na JBR.
   - `adb`: `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe`.
@@ -96,6 +107,18 @@
   - Test UI: `.\gradlew.bat :app:connectedDebugAndroidTest` (D-042).
   - Gdy emulator przestaje rysować (czarny ekran, tapnięcia bez reakcji, w logu `lowmemorykiller … device is not responding` i ANR „no focused window”), pomaga zimny start: `adb emu kill`, potem `emulator -avd gt-api36 -no-snapshot-load`.
 - **vynox:** sklonowany do `%TEMP%\vynox-ref`, tylko do odczytu.
+
+## Etap 11 — test na telefonie
+
+Najpierw jednorazowo (README, „Wydawanie wersji”): keystore, `keystore.properties`, kopia zapasowa klucza i hasła, cztery sekrety `gh secret set`.
+
+1. Po akceptacji etapu: merge, tag `v1.0.0`, workflow „Release” zielony, w wydaniu plik `GymTracker-1.0.0.apk`.
+2. Na telefonie pobierz `GymTracker-1.0.0.apk` z Releases i zainstaluj. Aplikacja „GymTracker” instaluje się obok „GymTracker Debug”.
+3. Przeniesienie danych: w „GymTracker Debug” Ustawienia → Dane → „Eksportuj kopię”, w „GymTracker” → „Importuj kopię” z tym plikiem. Wygląd i Health Connect ustaw ponownie.
+4. Ustawienia → Aktualizacje → „Sprawdź teraz”: „Masz najnowszą wersję…”. O aplikacji: „Wersja 1.0.0”.
+5. Potem testowe v1.0.1 (sekcja w `CHANGELOG.md`, tag). Na telefonie „Sprawdź teraz” (automatycznie najwcześniej 24 h po poprzednim sprawdzeniu): dialog „Nowa wersja 1.0.1” z notatkami → „Aktualizuj” → „Otwórz ustawienia” → „Zezwalaj z tego źródła” → wstecz → pobieranie → systemowe „Zaktualizować tę aplikację?” → „Aktualizuj”. Aplikacja się zamyka; po otwarciu „Wersja 1.0.1” i te same dane.
+6. One UI: jeśli Samsung pokaże ostrzeżenie Auto Blocker albo ochrony przed nieznanymi aplikacjami, zanotuj jego treść (może blokować instalację spoza sklepu).
+7. Do raportu: zrzut dialogu nowej wersji i wszystko, co odbiega od kroków 4–5.
 
 ## Etap 10 — test na telefonie
 
@@ -183,6 +206,7 @@
 
 ## Następny krok
 
-- Akceptacja Etapu 10 (PR #10) i merge.
-- Potem Etap 11 — Wydanie i aktualizator.
-- Wyniki testów Etapów 9–10 na telefonie (wyżej), gdy właściciel je przekaże.
+- Akceptacja Etapu 11 i merge.
+- Właściciel: keystore, `keystore.properties`, kopia zapasowa, sekrety (README).
+- Potem tag `v1.0.0` (pierwszy Release) i testowe `v1.0.1` do sprawdzenia aktualizacji na telefonie (wyżej).
+- Wyniki testów Etapów 9–10 na telefonie, gdy właściciel je przekaże.
