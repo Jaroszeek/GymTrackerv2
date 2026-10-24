@@ -125,7 +125,7 @@ class WorkoutNotifications @Inject constructor(@ApplicationContext private val c
         0,
         Intent(context, MainActivity::class.java)
             .setAction(MainActivity.ACTION_OPEN_WORKOUT)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
 

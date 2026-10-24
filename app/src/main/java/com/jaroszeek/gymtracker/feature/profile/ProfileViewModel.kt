@@ -30,6 +30,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -160,9 +161,10 @@ class ProfileViewModel @Inject constructor(
     fun onAddDismiss() = local.update { it.copy(adding = null) }
 
     fun onAddSave() {
+        if (saving?.isActive == true) return
         val adding = local.value.adding ?: return
         val value = adding.value?.let { adding.metric.fromInput(it, adding.unit) } ?: return
-        viewModelScope.launch {
+        saving = viewModelScope.launch {
             val saved = try {
                 body.add(adding.metric, value)
             } catch (e: CancellationException) {
@@ -174,6 +176,8 @@ class ProfileViewModel @Inject constructor(
             local.update { if (saved) it.copy(adding = null) else it.copy(adding = it.adding?.copy(invalid = true)) }
         }
     }
+
+    private var saving: Job? = null
 
     fun onDeleteRequest(measurement: BodyMeasurement) = local.update { it.copy(confirmDelete = measurement) }
 

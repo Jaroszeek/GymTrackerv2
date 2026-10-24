@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 
 data class WorkoutEditorUiState(
     val loading: Boolean = true,
-    val notFound: Boolean = false,
+    val loadFailed: Boolean = false,
     val draft: LoggedWorkout? = null,
     val dirty: Boolean = false,
     val exercises: Map<Long, Exercise> = emptyMap(),
@@ -68,11 +68,11 @@ class WorkoutEditorViewModel @AssistedInject constructor(
         viewModelScope.launch {
             try {
                 saved = workouts.observeWorkout(id).first()
-                local.update { it.copy(loading = false, notFound = saved == null, draft = saved) }
+                local.update { it.copy(loading = false, draft = saved) }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 Log.e(TAG, "Loading workout $id failed", e)
-                local.update { it.copy(loading = false, notFound = true) }
+                local.update { it.copy(loading = false, loadFailed = true) }
             }
         }
     }

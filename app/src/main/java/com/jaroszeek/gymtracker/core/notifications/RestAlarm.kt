@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
+import android.media.Ringtone
 import android.media.RingtoneManager
 import android.os.PowerManager
 import android.os.VibrationAttributes
@@ -46,6 +47,7 @@ class RestAlarm @Inject constructor(
     private val power = context.getSystemService(PowerManager::class.java)
     private var scheduledAt: Long? = null
     private var timer: Job? = null
+    private var playing: Ringtone? = null
 
     /** Follows the rest of the running workout; [endsAt] is null when there is none. */
     @Synchronized
@@ -76,10 +78,8 @@ class RestAlarm @Inject constructor(
         }
     }
 
-    /** The exact alarm went off; the receiver's wake lock covers the short read of the settings. */
-    fun ring() {
-        scope.launch { alert() }
-    }
+    /** The exact alarm went off; the receiver waits for the returned job. */
+    fun ring(): Job = scope.launch { alert() }
 
     /** The rest is over: vibrate and sound as set (screen off too) and let the workout move on. */
     private suspend fun alert() {
@@ -106,6 +106,8 @@ class RestAlarm @Inject constructor(
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
         ringtone.play()
+        // Held, so the player is not collected while it plays
+        playing = ringtone
     }
 
     private fun cancel() {
@@ -143,7 +145,9 @@ class RestAlarmReceiver : BroadcastReceiver() {
         context.getSystemService(PowerManager::class.java)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "GymTracker:restEnd")
             .acquire(UPDATE_WAKE_MILLIS)
-        EntryPointAccessors.fromApplication(context, Dependencies::class.java).restAlarm().ring()
+        // A process started for the alarm is kept until the alert has gone out
+        val pending = goAsync()
+        EntryPointAccessors.fromApplication(context, Dependencies::class.java).restAlarm().ring().invokeOnCompletion { pending.finish() }
     }
 
     private companion object {

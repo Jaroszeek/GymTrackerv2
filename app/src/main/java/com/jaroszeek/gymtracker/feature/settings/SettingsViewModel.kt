@@ -68,7 +68,7 @@ data class SettingsUiState(
 class SettingsViewModel @Inject constructor(
     private val preferences: AppPreferences,
     private val backup: BackupManager,
-    workout: ActiveWorkoutManager,
+    private val workout: ActiveWorkoutManager,
     @ApplicationContext private val context: Context,
     @IoDispatcher private val io: CoroutineDispatcher,
 ) : ViewModel() {
@@ -124,9 +124,14 @@ class SettingsViewModel @Inject constructor(
 
     /** [uri] from the system's file picker. */
     fun onImport(uri: Uri) {
-        if (state.value?.workoutActive != false) return
         backupState.value = BackupState.Checking
         viewModelScope.launch {
+            // In a process started again for the picked file, the workout may not be read back yet
+            workout.ready.first { it }
+            if (workout.workout.value != null) {
+                backupState.value = BackupState.Idle
+                return@launch
+            }
             val inspection = try {
                 withContext(io) { context.contentResolver.openInputStream(uri)?.use { backup.inspect(it) } }
                     ?: Inspection.Rejected(Rejection.NotABackup)

@@ -17,6 +17,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -139,8 +140,11 @@ class ActiveWorkoutManager @Inject constructor(
         val workout = _workout.value ?: return null
         val endedAt = clock.millis()
         // ponytail: process death between the insert and clearing the file brings the workout back once; add an idempotency key if that ever bites
-        workouts.save(workout, endedAt)
-        end()
+        // Leaving the screen right after "Zakończ" must not keep a saved workout running, or it would be saved again
+        withContext(NonCancellable) {
+            workouts.save(workout, endedAt)
+            end()
+        }
         return FinishedWorkout(workout, endedAt)
     }
 
