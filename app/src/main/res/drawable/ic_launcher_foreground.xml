@@ -1,17 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Temporary icon (Stage 1): Material Symbols "fitness_center", final icon in Stage 10 -->
+<!-- Launcher icon "Pierścień" (D-080): a weight plate seen from the front that is also a progress ring -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <group
-        android:scaleX="0.05"
-        android:scaleY="0.05"
-        android:translateX="30"
-        android:translateY="78">
-        <path
-            android:fillColor="@color/brand_accent"
-            android:pathData="M282-622 168-508q-11 11-27.5 11.5T112-508q-11-11-11.5-27.5T111-564l29-30-28-28q-12-12-12-28t12-28l56-56-29-30q-11-11-11-27.5t12-28.5q11-11 27.5-11.5T196-821l30 29 56-56q12-12 28-12t28 12l28 28 30-29q11-11 27.5-11t28.5 12q11 11 11 28t-11 28L338-678l340 340 114-114q11-11 27.5-11.5T848-452q11 11 11.5 27.5T849-396l-29 30 28 28q12 12 12 28t-12 28l-56 56 29 30q11 11 11 27.5T820-140q-11 11-27.5 11.5T764-139l-30-29-56 56q-12 12-28 12t-28-12l-28-28-30 29q-11 11-27.5 11T508-112q-11-11-11-28t11-28l114-114-340-340Z" />
-    </group>
+    <path
+        android:name="ring"
+        android:pathData="M54,32.5 A21.5,21.5 0 1,1 33.8,46.65"
+        android:strokeWidth="11"
+        android:strokeLineCap="round">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:endX="54"
+                android:endY="80"
+                android:startX="54"
+                android:startY="28"
+                android:type="linear">
+                <item android:color="#FFE6FF8F" android:offset="0" />
+                <item android:color="#FFC6F135" android:offset="0.45" />
+                <item android:color="#FF9CC21C" android:offset="1" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:fillColor="#FFC6F135"
+        android:pathData="M48.5,54a5.5,5.5 0 1,0 11,0a5.5,5.5 0 1,0 -11,0" />
 </vector>

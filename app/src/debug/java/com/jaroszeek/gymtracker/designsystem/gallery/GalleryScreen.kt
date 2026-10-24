@@ -76,7 +76,7 @@ import com.jaroszeek.gymtracker.designsystem.component.GlassSearchField
 import com.jaroszeek.gymtracker.designsystem.component.GlassSegmentedControl
 import com.jaroszeek.gymtracker.designsystem.component.GlassSparkline
 import com.jaroszeek.gymtracker.designsystem.component.GlassSwatch
-import com.jaroszeek.gymtracker.designsystem.component.GlassSwitch
+import com.jaroszeek.gymtracker.designsystem.component.GlassSwitchRow
 import com.jaroszeek.gymtracker.designsystem.component.GlassTextField
 import com.jaroszeek.gymtracker.designsystem.component.GlassTopBar
 import com.jaroszeek.gymtracker.designsystem.component.HideOnScrollState
@@ -180,6 +180,7 @@ fun GalleryScreen(settings: ThemeSettings, onSettingsChange: (ThemeSettings) -> 
             ),
             verticalArrangement = Arrangement.spacedBy(GtSpacing.xl),
         ) {
+            section(R.string.gallery_section_icon) { IconProposals() }
             section(R.string.gallery_section_theme) { ThemeControls(settings, onSettingsChange) }
             section(R.string.gallery_section_colors) { Swatches() }
             section(R.string.gallery_section_type) { TypeSamples() }
@@ -260,12 +261,8 @@ private fun ThemeMode.label() = when (this) {
 }
 
 @Composable
-private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, Modifier.weight(1f), style = GtTheme.typography.body)
-        GlassSwitch(checked, onChange)
-    }
-}
+private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) =
+    GlassSwitchRow(label, checked, onChange, Modifier.fillMaxWidth(), titleStyle = GtTheme.typography.body)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
