@@ -20,7 +20,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +35,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -75,12 +76,12 @@ import com.jaroszeek.gymtracker.feature.exercises.ExerciseImage
 import com.jaroszeek.gymtracker.feature.exercises.ExercisePicker
 import com.jaroszeek.gymtracker.feature.exercises.ExercisesViewModel
 import com.jaroszeek.gymtracker.feature.progress.RecordBadges
-import com.jaroszeek.gymtracker.feature.routines.summary
 import com.jaroszeek.gymtracker.feature.routines.LocalWeightUnit
 import com.jaroszeek.gymtracker.feature.routines.MASS_DECIMALS
 import com.jaroszeek.gymtracker.feature.routines.input
 import com.jaroszeek.gymtracker.feature.routines.label
 import com.jaroszeek.gymtracker.feature.routines.massLabel
+import com.jaroszeek.gymtracker.feature.routines.summary
 import kotlinx.coroutines.delay
 
 private const val MAX_REPS = 100.0
@@ -260,7 +261,7 @@ private fun WorkoutContent(
 fun WorkoutHeader(workout: ActiveWorkout, restHidden: Boolean, onShowRest: () -> Unit, modifier: Modifier = Modifier) {
     val colors = GtTheme.colors
     Column(modifier, verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
-        Text(workout.name, style = GtTheme.typography.displaySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Text(workout.name, Modifier.semantics { heading() }, style = GtTheme.typography.displaySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
             Text(durationLabel(rememberNow() - workout.startedAt), style = GtTheme.typography.numberM)
             Text(stringResource(R.string.workout_progress, workout.doneSets, workout.totalSets), color = colors.textSecondary, style = GtTheme.typography.label)
@@ -306,9 +307,14 @@ fun ExerciseCard(
             }
         }
         if (exercise.variants.size > 1) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+            FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
                 exercise.variants.forEachIndexed { index, option ->
-                    GlassChip(exercises[option.exerciseId]?.name.orEmpty(), selected = index == exercise.selected, onClick = { onSelectVariant(index) })
+                    GlassChip(
+                        exercises[option.exerciseId]?.name.orEmpty(),
+                        selected = index == exercise.selected,
+                        onClick = { onSelectVariant(index) },
+                        role = Role.RadioButton,
+                    )
                 }
             }
         }
@@ -369,7 +375,7 @@ private fun SetRow(
             Column(
                 Modifier
                     .weight(1f)
-                    .then(if (!expanded && !set.done) Modifier.clickable(onClick = onExpand) else Modifier),
+                    .then(if (!expanded && !set.done) Modifier.clickable(role = Role.Button, onClick = onExpand) else Modifier),
             ) {
                 Text(title, color = if (set.done || expanded) colors.textPrimary else colors.textSecondary, style = GtTheme.typography.label)
                 if (details.isNotEmpty()) Text(details, color = colors.textTertiary, style = GtTheme.typography.labelSmall)
@@ -454,7 +460,7 @@ internal fun SetBadge(number: Int, done: Boolean, onClick: () -> Unit) {
         Box(
             Modifier
                 .size(GtSizes.SetBadge)
-                .clip(CircleShape)
+                .clip(GtShapes.Pill)
                 .background(if (done) colors.accent.copy(alpha = GtAlpha.ACCENT_WASH) else colors.surfaceRaised),
             contentAlignment = Alignment.Center,
         ) {
@@ -468,8 +474,10 @@ internal fun SetBadge(number: Int, done: Boolean, onClick: () -> Unit) {
 internal fun SetActions(number: Int, type: SetType, lastSet: Boolean, onType: (SetType) -> Unit, onDelete: () -> Unit) {
     Text(stringResource(R.string.workout_set_number, number), style = GtTheme.typography.headline)
     Text(stringResource(R.string.workout_set_type), color = GtTheme.colors.textSecondary, style = GtTheme.typography.label)
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
-        SetType.entries.forEach { option -> GlassChip(stringResource(option.label()), selected = type == option, onClick = { onType(option) }) }
+    FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+        SetType.entries.forEach { option ->
+            GlassChip(stringResource(option.label()), selected = type == option, onClick = { onType(option) }, role = Role.RadioButton)
+        }
     }
     GlassButton(
         stringResource(R.string.workout_set_delete),

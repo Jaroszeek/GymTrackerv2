@@ -199,6 +199,7 @@
     <string name="label_reps_max">Powtórzenia do</string>
     <string name="label_rest">Przerwa</string>
     <string name="unit_seconds">s</string>
+    <string name="rest_seconds">%1$d s</string>
     <string name="targets_weight_hint">Puste pole = bez ciężaru docelowego</string>
     <string name="targets_rest_hint">Puste pole = przerwa domyślna</string>
 
@@ -374,6 +375,7 @@
 
     <!-- Workout from history -->
     <string name="workout_detail_not_found">Tego treningu już nie ma.</string>
+    <string name="workout_editor_error">Nie udało się wczytać treningu.</string>
     <string name="workout_detail_time">%1$s–%2$s</string>
     <string name="delete_workout_title">Usunąć trening?</string>
     <string name="delete_workout_text">Trening zniknie z historii, a rekordy i wykresy przeliczą się bez niego.</string>
@@ -719,6 +721,7 @@
     <!-- Date, time and source of a measurement -->
     <string name="profile_measurement_meta">%1$s %2$s • %3$s</string>
     <string name="profile_delete_title">Usunąć pomiar?</string>
+    <string name="profile_delete_entry">Usuń: %1$s z %2$s</string>
     <string name="profile_delete_text">%1$s z %2$s zniknie z profilu i wykresów.</string>
     <string name="profile_kcal_title">Kalorie</string>
     <string name="profile_kcal_active">Aktywne</string>

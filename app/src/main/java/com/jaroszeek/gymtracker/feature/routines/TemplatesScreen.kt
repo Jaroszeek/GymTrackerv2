@@ -23,6 +23,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -117,7 +119,7 @@ fun TemplatesScreen(state: TemplatesUiState, onBack: () -> Unit, onAdd: (Routine
         item(key = "header") {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
                 GlassIconButton(R.drawable.ic_arrow_back, stringResource(R.string.action_back), onClick = onBack)
-                Text(stringResource(R.string.templates_title), style = GtTheme.typography.headline)
+                Text(stringResource(R.string.templates_title), Modifier.semantics { heading() }, style = GtTheme.typography.headline)
             }
         }
         if (state.error) {
@@ -129,7 +131,7 @@ fun TemplatesScreen(state: TemplatesUiState, onBack: () -> Unit, onAdd: (Routine
         }
         items(state.templates, key = { it.id }) { template ->
             GlassCard(Modifier.fillMaxWidth()) {
-                Text(template.name, style = GtTheme.typography.headline)
+                Text(template.name, Modifier.semantics { heading() }, style = GtTheme.typography.headline)
                 template.description()?.let { Text(stringResource(it), color = colors.textSecondary, style = GtTheme.typography.body) }
                 template.routines.forEach { routine ->
                     Column(Modifier.padding(top = GtSpacing.s), verticalArrangement = Arrangement.spacedBy(GtSpacing.xxs)) {

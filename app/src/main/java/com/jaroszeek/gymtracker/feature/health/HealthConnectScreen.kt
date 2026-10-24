@@ -26,6 +26,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,7 +48,7 @@ import com.jaroszeek.gymtracker.designsystem.component.GlassDialog
 import com.jaroszeek.gymtracker.designsystem.component.GlassIconButton
 import com.jaroszeek.gymtracker.designsystem.component.GlassNumberField
 import com.jaroszeek.gymtracker.designsystem.component.GlassScaffold
-import com.jaroszeek.gymtracker.designsystem.component.GlassSwitch
+import com.jaroszeek.gymtracker.designsystem.component.GlassSwitchRow
 import com.jaroszeek.gymtracker.designsystem.component.navBarContentPadding
 import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
@@ -128,7 +131,7 @@ fun HealthConnectScreen(
         item(key = "header") {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
                 GlassIconButton(R.drawable.ic_arrow_back, stringResource(R.string.action_back), onClick = onBack)
-                Text(stringResource(R.string.health_title), style = GtTheme.typography.headline)
+                Text(stringResource(R.string.health_title), Modifier.semantics { heading() }, style = GtTheme.typography.headline)
             }
         }
         item(key = "intro") {
@@ -326,15 +329,13 @@ private fun SwitchRow(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     titleStyle: Boolean = false,
-) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
-            Text(stringResource(title), style = if (titleStyle) GtTheme.typography.title else GtTheme.typography.label)
-            if (text != null) Text(stringResource(text), color = GtTheme.colors.textSecondary, style = GtTheme.typography.bodySmall)
-        }
-        GlassSwitch(checked = checked, onCheckedChange = onCheckedChange)
-    }
-}
+) = GlassSwitchRow(
+    stringResource(title),
+    checked,
+    onCheckedChange,
+    text = text?.let { stringResource(it) },
+    titleStyle = if (titleStyle) GtTheme.typography.title else GtTheme.typography.label,
+)
 
 @Composable
 private fun Denied() {
@@ -378,7 +379,7 @@ private fun ZonesCard(state: HealthConnectUiState, onAge: (Int?) -> Unit, onMaxH
 @Composable
 fun HealthConnectEntry(onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = GtTheme.colors
-    GlassCard(modifier.fillMaxWidth().clickable(onClick = onClick)) {
+    GlassCard(modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onClick)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
             Icon(painterResource(R.drawable.ic_favorite), contentDescription = null, tint = colors.accentText)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {

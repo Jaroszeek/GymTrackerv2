@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -73,8 +74,8 @@ import com.jaroszeek.gymtracker.feature.progress.monthLabel
 import com.jaroszeek.gymtracker.feature.progress.shortDate
 import com.jaroszeek.gymtracker.feature.progress.timeLabel
 import com.jaroszeek.gymtracker.feature.progress.weekdayLabel
-import com.jaroszeek.gymtracker.feature.workout.durationLabel
 import com.jaroszeek.gymtracker.feature.routines.massLabel
+import com.jaroszeek.gymtracker.feature.workout.durationLabel
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -92,7 +93,7 @@ private fun WidgetCard(
     trailing: @Composable RowScope.() -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    GlassCard(modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)) {
+    GlassCard(modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
             Icon(painterResource(icon), contentDescription = null, Modifier.size(GtSizes.IconSmall), tint = GtTheme.colors.accentText)
             Text(title, Modifier.weight(1f), style = GtTheme.typography.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -230,7 +231,7 @@ fun RecordsCard(records: List<ExerciseRecords>, onOpen: (Long) -> Unit, modifier
                 Modifier
                     .fillMaxWidth()
                     .clip(GtShapes.Small)
-                    .clickable { onOpen(record.workoutId) }
+                    .clickable(role = Role.Button) { onOpen(record.workoutId) }
                     .padding(vertical = GtSpacing.xs),
                 verticalArrangement = Arrangement.spacedBy(GtSpacing.xs),
             ) {

@@ -31,6 +31,9 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -238,7 +241,7 @@ private fun ReorderableCollectionItemScope.BlockCard(
                 Row(
                     Modifier
                         .weight(1f)
-                        .clickable { onEditTargets(variant.id) },
+                        .clickable(role = Role.Button) { onEditTargets(variant.id) },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(GtSpacing.m),
                 ) {
@@ -269,7 +272,7 @@ private fun ReorderableCollectionItemScope.BlockCard(
 @Composable
 private fun TargetsForm(exercise: Exercise, targets: RoutineTargets, onChange: (RoutineTargets) -> Unit, onDone: () -> Unit) {
     val colors = GtTheme.colors
-    Text(exercise.name, style = GtTheme.typography.headline, maxLines = 2, overflow = TextOverflow.Ellipsis)
+    Text(exercise.name, Modifier.semantics { heading() }, style = GtTheme.typography.headline, maxLines = 2, overflow = TextOverflow.Ellipsis)
     Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
         GlassNumberField(
             value = targets.sets.toDouble(),

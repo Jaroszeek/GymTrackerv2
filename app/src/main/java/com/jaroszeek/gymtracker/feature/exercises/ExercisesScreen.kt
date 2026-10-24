@@ -28,6 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -110,9 +113,9 @@ fun ExercisesScreen(
                 ) {
                     if (pickerTitle != null) {
                         if (onBack != null) GlassIconButton(R.drawable.ic_arrow_back, stringResource(R.string.action_back), onClick = onBack)
-                        Text(pickerTitle, Modifier.weight(1f), style = GtTheme.typography.headline)
+                        Text(pickerTitle, Modifier.weight(1f).semantics { heading() }, style = GtTheme.typography.headline)
                     } else {
-                        Text(stringResource(R.string.nav_exercises), Modifier.weight(1f), style = GtTheme.typography.display)
+                        Text(stringResource(R.string.nav_exercises), Modifier.weight(1f).semantics { heading() }, style = GtTheme.typography.display)
                     }
                     if (state is ExercisesUiState.Content) {
                         Text(
@@ -193,7 +196,7 @@ private fun ExerciseRow(exercise: Exercise, onClick: () -> Unit, modifier: Modif
             .fillMaxWidth()
             .clip(GtShapes.Medium)
             .background(colors.surface)
-            .clickable(onClick = onClick)
+            .clickable(role = Role.Button, onClick = onClick)
             .padding(GtSpacing.s),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(GtSpacing.m),
@@ -209,7 +212,7 @@ private fun ExerciseRow(exercise: Exercise, onClick: () -> Unit, modifier: Modif
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(GtSpacing.xxs)) {
             Text(exercise.name, style = GtTheme.typography.label, maxLines = 2, overflow = TextOverflow.Ellipsis)
             exercise.primaryMuscles.firstOrNull()?.let { muscle ->
-                Text(stringResource(muscle.label), color = colors.textSecondary, style = GtTheme.typography.bodySmall, maxLines = 1)
+                Text(stringResource(muscle.label), color = colors.textSecondary, style = GtTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
         Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {

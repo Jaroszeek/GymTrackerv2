@@ -33,7 +33,10 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
 
-/** Selectable filter chip; selected = accent fill. */
+/**
+ * Selectable filter chip; selected = accent fill. [Role.RadioButton] when one chip of a group is chosen
+ * (the group gets `Modifier.selectableGroup()`), [Role.Checkbox] when several can be.
+ */
 @Composable
 fun GlassChip(
     text: String,
@@ -41,6 +44,7 @@ fun GlassChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int? = null,
+    role: Role = Role.Checkbox,
 ) {
     val colors = GtTheme.colors
     val interaction = remember { MutableInteractionSource() }
@@ -55,7 +59,7 @@ fun GlassChip(
             }
             // Visual height stays compact; the touch target still reaches 48 dp
             .defaultMinSize(minHeight = GtSizes.MinTouch)
-            .selectable(selected, interaction, indication = null, role = Role.Checkbox, onClick = onClick),
+            .selectable(selected, interaction, indication = null, role = role, onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
@@ -87,13 +91,14 @@ fun GlassBadge(text: String, modifier: Modifier = Modifier, tone: BadgeTone = Ba
     Text(
         text,
         modifier
-            .height(GtSizes.BadgeHeight)
+            .defaultMinSize(minHeight = GtSizes.BadgeHeight)
             .clip(GtShapes.Pill)
             .background(fill)
             .padding(horizontal = GtSpacing.s, vertical = GtSpacing.xxs),
         color = content,
         style = GtTheme.typography.labelSmall,
         maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
     )
 }
 

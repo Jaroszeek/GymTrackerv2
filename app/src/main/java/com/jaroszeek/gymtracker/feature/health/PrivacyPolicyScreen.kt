@@ -17,6 +17,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import com.jaroszeek.gymtracker.R
 import com.jaroszeek.gymtracker.designsystem.component.GlassCard
@@ -52,7 +54,7 @@ fun PrivacyPolicyScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
         item(key = "header") {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
                 GlassIconButton(R.drawable.ic_arrow_back, stringResource(R.string.action_back), onClick = onBack)
-                Text(stringResource(R.string.privacy_title), style = GtTheme.typography.headline)
+                Text(stringResource(R.string.privacy_title), Modifier.semantics { heading() }, style = GtTheme.typography.headline)
             }
         }
         item(key = "intro") {

@@ -2,11 +2,14 @@ package com.jaroszeek.gymtracker.designsystem.component
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -18,9 +21,11 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.jaroszeek.gymtracker.designsystem.theme.GtSizes
@@ -32,11 +37,14 @@ private val TrackWidth = 52.dp
 private val TrackHeight = 32.dp
 private val ThumbInset = 4.dp
 
-/** On/off switch whose thumb travels as a liquid droplet (same springs as the navbar indicator). */
+/**
+ * On/off switch whose thumb travels as a liquid droplet (same springs as the navbar indicator).
+ * With [onCheckedChange] null it only shows the state, for a row that toggles as a whole ([GlassSwitchRow]).
+ */
 @Composable
 fun GlassSwitch(
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
+    onCheckedChange: ((Boolean) -> Unit)?,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
 ) {
@@ -51,15 +59,21 @@ fun GlassSwitch(
     Box(
         modifier
             .size(GtSizes.MinTouch * 1.25f, GtSizes.MinTouch)
-            .toggleable(
-                value = checked,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                enabled = enabled,
-                role = Role.Switch,
-                onValueChange = {
-                    haptics.performHapticFeedback(if (it) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff)
-                    onCheckedChange(it)
+            .then(
+                if (onCheckedChange == null) {
+                    Modifier
+                } else {
+                    Modifier.toggleable(
+                        value = checked,
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        enabled = enabled,
+                        role = Role.Switch,
+                        onValueChange = {
+                            haptics.toggle(it)
+                            onCheckedChange(it)
+                        },
+                    )
                 },
             ),
         contentAlignment = Alignment.Center,
@@ -83,14 +97,48 @@ fun GlassSwitch(
     }
 }
 
+/** A title (and an optional explanation) with a switch; the whole row toggles, and TalkBack reads it as one switch. */
+@Composable
+fun GlassSwitchRow(
+    title: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    text: String? = null,
+    enabled: Boolean = true,
+    titleStyle: TextStyle = GtTheme.typography.label,
+) {
+    val colors = GtTheme.colors
+    val haptics = LocalHapticFeedback.current
+    Row(
+        modifier.toggleable(value = checked, enabled = enabled, role = Role.Switch) {
+            haptics.toggle(it)
+            onCheckedChange(it)
+        },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(GtSpacing.m),
+    ) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
+            Text(title, color = if (enabled) colors.textPrimary else colors.textTertiary, style = titleStyle)
+            if (text != null) Text(text, color = colors.textSecondary, style = GtTheme.typography.bodySmall)
+        }
+        GlassSwitch(checked = checked, onCheckedChange = null, enabled = enabled)
+    }
+}
+
+private fun HapticFeedback.toggle(on: Boolean) = performHapticFeedback(if (on) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff)
+
 @Preview
 @Composable
 private fun GlassSwitchPreview() {
     GymTrackerTheme {
         GlassScaffold {
-            Row(Modifier.padding(GtSpacing.xl)) {
-                GlassSwitch(checked = true, onCheckedChange = {})
-                GlassSwitch(checked = false, onCheckedChange = {})
+            Column(Modifier.padding(GtSpacing.xl)) {
+                Row {
+                    GlassSwitch(checked = true, onCheckedChange = {})
+                    GlassSwitch(checked = false, onCheckedChange = {})
+                }
+                GlassSwitchRow("AMOLED", checked = true, onCheckedChange = {}, text = "Czysta czerń")
             }
         }
     }

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -23,6 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.jaroszeek.gymtracker.R
@@ -64,7 +68,7 @@ fun WorkoutSummaryScreen(
             .padding(navBarContentPadding()),
         verticalArrangement = Arrangement.spacedBy(GtSpacing.l),
     ) {
-        Text(stringResource(R.string.summary_title), style = GtTheme.typography.display)
+        Text(stringResource(R.string.summary_title), Modifier.semantics { heading() }, style = GtTheme.typography.display)
         Text(state.name, color = GtTheme.colors.textSecondary, style = GtTheme.typography.title)
         SummaryStats(summary)
         if (state.records.isNotEmpty()) RecordsSummary(state.records, exercises)
@@ -122,7 +126,7 @@ internal fun SummaryStats(summary: WorkoutSummary, modifier: Modifier = Modifier
 private fun Stat(label: String, value: String, modifier: Modifier = Modifier) {
     GlassCard(modifier) {
         Text(label, color = GtTheme.colors.textSecondary, style = GtTheme.typography.labelSmall)
-        Text(value, style = GtTheme.typography.numberM, maxLines = 1)
+        Text(value, style = GtTheme.typography.numberM, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -150,9 +154,19 @@ private fun ColumnScope.TargetChanges(
             Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
                 Text(exercises[change.exerciseId]?.name.orEmpty(), style = GtTheme.typography.label, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(stringResource(R.string.changes_value, change.old.compact(), change.new.compact()), color = colors.textSecondary, style = GtTheme.typography.bodySmall)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
-                    GlassChip(stringResource(R.string.change_apply), selected = applied, onClick = { onChoice(change.routineVariantId, true) })
-                    GlassChip(stringResource(R.string.change_keep), selected = !applied, onClick = { onChoice(change.routineVariantId, false) })
+                FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+                    GlassChip(
+                        stringResource(R.string.change_apply),
+                        selected = applied,
+                        onClick = { onChoice(change.routineVariantId, true) },
+                        role = Role.RadioButton,
+                    )
+                    GlassChip(
+                        stringResource(R.string.change_keep),
+                        selected = !applied,
+                        onClick = { onChoice(change.routineVariantId, false) },
+                        role = Role.RadioButton,
+                    )
                 }
             }
         }

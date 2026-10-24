@@ -28,6 +28,9 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -174,8 +177,13 @@ fun HomeScreen(
                                     .draggableHandle(onDragStarted = { haptics.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate) })
                                     .size(GtSizes.Icon),
                             )
-                            Text(stringResource(widget.label()), Modifier.weight(1f), style = GtTheme.typography.label)
-                            GlassSwitch(checked = widget !in state.layout.hidden, onCheckedChange = { onToggle(widget) })
+                            val label = stringResource(widget.label())
+                            Text(label, Modifier.weight(1f), style = GtTheme.typography.label)
+                            GlassSwitch(
+                                checked = widget !in state.layout.hidden,
+                                onCheckedChange = { onToggle(widget) },
+                                modifier = Modifier.semantics { contentDescription = label },
+                            )
                         }
                     }
                 }
@@ -237,7 +245,7 @@ fun HomeScreen(
 private fun Header(today: LocalDate, evening: Boolean, onEdit: (() -> Unit)?, onSettings: () -> Unit) {
     Row(verticalAlignment = Alignment.Top) {
         Column(Modifier.weight(1f)) {
-            Text(stringResource(if (evening) R.string.home_greeting_evening else R.string.home_greeting_day), style = GtTheme.typography.display)
+            Text(stringResource(if (evening) R.string.home_greeting_evening else R.string.home_greeting_day), Modifier.semantics { heading() }, style = GtTheme.typography.display)
             Text(todayLabel(today), color = GtTheme.colors.textSecondary, style = GtTheme.typography.label)
         }
         if (onEdit != null) GlassIconButton(R.drawable.ic_edit, stringResource(R.string.home_edit_layout), onClick = onEdit, style = GlassButtonStyle.Ghost)
@@ -249,7 +257,7 @@ private fun Header(today: LocalDate, evening: Boolean, onEdit: (() -> Unit)?, on
 private fun EditHeader(onDone: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.home_edit_title), Modifier.weight(1f), style = GtTheme.typography.displaySmall)
+            Text(stringResource(R.string.home_edit_title), Modifier.weight(1f).semantics { heading() }, style = GtTheme.typography.displaySmall)
             GlassButton(stringResource(R.string.action_done), onClick = onDone, icon = R.drawable.ic_check)
         }
         Text(stringResource(R.string.home_edit_text), color = GtTheme.colors.textSecondary, style = GtTheme.typography.bodySmall)

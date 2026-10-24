@@ -14,10 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -107,7 +110,7 @@ fun ProgressScreen(
         verticalArrangement = Arrangement.spacedBy(GtSpacing.m),
     ) {
         item(key = "header") {
-            Text(stringResource(R.string.nav_progress), style = GtTheme.typography.display)
+            Text(stringResource(R.string.nav_progress), Modifier.semantics { heading() }, style = GtTheme.typography.display)
         }
         item(key = "tabs") {
             GlassSegmentedControl(
@@ -211,7 +214,7 @@ private fun sessionsMeta(sessions: Int, lastTime: Long) = stringResource(
 @Composable
 internal fun WorkoutCard(item: WorkoutListItem, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = GtTheme.colors
-    GlassCard(modifier.fillMaxWidth().clickable(onClick = onClick)) {
+    GlassCard(modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onClick)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
             Text(item.name, Modifier.weight(1f), style = GtTheme.typography.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (item.healthSessionId != null) {
@@ -231,7 +234,7 @@ internal fun WorkoutCard(item: WorkoutListItem, onClick: () -> Unit, modifier: M
 @Composable
 private fun SessionCard(session: HealthSession, onClick: () -> Unit) {
     val colors = GtTheme.colors
-    GlassCard(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+    GlassCard(Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onClick)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
             Text(session.label(), Modifier.weight(1f), style = GtTheme.typography.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
             GlassBadge(stringResource(R.string.session_imported))
@@ -274,7 +277,7 @@ internal fun StatColumn(value: String, caption: String, modifier: Modifier = Mod
 
 @Composable
 private fun HistoryCard(title: String, value: String?, meta: String, onClick: () -> Unit) {
-    GlassCard(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+    GlassCard(Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onClick)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
             Text(title, style = GtTheme.typography.title, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
             if (value != null) Text(value, color = GtTheme.colors.accentText, style = GtTheme.typography.label)

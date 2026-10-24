@@ -5,9 +5,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -46,7 +45,7 @@ fun GlassMiniBar(
             .padding(horizontal = GtSizes.NavBarMargin)
             .widthIn(max = GtSizes.NavBarMaxWidth)
             .fillMaxWidth()
-            .height(GtSizes.MiniBarHeight)
+            .heightIn(min = GtSizes.MiniBarHeight)
             .graphicsLayer {
                 scaleX = scale.value
                 scaleY = scale.value
@@ -58,15 +57,16 @@ fun GlassMiniBar(
     ) {
         Row(
             Modifier
-                .fillMaxSize()
-                .padding(horizontal = GtSpacing.xl),
+                .fillMaxWidth()
+                .heightIn(min = GtSizes.MiniBarHeight)
+                .padding(horizontal = GtSpacing.xl, vertical = GtSpacing.xs),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(GtSpacing.m),
         ) {
             GlassProgressRing(progress, Modifier.size(GtSizes.MiniRing), strokeWidth = GtSizes.MiniRingStroke)
             Column(Modifier.weight(1f)) {
                 Text(title, style = GtTheme.typography.label, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(subtitle, color = GtTheme.colors.textSecondary, style = GtTheme.typography.labelSmall, maxLines = 1)
+                Text(subtitle, color = GtTheme.colors.textSecondary, style = GtTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
     }

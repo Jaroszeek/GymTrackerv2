@@ -30,6 +30,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -155,7 +157,7 @@ private fun ExerciseDetails(state: ExerciseDetailUiState.Content, onMetric: (Exe
     val uriHandler = LocalUriHandler.current
     val videoQuery = stringResource(R.string.detail_video_query, exercise.name)
     ExercisePhotos(exercise)
-    Text(exercise.name, style = GtTheme.typography.headline)
+    Text(exercise.name, Modifier.semantics { heading() }, style = GtTheme.typography.headline)
     FlowRow(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s), verticalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
         exercise.equipment?.let { GlassBadge(stringResource(it.label)) }
         exercise.level?.let { GlassBadge(stringResource(it.label)) }

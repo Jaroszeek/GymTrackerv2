@@ -2,20 +2,21 @@ package com.jaroszeek.gymtracker.feature.profile
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,11 +25,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.jaroszeek.gymtracker.R
 import com.jaroszeek.gymtracker.designsystem.component.BadgeTone
 import com.jaroszeek.gymtracker.designsystem.component.ChartPoint
 import com.jaroszeek.gymtracker.designsystem.component.ChartRange
@@ -50,22 +55,21 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
 import com.jaroszeek.gymtracker.domain.body.BmiCategory
-import com.jaroszeek.gymtracker.domain.body.bmiCategory
 import com.jaroszeek.gymtracker.domain.body.BodyMeasurement
 import com.jaroszeek.gymtracker.domain.body.BodyMetric
-import com.jaroszeek.gymtracker.domain.body.bodySummary
 import com.jaroszeek.gymtracker.domain.body.BodySummary
+import com.jaroszeek.gymtracker.domain.body.bmiCategory
+import com.jaroszeek.gymtracker.domain.body.bodySummary
 import com.jaroszeek.gymtracker.domain.health.Calories
 import com.jaroszeek.gymtracker.feature.health.HealthConnectEntry
 import com.jaroszeek.gymtracker.feature.health.kcalLabel
 import com.jaroszeek.gymtracker.feature.health.sourceLabel
+import com.jaroszeek.gymtracker.feature.progress.StatColumn
 import com.jaroszeek.gymtracker.feature.progress.shortDate
 import com.jaroszeek.gymtracker.feature.progress.shownIn
-import com.jaroszeek.gymtracker.feature.progress.StatColumn
 import com.jaroszeek.gymtracker.feature.progress.timeLabel
-import com.jaroszeek.gymtracker.feature.routines.format
 import com.jaroszeek.gymtracker.feature.routines.LocalWeightUnit
-import com.jaroszeek.gymtracker.R
+import com.jaroszeek.gymtracker.feature.routines.format
 import kotlin.math.roundToInt
 
 @Composable
@@ -129,7 +133,7 @@ fun ProfileScreen(
     ) {
         item(key = "header") {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.nav_profile), Modifier.weight(1f), style = GtTheme.typography.display)
+                Text(stringResource(R.string.nav_profile), Modifier.weight(1f).semantics { heading() }, style = GtTheme.typography.display)
                 GlassIconButton(R.drawable.ic_settings, stringResource(R.string.settings_title), onClick = onSettings, style = GlassButtonStyle.Ghost)
             }
         }
@@ -146,7 +150,7 @@ fun ProfileScreen(
         item(key = "calories") { CaloriesCard(state.calories, onHealthConnect) }
         item(key = "health") { HealthConnectEntry(onClick = onHealthConnect) }
         item(key = "log-title") {
-            Text(stringResource(R.string.profile_history_title), Modifier.padding(top = GtSpacing.s), style = GtTheme.typography.headline)
+            Text(stringResource(R.string.profile_history_title), Modifier.padding(top = GtSpacing.s).semantics { heading() }, style = GtTheme.typography.headline)
         }
         if (log.isEmpty()) {
             item(key = "log-empty") { Message(stringResource(R.string.profile_history_empty)) }
@@ -227,9 +231,14 @@ private fun DataCard(summary: BodySummary, age: Int?, onAge: (Int?) -> Unit, onA
 @Composable
 private fun ValueTile(metric: BodyMetric, measurement: BodyMeasurement?, modifier: Modifier, onAdd: (BodyMetric) -> Unit) {
     val colors = GtTheme.colors
-    Column(modifier.clickable { onAdd(metric) }, verticalArrangement = Arrangement.spacedBy(GtSpacing.xxs)) {
+    Column(modifier.clickable(role = Role.Button) { onAdd(metric) }, verticalArrangement = Arrangement.spacedBy(GtSpacing.xxs)) {
         Text(stringResource(metric.label()), color = colors.textSecondary, style = GtTheme.typography.labelSmall)
-        Text(measurement?.let { bodyValueLabel(metric, it.value) } ?: stringResource(R.string.number_empty), style = GtTheme.typography.numberM, maxLines = 1)
+        Text(
+            measurement?.let { bodyValueLabel(metric, it.value) } ?: stringResource(R.string.number_empty),
+            style = GtTheme.typography.numberM,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
         Text(
             measurement?.let { shortDate(it.time) } ?: stringResource(R.string.profile_add),
             color = if (measurement == null) colors.accentText else colors.textTertiary,
@@ -344,7 +353,12 @@ private fun MeasurementRow(measurement: BodyMeasurement, onDelete: () -> Unit) {
                 )
             }
             if (measurement.manualId != null) {
-                GlassIconButton(R.drawable.ic_delete, stringResource(R.string.action_delete), onClick = onDelete, style = GlassButtonStyle.Ghost)
+                GlassIconButton(
+                    R.drawable.ic_delete,
+                    stringResource(R.string.profile_delete_entry, stringResource(measurement.metric.label()), shortDate(measurement.time)),
+                    onClick = onDelete,
+                    style = GlassButtonStyle.Ghost,
+                )
             }
         }
     }
@@ -356,8 +370,8 @@ private fun AddForm(adding: NewMeasurement, onMetric: (BodyMetric) -> Unit, onVa
     val metric = adding.metric
     val unit = stringResource(metric.unit(adding.unit))
     Text(stringResource(R.string.profile_add_title), style = GtTheme.typography.headline)
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s), verticalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
-        BodyMetric.entries.forEach { GlassChip(stringResource(it.label()), selected = it == metric, onClick = { onMetric(it) }) }
+    FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(GtSpacing.s), verticalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+        BodyMetric.entries.forEach { GlassChip(stringResource(it.label()), selected = it == metric, onClick = { onMetric(it) }, role = Role.RadioButton) }
     }
     // The field takes any number; the range is checked on saving, so "1" on the way to "180" fits
     GlassNumberField(

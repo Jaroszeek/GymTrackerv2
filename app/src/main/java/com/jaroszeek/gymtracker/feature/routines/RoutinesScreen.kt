@@ -24,6 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -110,7 +113,7 @@ fun RoutinesScreen(
         verticalArrangement = Arrangement.spacedBy(GtSpacing.l),
     ) {
         item(key = "header") {
-            Text(stringResource(R.string.nav_workout), style = GtTheme.typography.display)
+            Text(stringResource(R.string.nav_workout), Modifier.semantics { heading() }, style = GtTheme.typography.display)
         }
         item(key = "actions") {
             Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
@@ -176,7 +179,7 @@ private fun RoutineCard(routine: Routine, onOpen: () -> Unit, onStart: () -> Uni
         Modifier
             .fillMaxWidth()
             .sharedBounds(routineKey(routine.id))
-            .clickable(onClick = onOpen),
+            .clickable(role = Role.Button, onClick = onOpen),
     ) {
         Text(routine.name, style = GtTheme.typography.headline, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text(
