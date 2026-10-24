@@ -157,7 +157,12 @@ class HomeViewModel @Inject constructor(
             Log.e(TAG, "Loading Start failed", e)
             emit(HomeUiState(loading = false, error = true))
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), HomeUiState())
+        // The header is right from the first frame, so an evening start does not flash "Dzień dobry"
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+            HomeUiState(today = now.value.toLocalDate(), evening = now.value.hour !in DAY_HOURS),
+        )
 
     /** On every return to the screen: a new day or hour, or permissions changed in Health Connect. */
     fun onRefresh() {
