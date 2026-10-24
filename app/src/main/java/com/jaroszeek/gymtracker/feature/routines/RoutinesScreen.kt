@@ -4,13 +4,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -24,6 +27,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -110,19 +116,36 @@ fun RoutinesScreen(
         verticalArrangement = Arrangement.spacedBy(GtSpacing.l),
     ) {
         item(key = "header") {
-            Text(stringResource(R.string.nav_workout), style = GtTheme.typography.display)
+            Text(stringResource(R.string.nav_workout), Modifier.semantics { heading() }, style = GtTheme.typography.display)
         }
         item(key = "actions") {
             Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
-                    GlassButton(stringResource(R.string.routines_new), onClick = onNew, icon = R.drawable.ic_add)
-                    GlassButton(stringResource(R.string.routines_templates), onClick = onTemplates, style = GlassButtonStyle.Secondary)
+                // Equal halves; with a large font the labels wrap and both pills take the taller height
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min),
+                    horizontalArrangement = Arrangement.spacedBy(GtSpacing.s),
+                ) {
+                    GlassButton(
+                        stringResource(R.string.routines_new),
+                        onClick = onNew,
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        icon = R.drawable.ic_add,
+                    )
+                    GlassButton(
+                        stringResource(R.string.routines_templates),
+                        onClick = onTemplates,
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        style = GlassButtonStyle.Secondary,
+                    )
                 }
                 GlassButton(
                     stringResource(R.string.routines_start_empty),
                     onClick = onStartEmpty,
+                    modifier = Modifier.fillMaxWidth(),
                     icon = R.drawable.ic_play_arrow,
-                    style = GlassButtonStyle.Secondary,
+                    style = GlassButtonStyle.Ghost,
                 )
             }
         }
@@ -176,7 +199,7 @@ private fun RoutineCard(routine: Routine, onOpen: () -> Unit, onStart: () -> Uni
         Modifier
             .fillMaxWidth()
             .sharedBounds(routineKey(routine.id))
-            .clickable(onClick = onOpen),
+            .clickable(role = Role.Button, onClick = onOpen),
     ) {
         Text(routine.name, style = GtTheme.typography.headline, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text(

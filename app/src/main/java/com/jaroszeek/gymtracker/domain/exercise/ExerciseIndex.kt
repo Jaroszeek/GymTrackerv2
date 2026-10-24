@@ -13,20 +13,27 @@ data class ExerciseFilter(
 /**
  * In-memory search over the whole exercise list (~900 rows, so no FTS or SQL LIKE needed).
  * Every query word must appear in the name or a Polish alias, ignoring case and diacritics.
- * Within a chip group filters are OR, between groups AND; names starting with the query come first.
+ * Within a chip group filters are OR, between groups AND.
+ * Results come in tiers: the exact name, then names where every query word starts a word, then the
+ * rest (a word matched only inside a word or only through an alias). Within a tier the [common]
+ * exercises (the templates' and those in the user's routines and history) come first, then names
+ * starting with the query, then alphabetical. Without a query the list is alphabetical.
  * Normalized texts are computed once per list, not per keystroke.
  */
-class ExerciseIndex(exercises: List<Exercise>) {
-    private class Entry(val exercise: Exercise, val name: String, val text: String)
+class ExerciseIndex(exercises: List<Exercise>, common: Set<Long> = emptySet()) {
+    private class Entry(val exercise: Exercise, val name: String, val text: String, val common: Boolean) {
+        val words = name.split(' ')
+    }
 
     private val entries = exercises
-        .map { Entry(it, normalize(it.name), normalize((listOf(it.name) + it.aliases).joinToString(" "))) }
+        .map { Entry(it, normalize(it.name), normalize((listOf(it.name) + it.aliases).joinToString(" ")), it.id in common) }
         .sortedBy { it.name }
 
     val size: Int get() = entries.size
 
     fun search(filter: ExerciseFilter): List<Exercise> {
-        val tokens = normalize(filter.query).split(' ').filter { it.isNotEmpty() }
+        val query = normalize(filter.query)
+        val tokens = query.split(' ').filter { it.isNotEmpty() }
         val muscles = filter.bodyParts.flatMap { it.muscles }.toSet()
         val matches = entries.filter { entry ->
             val exercise = entry.exercise
@@ -34,10 +41,17 @@ class ExerciseIndex(exercises: List<Exercise>) {
                 (filter.equipment.isEmpty() || exercise.equipmentGroup in filter.equipment) &&
                 tokens.all { it in entry.text }
         }
-        val first = tokens.firstOrNull()
-        // sortedBy is stable, so the alphabetical order holds within both groups
-        val ranked = if (first == null) matches else matches.sortedBy { !it.name.startsWith(first) }
-        return ranked.map { it.exercise }
+        if (tokens.isEmpty()) return matches.map { it.exercise }
+
+        fun tier(entry: Entry) = when {
+            entry.name == query -> 0
+            tokens.all { token -> entry.words.any { it.startsWith(token) } } -> 1
+            else -> 2
+        }
+        // sortedWith is stable, so the alphabetical order holds within equal ranks
+        return matches
+            .sortedWith(compareBy<Entry>({ tier(it) }, { !it.common }, { !it.name.startsWith(query) }))
+            .map { it.exercise }
     }
 
     companion object {

@@ -147,9 +147,10 @@ Aplikacja ma wyglądać jak produkt premium, a nie jak szablon Material. Dark-fi
 - Szczegóły sesji ze wszystkimi seriami. Edycja i usuwanie zakończonego treningu.
 - Sesje zaimportowane z Health Connect (np. spacer czy bieg z zegarka) są widoczne w historii z polską nazwą typu i oznaczeniem źródła.
 - Łączenie zapisanego treningu z sesją z zegarka (ExerciseSession w HC):
-  - automatyczna propozycja, gdy czasy się nakładają;
+  - automatyczne połączenie, gdy czasy się nakładają (zmiana 2026-10-24: wcześniej propozycja do potwierdzenia, D-084);
   - ręczne łączenie i rozłączanie;
-  - połączony trening pokazuje tętno i kalorie z zegarka.
+  - połączony trening pokazuje tętno i kalorie z zegarka;
+  - NOWE (2026-10-24): wykres tętna w każdym ćwiczeniu, ze znacznikami serii (D-084).
 
 ### A5.7 Postępy: rekordy, 1RM, wykresy
 - Wykresy dla rutyny: objętość i maksymalny ciężar w czasie.

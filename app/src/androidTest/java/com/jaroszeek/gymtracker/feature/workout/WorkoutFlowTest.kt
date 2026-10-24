@@ -27,6 +27,7 @@ import com.jaroszeek.gymtracker.core.notifications.WorkoutNotifications
 import com.jaroszeek.gymtracker.data.exercise.ExerciseRepository
 import com.jaroszeek.gymtracker.data.exercise.ExerciseSeeder
 import com.jaroszeek.gymtracker.data.routine.RoutineRepository
+import com.jaroszeek.gymtracker.data.routine.TemplateRepository
 import com.jaroszeek.gymtracker.data.workout.ActiveWorkoutManager
 import com.jaroszeek.gymtracker.data.workout.ActiveWorkoutStore
 import com.jaroszeek.gymtracker.data.workout.WorkoutRepository
@@ -73,6 +74,7 @@ class WorkoutFlowTest {
     private lateinit var routines: RoutineRepository
     private lateinit var workouts: WorkoutRepository
     private lateinit var manager: ActiveWorkoutManager
+    private lateinit var preferences: AppPreferences
     private var routineId = 0L
 
     @Before
@@ -82,7 +84,7 @@ class WorkoutFlowTest {
         exercises = ExerciseRepository(database, ExerciseSeeder(database, Dispatchers.IO, context), Dispatchers.IO)
         routines = RoutineRepository(database, exercises, Clock.systemUTC(), Dispatchers.IO)
         workouts = WorkoutRepository(database, Dispatchers.IO)
-        val preferences = AppPreferences(PreferenceDataStoreFactory.create(scope = scope) { File(context.cacheDir, "workout-flow-test.preferences_pb").apply { delete() } })
+        preferences = AppPreferences(PreferenceDataStoreFactory.create(scope = scope) { File(context.cacheDir, "workout-flow-test.preferences_pb").apply { delete() } })
         manager = ActiveWorkoutManager(ActiveWorkoutStore(file), workouts, preferences, Clock.systemUTC(), scope, Dispatchers.IO)
         routineId = runBlocking {
             val bench = exercises.observeAll().first().single { it.name == BENCH }
@@ -104,10 +106,10 @@ class WorkoutFlowTest {
     fun startTickOffRestFinishAndApplyTargets() {
         val routinesViewModel = RoutinesViewModel(routines, manager)
         val checks = LiveUpdateChecks(context, manager, WorkoutNotifications(context))
-        val workoutViewModel = WorkoutViewModel(manager, exercises, routines, checks, Dispatchers.Default)
+        val workoutViewModel = WorkoutViewModel(manager, exercises, routines, checks, preferences, Dispatchers.Default)
         // The background issues card (permissions differ per device) would push the exercises off screen
-        workoutViewModel.onHideIssues()
-        val pickerViewModel = ExercisesViewModel(exercises, Dispatchers.Default)
+        runBlocking { preferences.setHiddenBackgroundIssues(BackgroundIssues(notificationsOff = true, exactAlarmsOff = true, batteryLimited = true).keys) }
+        val pickerViewModel = ExercisesViewModel(exercises, TemplateRepository(database, exercises, routines, Dispatchers.IO, context), Dispatchers.Default)
         var onWorkout by mutableStateOf(false)
         compose.setContent {
             GymTrackerTheme {

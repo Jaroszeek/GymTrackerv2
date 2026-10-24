@@ -37,6 +37,7 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtSizes
 import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
+import com.jaroszeek.gymtracker.designsystem.theme.fitting
 
 /**
  * One choice of a few on a pill track; the accent indicator moves like the navbar droplet. [weights]
@@ -91,7 +92,14 @@ fun GlassSegmentedControl(
                         .padding(horizontal = GtSpacing.xs),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(option, color = content, style = GtTheme.typography.label, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        option,
+                        color = content,
+                        style = GtTheme.typography.label,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        autoSize = GtTheme.typography.label.fitting(),
+                    )
                 }
             }
         }

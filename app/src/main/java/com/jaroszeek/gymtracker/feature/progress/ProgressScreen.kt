@@ -4,6 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -14,10 +16,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,9 +27,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -107,7 +113,7 @@ fun ProgressScreen(
         verticalArrangement = Arrangement.spacedBy(GtSpacing.m),
     ) {
         item(key = "header") {
-            Text(stringResource(R.string.nav_progress), style = GtTheme.typography.display)
+            Text(stringResource(R.string.nav_progress), Modifier.semantics { heading() }, style = GtTheme.typography.display)
         }
         item(key = "tabs") {
             GlassSegmentedControl(
@@ -211,7 +217,7 @@ private fun sessionsMeta(sessions: Int, lastTime: Long) = stringResource(
 @Composable
 internal fun WorkoutCard(item: WorkoutListItem, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = GtTheme.colors
-    GlassCard(modifier.fillMaxWidth().clickable(onClick = onClick)) {
+    GlassCard(modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onClick)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
             Text(item.name, Modifier.weight(1f), style = GtTheme.typography.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (item.healthSessionId != null) {
@@ -231,7 +237,7 @@ internal fun WorkoutCard(item: WorkoutListItem, onClick: () -> Unit, modifier: M
 @Composable
 private fun SessionCard(session: HealthSession, onClick: () -> Unit) {
     val colors = GtTheme.colors
-    GlassCard(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+    GlassCard(Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onClick)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
             Text(session.label(), Modifier.weight(1f), style = GtTheme.typography.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
             GlassBadge(stringResource(R.string.session_imported))
@@ -241,7 +247,7 @@ private fun SessionCard(session: HealthSession, onClick: () -> Unit) {
             color = colors.textSecondary,
             style = GtTheme.typography.label,
         )
-        Row(Modifier.fillMaxWidth().padding(top = GtSpacing.xs), horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
+        StatRow(Modifier.padding(top = GtSpacing.xs)) {
             StatColumn(durationLabel(session.durationMillis), stringResource(R.string.summary_duration), Modifier.weight(1f))
             when {
                 session.activeKcal != null -> StatColumn(kcalLabel(session.activeKcal), stringResource(R.string.kcal_active), Modifier.weight(1f))
@@ -256,13 +262,27 @@ private fun SessionCard(session: HealthSession, onClick: () -> Unit) {
 /** Duration, exercises, working sets and volume side by side. */
 @Composable
 internal fun SummaryRow(summary: WorkoutSummary, modifier: Modifier = Modifier) {
-    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
+    StatRow(modifier) {
         StatColumn(durationLabel(summary.durationMillis), stringResource(R.string.summary_duration), Modifier.weight(1f))
         StatColumn("${summary.exercises}", stringResource(R.string.summary_exercises), Modifier.weight(1f))
         StatColumn("${summary.sets}", stringResource(R.string.progress_sets), Modifier.weight(1f))
         StatColumn(massLabel(summary.volumeKg, decimals = 0), stringResource(R.string.summary_volume), Modifier.weight(1.3f))
     }
 }
+
+/** Stats side by side; with a large font two to a row, so the numbers are not cut off. */
+@Composable
+internal fun StatRow(modifier: Modifier = Modifier, content: @Composable FlowRowScope.() -> Unit) {
+    FlowRow(
+        modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(GtSpacing.m),
+        verticalArrangement = Arrangement.spacedBy(GtSpacing.s),
+        maxItemsInEachRow = if (LocalDensity.current.fontScale >= LARGE_FONT_SCALE) 2 else Int.MAX_VALUE,
+        content = content,
+    )
+}
+
+private const val LARGE_FONT_SCALE = 1.3f
 
 @Composable
 internal fun StatColumn(value: String, caption: String, modifier: Modifier = Modifier) {
@@ -274,7 +294,7 @@ internal fun StatColumn(value: String, caption: String, modifier: Modifier = Mod
 
 @Composable
 private fun HistoryCard(title: String, value: String?, meta: String, onClick: () -> Unit) {
-    GlassCard(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+    GlassCard(Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onClick)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
             Text(title, style = GtTheme.typography.title, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
             if (value != null) Text(value, color = GtTheme.colors.accentText, style = GtTheme.typography.label)

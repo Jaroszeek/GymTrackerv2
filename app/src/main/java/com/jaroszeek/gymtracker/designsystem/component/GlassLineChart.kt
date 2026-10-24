@@ -101,7 +101,8 @@ fun ChartRangeSelector(selected: ChartRange, onSelect: (ChartRange) -> Unit, mod
 /**
  * Line chart of a time series (A5.7): a smooth line with a glow and a gradient under it, spaced by time,
  * between round ticks labelled on the right. Tapping or dragging picks the nearest point with a haptic
- * tick; the header shows the picked point, otherwise the latest one.
+ * tick; the header shows the picked point, otherwise the latest one. [markers] are times shown as thin
+ * vertical lines, e.g. when each set was done; one outside the points' span is drawn at its edge.
  */
 @Composable
 fun GlassLineChart(
@@ -111,6 +112,8 @@ fun GlassLineChart(
     emptyText: String,
     modifier: Modifier = Modifier,
     axisLabel: (Double) -> String = valueLabel,
+    markers: List<Long> = emptyList(),
+    height: Dp = GtSizes.ChartHeight,
 ) {
     val colors = GtTheme.colors
     val sorted = remember(points) { points.sortedBy { it.time } }
@@ -138,7 +141,7 @@ fun GlassLineChart(
         val scale = remember(sorted) { ChartScale(sorted) }
         val labels = remember(scale, measurer, labelStyle, axisLabel) { scale.ticks.map { measurer.measure(axisLabel(it), labelStyle) } }
         val gutter = GtSizes.ChartGutter + with(LocalDensity.current) { labels.maxOf { it.size.width }.toDp() }
-        ChartPlot(sorted, scale, labels, gutter, selected, Modifier.semantics { contentDescription = description })
+        ChartPlot(sorted, scale, labels, gutter, selected, markers, Modifier.height(height).semantics { contentDescription = description })
         Row(Modifier.padding(end = gutter)) {
             Text(dateLabel(sorted.first().time), color = colors.textTertiary, style = GtTheme.typography.labelSmall, modifier = Modifier.weight(1f))
             if (sorted.size > 1) Text(dateLabel(sorted.last().time), color = colors.textTertiary, style = GtTheme.typography.labelSmall)
@@ -154,6 +157,7 @@ private fun ChartPlot(
     labels: List<TextLayoutResult>,
     gutter: Dp,
     selected: MutableIntState,
+    markers: List<Long>,
     modifier: Modifier,
 ) {
     val colors = GtTheme.colors
@@ -172,7 +176,6 @@ private fun ChartPlot(
     Box(
         modifier
             .fillMaxWidth()
-            .height(GtSizes.ChartHeight)
             .pointerInput(scale, gutterPx) {
                 detectTapGestures { offset -> selected.pick(scale.nearest(offset.x, plot(size.width.toFloat(), 0f)), haptics::tick) }
             }
@@ -218,6 +221,12 @@ private fun ChartPlot(
                             val label = labels[index]
                             val top = (y - label.size.height / 2).coerceIn(0f, size.height - label.size.height)
                             drawText(label, topLeft = Offset(area.right + GtSizes.ChartGutter.toPx(), top))
+                        }
+                        // A marker just past the last sample (a set ticked off between two of them) stays at the edge
+                        markers.forEach { time ->
+                            val x = scale.x(time.coerceIn(points.first().time, points.last().time), area)
+                            drawLine(colors.textTertiary.copy(alpha = GtAlpha.CHART_MARKER), Offset(x, area.top), Offset(x, area.bottom), strokeWidth = GtSizes.Hairline.toPx())
+                            drawCircle(colors.textTertiary, dotPx * DOT_SCALE, Offset(x, area.bottom))
                         }
                         clipRect(right = area.left + (area.right - area.left) * reveal.value + haloPx) {
                             drawPath(fill, fillBrush)

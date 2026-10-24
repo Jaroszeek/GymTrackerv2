@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -57,24 +58,28 @@ import com.jaroszeek.gymtracker.domain.body.BodySummary
 import com.jaroszeek.gymtracker.domain.body.bmiCategory
 import com.jaroszeek.gymtracker.domain.home.WeekStats
 import com.jaroszeek.gymtracker.domain.progress.RecordType
+import com.jaroszeek.gymtracker.domain.routine.PerformedSet
 import com.jaroszeek.gymtracker.domain.routine.Routine
-import com.jaroszeek.gymtracker.domain.workout.ExerciseRecords
+import com.jaroszeek.gymtracker.domain.workout.HeadlineRecord
+import com.jaroszeek.gymtracker.domain.workout.RecordHit
 import com.jaroszeek.gymtracker.domain.workout.WorkoutListItem
 import com.jaroszeek.gymtracker.domain.workout.WorkoutSummary
 import com.jaroszeek.gymtracker.feature.profile.bodyValueLabel
 import com.jaroszeek.gymtracker.feature.profile.decimalLabel
 import com.jaroszeek.gymtracker.feature.profile.label
-import com.jaroszeek.gymtracker.feature.progress.RecordBadges
 import com.jaroszeek.gymtracker.feature.progress.StatColumn
+import com.jaroszeek.gymtracker.feature.progress.StatRow
 import com.jaroszeek.gymtracker.feature.progress.SummaryRow
 import com.jaroszeek.gymtracker.feature.progress.countLabel
 import com.jaroszeek.gymtracker.feature.progress.dayLabel
+import com.jaroszeek.gymtracker.feature.progress.label
 import com.jaroszeek.gymtracker.feature.progress.monthLabel
 import com.jaroszeek.gymtracker.feature.progress.shortDate
 import com.jaroszeek.gymtracker.feature.progress.timeLabel
 import com.jaroszeek.gymtracker.feature.progress.weekdayLabel
-import com.jaroszeek.gymtracker.feature.workout.durationLabel
 import com.jaroszeek.gymtracker.feature.routines.massLabel
+import com.jaroszeek.gymtracker.feature.workout.durationLabel
+import com.jaroszeek.gymtracker.feature.workout.setValueLabel
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -92,7 +97,7 @@ private fun WidgetCard(
     trailing: @Composable RowScope.() -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    GlassCard(modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)) {
+    GlassCard(modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
             Icon(painterResource(icon), contentDescription = null, Modifier.size(GtSizes.IconSmall), tint = GtTheme.colors.accentText)
             Text(title, Modifier.weight(1f), style = GtTheme.typography.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -171,13 +176,10 @@ private fun Buttons(content: @Composable () -> Unit) {
 fun HeroCard(streak: Int, week: WeekStats, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = GtTheme.colors
     WidgetCard(R.drawable.ic_local_fire_department, stringResource(R.string.home_streak_title), modifier, onClick = onClick) {
-        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
-            Text("$streak", color = colors.accentText, style = GtTheme.typography.numberXL)
-            Text(
-                pluralStringResource(R.plurals.home_streak_weeks, streak),
-                Modifier.padding(bottom = GtSpacing.s),
-                style = GtTheme.typography.title,
-            )
+        // On the number's baseline; a large font wraps the label within the row
+        Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+            Text("$streak", Modifier.alignByBaseline(), color = colors.accentText, style = GtTheme.typography.numberXL)
+            Text(pluralStringResource(R.plurals.home_streak_weeks, streak), Modifier.alignByBaseline(), style = GtTheme.typography.title)
         }
         Hint(
             stringResource(
@@ -189,7 +191,7 @@ fun HeroCard(streak: Int, week: WeekStats, onClick: () -> Unit, modifier: Modifi
             ),
         )
         Text(stringResource(R.string.home_week_title), Modifier.padding(top = GtSpacing.s), color = colors.textSecondary, style = GtTheme.typography.label)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
+        StatRow {
             StatColumn("${week.workouts}", stringResource(R.string.home_week_workouts), Modifier.weight(1f))
             StatColumn(durationLabel(week.durationMillis), stringResource(R.string.summary_duration), Modifier.weight(1f))
             StatColumn("${week.sets}", stringResource(R.string.progress_sets), Modifier.weight(1f))
@@ -217,8 +219,9 @@ fun LastWorkoutCard(workout: WorkoutListItem?, onOpen: (Long) -> Unit, onStart: 
     }
 }
 
+/** Per exercise its most important record of the 7 days and "+N" for the other kinds. */
 @Composable
-fun RecordsCard(records: List<ExerciseRecords>, onOpen: (Long) -> Unit, modifier: Modifier = Modifier) {
+fun RecordsCard(records: List<HeadlineRecord>, onOpen: (Long) -> Unit, modifier: Modifier = Modifier) {
     val colors = GtTheme.colors
     WidgetCard(R.drawable.ic_trophy, stringResource(R.string.home_records_title), modifier) {
         if (records.isEmpty()) {
@@ -230,15 +233,21 @@ fun RecordsCard(records: List<ExerciseRecords>, onOpen: (Long) -> Unit, modifier
                 Modifier
                     .fillMaxWidth()
                     .clip(GtShapes.Small)
-                    .clickable { onOpen(record.workoutId) }
+                    .clickable(role = Role.Button) { onOpen(record.workoutId) }
                     .padding(vertical = GtSpacing.xs),
-                verticalArrangement = Arrangement.spacedBy(GtSpacing.xs),
+                verticalArrangement = Arrangement.spacedBy(GtSpacing.xxs),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
                     Text(record.exerciseName, Modifier.weight(1f), style = GtTheme.typography.label, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(shortDate(record.startedAt), color = colors.textTertiary, style = GtTheme.typography.labelSmall)
                 }
-                RecordBadges(record.types)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+                    Text(recordLabel(record.hit), Modifier.weight(1f, fill = false), color = colors.accentText, style = GtTheme.typography.bodySmall)
+                    if (record.others > 0) {
+                        val others = pluralStringResource(R.plurals.home_records_others_description, record.others, record.others)
+                        GlassBadge(stringResource(R.string.home_records_others, record.others), Modifier.semantics { contentDescription = others })
+                    }
+                }
             }
         }
         val more = records.size - MAX_RECORDS
@@ -247,6 +256,18 @@ fun RecordsCard(records: List<ExerciseRecords>, onOpen: (Long) -> Unit, modifier
 }
 
 private const val MAX_RECORDS = 5
+
+/** "e1RM: 116,7 kg", as the summary after a workout shows it; a reps record shows its set. */
+@Composable
+private fun recordLabel(hit: RecordHit): String {
+    val value = when (hit.type) {
+        RecordType.Reps -> setValueLabel(hit.set.weightKg, hit.set.reps)
+        RecordType.Weight -> hit.valueKg?.let { massLabel(it) }.orEmpty()
+        RecordType.E1rm -> hit.valueKg?.let { massLabel(it, decimals = 1) }.orEmpty()
+        RecordType.SetVolume, RecordType.SessionVolume -> hit.valueKg?.let { massLabel(it, decimals = 0) }.orEmpty()
+    }
+    return stringResource(R.string.summary_record_value, stringResource(hit.type.label()), value)
+}
 
 /** A month with the workout days filled and today ringed; the arrows go back in time, up to this month. */
 @Composable
@@ -330,9 +351,9 @@ fun StepsCard(steps: List<Long>?, today: LocalDate, onConnect: () -> Unit, modif
             GlassButton(stringResource(R.string.health_connect), onClick = onConnect, style = GlassButtonStyle.Secondary, icon = R.drawable.ic_link)
             return@WidgetCard
         }
-        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
-            Text(countLabel(steps.last()), style = GtTheme.typography.numberL)
-            Text(stringResource(R.string.home_steps_today), Modifier.padding(bottom = GtSpacing.xs), color = colors.textSecondary, style = GtTheme.typography.label)
+        Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+            Text(countLabel(steps.last()), Modifier.alignByBaseline(), style = GtTheme.typography.numberL)
+            Text(stringResource(R.string.home_steps_today), Modifier.alignByBaseline(), color = colors.textSecondary, style = GtTheme.typography.label)
         }
         GlassBarChart(
             values = steps.map { it.toDouble() },
@@ -392,7 +413,13 @@ private fun HomeWidgetsPreview() {
             Column(Modifier.padding(GtSpacing.xl), verticalArrangement = Arrangement.spacedBy(GtSpacing.l)) {
                 HeroCard(streak = 6, week = WeekStats(2, 6_300_000, 12_450.0, 34), onClick = {})
                 LastWorkoutCard(WorkoutListItem(1, "Push", now, WorkoutSummary(3_600_000, 8_450.0, 18, 6)), onOpen = {}, onStart = {})
-                RecordsCard(listOf(ExerciseRecords(1, now, 1, "Barbell Bench Press", setOf(RecordType.Weight, RecordType.E1rm))), onOpen = {})
+                RecordsCard(
+                    listOf(
+                        HeadlineRecord(1, now, "Barbell Bench Press", RecordHit(1, RecordType.E1rm, PerformedSet(100.0, 5), 116.7), others = 2),
+                        HeadlineRecord(1, now, "Pull-Up", RecordHit(2, RecordType.Reps, PerformedSet(null, 12), null), others = 0),
+                    ),
+                    onOpen = {},
+                )
                 ActivityCalendarCard(setOf(today, today.minusDays(2), today.minusDays(5)), today)
                 StepsCard(listOf(6_200, 9_800, 4_100, 0, 12_400, 8_000, 3_512), today, onConnect = {})
                 BodyCard(

@@ -76,7 +76,7 @@ import com.jaroszeek.gymtracker.designsystem.component.GlassSearchField
 import com.jaroszeek.gymtracker.designsystem.component.GlassSegmentedControl
 import com.jaroszeek.gymtracker.designsystem.component.GlassSparkline
 import com.jaroszeek.gymtracker.designsystem.component.GlassSwatch
-import com.jaroszeek.gymtracker.designsystem.component.GlassSwitch
+import com.jaroszeek.gymtracker.designsystem.component.GlassSwitchRow
 import com.jaroszeek.gymtracker.designsystem.component.GlassTextField
 import com.jaroszeek.gymtracker.designsystem.component.GlassTopBar
 import com.jaroszeek.gymtracker.designsystem.component.HideOnScrollState
@@ -98,6 +98,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
+import kotlin.math.roundToInt
 import kotlin.math.sin
 
 private val NavItems = listOf(
@@ -112,6 +113,10 @@ private const val FILLER_CARDS = 12
 private const val SAMPLE_SESSIONS = 120
 private const val SAMPLE_GAP_MILLIS = 3 * 86_400_000L
 private const val SPARKLINE_POINTS = 30
+private const val HR_SETS = 4
+private const val HR_CYCLE = 30
+private const val HR_SET_STEPS = 6
+private const val HR_STEP_MILLIS = 5_000L
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -180,6 +185,7 @@ fun GalleryScreen(settings: ThemeSettings, onSettingsChange: (ThemeSettings) -> 
             ),
             verticalArrangement = Arrangement.spacedBy(GtSpacing.xl),
         ) {
+            section(R.string.gallery_section_icon) { AppIcon() }
             section(R.string.gallery_section_theme) { ThemeControls(settings, onSettingsChange) }
             section(R.string.gallery_section_colors) { Swatches() }
             section(R.string.gallery_section_type) { TypeSamples() }
@@ -260,12 +266,8 @@ private fun ThemeMode.label() = when (this) {
 }
 
 @Composable
-private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, Modifier.weight(1f), style = GtTheme.typography.body)
-        GlassSwitch(checked, onChange)
-    }
-}
+private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) =
+    GlassSwitchRow(label, checked, onChange, Modifier.fillMaxWidth(), titleStyle = GtTheme.typography.body)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -415,6 +417,27 @@ private fun Charts() {
                 axisLabel = { weightLabel(it) },
             )
             ChartRangeSelector(range, onSelect = { range = it })
+        }
+        GlassCard(Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.gallery_chart_markers_title), style = GtTheme.typography.title)
+            // Four sets: the heart rate climbs in each set and falls in the rest; a marker where each set was ticked off
+            val start = now.toEpochMilli()
+            val heartRate = remember(start) {
+                List(HR_CYCLE * HR_SETS) { i ->
+                    val step = i % HR_CYCLE
+                    ChartPoint(start + i * HR_STEP_MILLIS, if (step >= HR_CYCLE - HR_SET_STEPS) 118.0 + (step - HR_CYCLE + HR_SET_STEPS) * 7 else 160.0 - step * 1.7)
+                }
+            }
+            val times = remember(zone) { DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault()).withZone(zone) }
+            GlassLineChart(
+                points = heartRate,
+                valueLabel = { resources.getString(R.string.value_bpm, it.roundToInt()) },
+                dateLabel = { times.format(Instant.ofEpochMilli(it)) },
+                emptyText = "",
+                axisLabel = { "${it.roundToInt()}" },
+                markers = List(HR_SETS) { start + (it * HR_CYCLE + HR_CYCLE - 1) * HR_STEP_MILLIS },
+                height = GtSizes.ChartCompactHeight,
+            )
         }
         GlassCard(Modifier.fillMaxWidth()) {
             listOf(0.15f, 0.6f, 1f).forEach { GlassBar(it) }

@@ -73,3 +73,4 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 room = { id = "androidx.room3", version.ref = "room" }
+baselineprofile = { id = "androidx.baselineprofile", version.ref = "benchmark" }

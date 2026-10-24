@@ -195,7 +195,7 @@ internal class V1Import(
                 routineId = session.routineId?.let(routineIds::get),
                 name = session.routineName.trim().ifEmpty { emptyWorkoutName },
                 startedAt = session.startTime,
-                endedAt = maxOf(session.startTime, session.endTime!!),
+                endedAt = maxOf(session.startTime, session.endTime),
             ),
         )
         // Sets in the order they were done, gathered by exercise in the order the exercises began

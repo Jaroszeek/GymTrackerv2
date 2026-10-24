@@ -19,8 +19,14 @@ import java.util.Locale
 fun RoutineTargets.repsLabel(): String = if (repsMin == repsMax) "$repsMin" else "$repsMin–$repsMax"
 
 /** "45 s" under a minute, otherwise "1:30". */
+@Composable
+@ReadOnlyComposable
 fun restLabel(seconds: Int): String =
-    if (seconds < SECONDS_PER_MINUTE) "$seconds s" else "%d:%02d".format(seconds / SECONDS_PER_MINUTE, seconds % SECONDS_PER_MINUTE)
+    if (seconds < SECONDS_PER_MINUTE) {
+        stringResource(R.string.rest_seconds, seconds)
+    } else {
+        "%d:%02d".format(seconds / SECONDS_PER_MINUTE, seconds % SECONDS_PER_MINUTE)
+    }
 
 /** The unit masses are shown and entered in, from the settings; they are stored in kg and converted only in the UI. */
 val LocalWeightUnit = staticCompositionLocalOf { WeightUnit.Kg }

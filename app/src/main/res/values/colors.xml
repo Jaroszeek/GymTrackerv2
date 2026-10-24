@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Window-level colors only (splash, launcher icon); UI colors live in designsystem/theme -->
 <resources>
-    <color name="brand_accent">#FFC6F135</color>
     <color name="brand_icon_background">#FF0A0B0E</color>
     <color name="window_background">#FFF3F2EE</color>
 </resources>

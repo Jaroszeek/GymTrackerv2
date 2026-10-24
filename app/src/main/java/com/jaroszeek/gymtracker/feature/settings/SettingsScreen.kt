@@ -31,6 +31,11 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jaroszeek.gymtracker.BuildConfig
@@ -47,7 +52,7 @@ import com.jaroszeek.gymtracker.designsystem.component.GlassIconButton
 import com.jaroszeek.gymtracker.designsystem.component.GlassScaffold
 import com.jaroszeek.gymtracker.designsystem.component.GlassSegmentedControl
 import com.jaroszeek.gymtracker.designsystem.component.GlassSwatch
-import com.jaroszeek.gymtracker.designsystem.component.GlassSwitch
+import com.jaroszeek.gymtracker.designsystem.component.GlassSwitchRow
 import com.jaroszeek.gymtracker.designsystem.component.navBarContentPadding
 import com.jaroszeek.gymtracker.designsystem.theme.GtPalette
 import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
@@ -130,7 +135,7 @@ fun SettingsScreen(state: SettingsUiState, version: String, actions: SettingsAct
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
             GlassIconButton(R.drawable.ic_arrow_back, stringResource(R.string.action_back), onClick = actions.onBack)
-            Text(stringResource(R.string.settings_title), style = GtTheme.typography.headline)
+            Text(stringResource(R.string.settings_title), Modifier.semantics { heading() }, style = GtTheme.typography.headline)
         }
 
         SectionTitle(R.string.settings_appearance)
@@ -225,7 +230,7 @@ private fun TrainingCard(state: SettingsUiState, actions: SettingsActions) {
                 onClick = { actions.onRestSeconds(state.restSeconds - RestDefaults.STEP_SECONDS) },
                 enabled = state.restSeconds > RestDefaults.MIN_SECONDS,
             )
-            Text(restLabel(state.restSeconds), style = GtTheme.typography.numberM)
+            Text(restLabel(state.restSeconds), Modifier.semantics { liveRegion = LiveRegionMode.Polite }, style = GtTheme.typography.numberM)
             GlassIconButton(
                 R.drawable.ic_add,
                 stringResource(R.string.number_increase, label),
@@ -361,25 +366,17 @@ private fun GtPalette.label(): Int = when (this) {
 
 @Composable
 private fun SectionTitle(@StringRes title: Int) {
-    Text(stringResource(title), Modifier.padding(top = GtSpacing.s), color = GtTheme.colors.textSecondary, style = GtTheme.typography.label)
+    Text(stringResource(title), Modifier.padding(top = GtSpacing.s).semantics { heading() }, color = GtTheme.colors.textSecondary, style = GtTheme.typography.label)
 }
 
 @Composable
-private fun SwitchRow(@StringRes title: Int, @StringRes text: Int?, checked: Boolean, onCheckedChange: (Boolean) -> Unit, enabled: Boolean = true) {
-    val colors = GtTheme.colors
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
-            Text(stringResource(title), color = if (enabled) colors.textPrimary else colors.textTertiary, style = GtTheme.typography.label)
-            if (text != null) Text(stringResource(text), color = colors.textSecondary, style = GtTheme.typography.bodySmall)
-        }
-        GlassSwitch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
-    }
-}
+private fun SwitchRow(@StringRes title: Int, @StringRes text: Int?, checked: Boolean, onCheckedChange: (Boolean) -> Unit, enabled: Boolean = true) =
+    GlassSwitchRow(stringResource(title), checked, onCheckedChange, text = text?.let { stringResource(it) }, enabled = enabled)
 
 @Composable
 private fun Entry(@DrawableRes icon: Int, title: String, text: String?, onClick: (() -> Unit)?) {
     val colors = GtTheme.colors
-    GlassCard(Modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)) {
+    GlassCard(Modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
             Icon(painterResource(icon), contentDescription = null, tint = colors.accentText)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {

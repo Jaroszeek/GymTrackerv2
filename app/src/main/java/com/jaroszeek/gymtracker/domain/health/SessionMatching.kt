@@ -17,6 +17,25 @@ fun bestMatch(start: Long, end: Long, sessions: List<HealthSession>): HealthSess
     .maxByOrNull { it.second }
     ?.first
 
+/** A finished workout without a session that was not unlinked by hand. Times are epoch millis UTC. */
+data class UnlinkedWorkout(val id: Long, val startedAt: Long, val endedAt: Long)
+
+/**
+ * The links made by themselves, workout id to session id: each workout gets its [bestMatch] among the
+ * sessions not [linked] yet, and a session goes to one workout only. Oldest workouts go first, so of two
+ * competing for a session the earlier gets it and the later its next best match, if there is one.
+ */
+fun autoLinks(workouts: List<UnlinkedWorkout>, sessions: List<HealthSession>, linked: Set<String>): Map<Long, String> {
+    val free = sessions.filterTo(mutableListOf()) { it.id !in linked }
+    return buildMap {
+        workouts.sortedBy { it.startedAt }.forEach { workout ->
+            val session = bestMatch(workout.startedAt, workout.endedAt, free) ?: return@forEach
+            free.remove(session)
+            put(workout.id, session.id)
+        }
+    }
+}
+
 /** Sessions to link by hand: started within [MATCH_WINDOW_MILLIS] of the workout, nearest first. */
 fun linkCandidates(start: Long, sessions: List<HealthSession>): List<HealthSession> = sessions
     .filter { abs(it.startTime - start) <= MATCH_WINDOW_MILLIS }

@@ -4,16 +4,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -24,9 +24,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.jaroszeek.gymtracker.R
 import com.jaroszeek.gymtracker.designsystem.component.ChartPoint
 import com.jaroszeek.gymtracker.designsystem.component.ChartRange
 import com.jaroszeek.gymtracker.designsystem.component.ChartRangeSelector
@@ -45,7 +49,6 @@ import com.jaroszeek.gymtracker.feature.routines.LocalWeightUnit
 import com.jaroszeek.gymtracker.feature.routines.massLabel
 import com.jaroszeek.gymtracker.feature.routines.weightLabel
 import com.jaroszeek.gymtracker.feature.workout.volumeLabel
-import com.jaroszeek.gymtracker.R
 import java.time.Instant
 import java.time.ZoneId
 
@@ -106,7 +109,7 @@ private fun RoutineCharts(state: RoutineProgressUiState, onRange: (ChartRange) -
     val kg = rememberMassLabel()
     val volume = rememberMassLabel(decimals = 0)
     Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
-        Text(state.name.orEmpty(), style = GtTheme.typography.displaySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Text(state.name.orEmpty(), Modifier.semantics { heading() }, style = GtTheme.typography.displaySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Text(pluralStringResource(R.plurals.progress_sessions, state.sessions.size, state.sessions.size), color = colors.textSecondary, style = GtTheme.typography.label)
     }
     ChartRangeSelector(state.range, onSelect = onRange)
@@ -150,7 +153,7 @@ private fun SessionRow(session: RoutineSession, onClick: () -> Unit) {
         Modifier
             .fillMaxWidth()
             .defaultMinSize(minHeight = GtSizes.MinTouch)
-            .clickable(onClick = onClick),
+            .clickable(role = Role.Button, onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(dayLabel(session.time), style = GtTheme.typography.label, modifier = Modifier.weight(1f))

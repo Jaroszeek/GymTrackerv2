@@ -1,5 +1,6 @@
 package com.jaroszeek.gymtracker.designsystem.theme
 
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.TextStyle
@@ -33,6 +34,14 @@ private fun geist(weight: FontWeight, size: Int, lineHeight: Int, letterSpacing:
     letterSpacing = letterSpacing.em,
     fontFeatureSettings = "tnum",
 )
+
+/**
+ * A one-line label in a fixed slot (navbar, segments) shrinks to fit a large system font instead of losing
+ * the end of the word; it never goes below [MIN_FIT_SP], which a 200% font still doubles.
+ */
+fun TextStyle.fitting(): TextAutoSize = TextAutoSize.StepBased(minFontSize = MIN_FIT_SP.sp, maxFontSize = fontSize)
+
+private const val MIN_FIT_SP = 7
 
 // Serif only for large display moments; it has no tabular figures, so never for numbers
 private fun serif(size: Int, lineHeight: Int) = TextStyle(

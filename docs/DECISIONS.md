@@ -483,7 +483,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
   - horyzont zgody na starsze dane to 365 dni;
   - po ponad 30 dniach bez synchronizacji token wygasa, a pełny import przelicza ostatnie 30 dni (365 ze zgodą na starsze dane). Dni między ostatnią synchronizacją a tym okresem mogą zostać bez sum kroków i kalorii. Z synchronizacją w tle to nie występuje. Poprawka wymaga sprawdzenia, jak HC odpowiada na agregaty sprzed okna 30 dni bez zgody na starsze dane: gdyby rzucał wyjątek, dni zostałyby nieprzeliczone na stałe.
 
-### D-062 Łączenie treningu z sesją z zegarka
+### D-062 Łączenie treningu z sesją z zegarka (propozycję zastąpiło automatyczne łączenie, D-084)
 - **Propozycja:** sesja, która nakłada się z treningiem najdłużej, o ile wspólny czas to co najmniej połowa dłuższego z nich. Dzięki temu krótki spacer na siłownię nie pasuje. Pokazujemy ją tylko wtedy, gdy trening nie ma połączenia, a propozycji nie odrzucono („To nie ten”).
 - **Ręcznie:** do 6 sesji, które zaczęły się do 12 h od treningu, najbliższe pierwsze. Sesje połączone z innym treningiem są pominięte. Odłączenie odrzuca też propozycję, żeby nie wracała.
 - **Historia:**
@@ -604,6 +604,60 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 ### D-077 Android Auto Backup
 - Do kopii Google i przenoszenia na nowy telefon idą baza i ustawienia. Wyłączone: `health.db` (D-060), plik trwającego treningu `active_workout.json` (tymczasowy) i `gymtracker.db-shm` (indeks pamięci współdzielonej SQLite, odtwarzany). Pamięć podręczna i `noBackupFilesDir` (pliki importu i poprzednie bazy) są poza kopią z definicji Androida.
 - Po przywróceniu na nowym telefonie tokeny HC (w `health.db`) nie istnieją, więc import z HC zaczyna się od nowa.
+
+## 2026-10-24 — Etap 10 (szlif, wydajność, QA)
+
+### D-078 Język aplikacji na stałe polski
+- Przy pierwszym starcie (i gdy ktoś wybierze w systemie „Domyślny język”) aplikacja ustawia sobie język pl-PL przez `LocaleManager.setApplicationLocales` (API 33+, bez AppCompat). Teksty są tylko po polsku, a Android wybiera formy liczby mnogiej według języka aplikacji, nie tekstów: na angielskim systemie wychodziło „0 treningu” zamiast „0 treningów”. Daty i nazwy dni są teraz też po polsku.
+- Zamyka pytanie z Etapu 9 i pomysł z IDEAS (2026-10-19). Właściciel nie odpowiedział na pytanie, więc wybrana jest rekomendacja.
+- **Alternatywy:** `createConfigurationContext` w aktywności (nie obejmuje powiadomień, serwisu i workerów); angielskie teksty jako domyślne i polskie w `values-pl` (tłumaczenie całej aplikacji poza zakresem).
+- **Pierwszy start (poprawka 2026-10-24):** język ustawiony w pierwszym procesie działa dopiero od następnego, więc zaraz po instalacji na systemie EN daty były po angielsku, a liczby mnogie według reguł angielskich („6 ćwiczenia”). Teraz pierwszy proces ustawia `Locale.setDefault`, a `MainActivity` dostaje polską konfigurację w `attachBaseContext`, gdy jej język nie jest polski. Powiadomienia nie używają liczby mnogiej, więc nie trzeba tego w serwisie. Lint `AppBundleLocaleChanges` wyciszony: polskie teksty są zasobami domyślnymi, więc żaden podział pakietu ich nie pominie.
+
+### D-079 Baseline Profile i pomiary
+- Plugin `androidx.baselineprofile` 1.5.0 (Apache-2.0, już w katalogu wersji od Etapu 1, D-014) z modułem `:baselineprofile`. Generator (`BaselineProfileGenerator`) ma dwa przebiegi: zimny start (`includeInStartupProfile = true`, z niego powstaje osobny `startup-prof.txt` do układu DEX) i przejście przez wszystkie zakładki (tylko `baseline-prof.txt`). Profile leżą w `app/src/release/generated/baselineProfiles` i są w repo, więc CI ich nie generuje.
+- AGP 9 włącza R8 także w kopiach `nonMinified*`, które plugin tworzy dla generatora; wtedy nazwy klas w profilu nie pasują do wydania. `finalizeDsl` w `app/build.gradle.kts` wyłącza w nich optymalizację.
+- Build `benchmark` (D-014) nie dostaje profilu, więc generator i benchmark startu pomijają go (`assumeFalse` na `.benchmark`); służy do pomiaru przewijania bez profilu.
+- Pomiar na emulatorze API 36 (benchmarkRelease, 10 zimnych startów): z profilem mediana 696 ms (min 627), bez profilu 754 ms (min 692), czyli ok. 8% szybciej. Pierwsza wersja bez osobnego profilu startu nie dała mierzalnej różnicy.
+- Przewijanie historii (300 treningów, build `benchmark`, `dumpsys gfxinfo`, 12 przeciągnięć): z rozmyciem p50 34–36 ms, p90 48 ms, jank 20–24%; z „Ogranicz przezroczystość” p50 34–36 ms, p90 46–48 ms, jank 20–26%. Rozmycie nie dodaje mierzalnego kosztu. Wątek UI (layout + rysowanie) to mediana 0,2 ms, resztę zajmuje GPU emulatora, dlatego liczby są wyższe niż w D-057 (rozrzut emulatora jak w D-024). Miarodajny będzie pomiar na telefonie (README, „Wydajność”).
+- Rozmiar: release 4,7 MB bez podpisu, profil dodaje ok. 10 KB.
+- **Alternatywy:** bez profilu (wolniejszy pierwszy start po instalacji); ręcznie pisany profil dla `profileinstaller` (szybko się dezaktualizuje).
+
+### D-080 Ikona i splash
+- Ikona adaptacyjna „Pierścień”: talerz obciążenia widziany z przodu, który jest też pierścieniem postępu (jak timer przerwy). Akcent Volt z gradientem jaśniejszym u góry na prawie czarnym tle z delikatną poświatą. Warstwa monochromatyczna (ikony tematyczne) to ten sam kształt.
+- Właściciel wybrał A (2026-10-24). Odrzucone propozycje B „Słupki” (trzy rosnące serie) i C „Hantla” zostały tylko na zrzucie `stage10-icon-proposals.png`; galeria debug pokazuje teraz właściwą ikonę (zwykłą, tematyczną i małą).
+- Splash z platformy (D-015): pierścień domyka się w 700 ms (`animated-vector` na warstwie ikony), tło jak okno aplikacji.
+
+### D-081 Dostępność (Etap 10)
+- Czcionka 200%: etykiety w stałych miejscach (navbar, przełącznik segmentowy, liczby w kafelkach Profilu i podsumowania treningu) zmniejszają się do szerokości (`TextStyle.fitting()`, `TextAutoSize.StepBased`, minimum 7 sp, które system i tak podwaja) zamiast tracić koniec słowa. Wiersze statystyk (`StatRow`, `FlowRow`) przy skali czcionki od 1,3 mają po 2 pozycje w wierszu.
+- TalkBack: etykieta (i błąd) pól tekstowych i liczbowych jest w `decorationBox`, więc czyta się razem z polem, jak w M3. Uchwyty przeciągania (układ Startu, edytor rutyn) mają akcje „Przesuń wyżej” i „Przesuń niżej” (`reorderActions`), bo czytnik ekranu nie przeciąga. Przełączniki i opcje to całe wiersze z rolą, nagłówki sekcji mają `heading()`.
+- Nakładka przerwy przewija się w poziomie i przy dużej czcionce, żeby „Pomiń” było zawsze osiągalne. Wysokość mini paska treningu jest mierzona, więc treść nie chowa się pod nim przy dużej czcionce.
+- Kontrast: palety i motywy sprawdzone w Etapie 1 i 9 (testy kontrastu na JVM); nowe elementy używają tylko tokenów.
+
+### D-082 Odporność (Etap 10)
+- Plik trwającego treningu jest zapisywany na dysk (`fsync`) przed podmianą, więc zanik zasilania nie zostawi pustego pliku. Zapis zakończonego treningu i jego zamknięcie idą razem poza anulowaniem: wyjście z ekranu tuż po „Zakończ” nie zostawi zapisanego treningu w toku.
+- Alarm końca przerwy trzyma odbiornik (`goAsync`), aż powiadomienie wyjdzie, także w procesie uruchomionym tylko dla alarmu; dźwięk jest trzymany do końca odtwarzania. Powtórne tapnięcia zapisu w Profilu nie zapisują dwa razy.
+- Pomiary z HC spoza zakresów z D-071 (np. wzrost 0 m z innej aplikacji) są pomijane, bo dawały nieskończone BMI.
+- Edytor treningu odróżnia błąd odczytu („Nie udało się wczytać treningu.”) od usuniętego treningu. Import kopii w procesie uruchomionym ponownie dla wybranego pliku czeka na odczyt trwającego treningu, zanim sprawdzi blokadę.
+- Sprawdzone na emulatorze: zabicie procesu w trakcie przerwy (przerwa wraca z właściwym czasem), obrót w trakcie treningu, pusta baza, brak zgód HC, oszczędzanie baterii z trybem samolotowym, 120 i 300 treningów.
+
+### D-083 Poprawki designu po przeglądzie (Etap 10)
+Właściciel zatwierdził wszystkie (2026-10-24):
+- **Karta „Trening w tle”:** jedno zdanie o ryzyku i krótkie przyciski tylko dla bieżących problemów („Powiadomienia”, „Bateria: »Bez ograniczeń«”, „Alarmy”) w zawijanym wierszu. „Ukryj” zapisuje w DataStore zbiór ukrytych problemów: karta nie wraca po restarcie procesu, ale wraca, gdy pojawi się problem spoza tego zbioru. Naprawiony problem nie jest usuwany ze zbioru, więc ten sam problem po powrocie nie pokaże karty (szczegóły zostają w diagnostyce).
+- **Zakładka Trening:** „Nowa rutyna” i „Szablony” obok siebie, „Pusty trening” jako akcja tekstowa pod nimi.
+- **Wiek w Profilu:** kafelek jak waga i wzrost („29 lat”), edycja w arkuszu z polem liczbowym; zapis dopiero po „Zapisz” (wcześniej po każdym znaku), puste pole usuwa wiek.
+- **Rekordy z 7 dni:** jeden wiersz na ćwiczenie z najważniejszym rekordem (e1RM > ciężar > powtórzenia > objętość serii > objętość treningu, najnowszy z danego rodzaju) i „+N” dla pozostałych rodzajów; wybór w `domain/` (`headlineRecords`) z testami.
+- **Navbar w jasnym motywie:** kropla ma mocniejsze wypełnienie akcentem (40%) i krawędź w ciemniejszym akcencie tekstowym; w ciemnym bez zmian. Pod czarnym tekstem w palecie mono kontrast ok. 6:1.
+- **Linia bazowa:** etykieta serii tygodni i kroków stoi na linii bazowej liczby (`alignByBaseline`).
+- **Wyszukiwarka ćwiczeń:** kolejność w trzech poziomach: dokładna nazwa, każde słowo zapytania zaczyna słowo nazwy, reszta (środek słowa albo polska nazwa). W poziomie najpierw ćwiczenia „częste” (z szablonów, rutyn i historii; jedno zapytanie `UNION` w `ExerciseDao`), potem nazwy zaczynające się od zapytania, potem alfabetycznie. Filtrowanie bez zmian.
+- **Pasek stanu:** scrim pod zegarem prawie pełny (96% koloru tła), potem krótkie przejście; wcześniej gradient od 85%.
+
+### D-084 Tętno w ćwiczeniu i automatyczne łączenie z zegarkiem (2026-10-24, prośba właściciela)
+- **Automatyczne łączenie zamiast propozycji (zmienia D-062):** trening bez połączenia, którego nie odłączono ręcznie, łączy się sam z sesją z zegarka wybraną tą samą regułą co dotąd propozycja (`bestMatch`: wspólny czas co najmniej połowa dłuższego). Robi to `WatchLinker`, który obserwuje treningi i zaimportowane sesje, więc działa po każdej synchronizacji i po zapisie treningu, bez otwierania szczegółów. Jedna sesja trafia do jednego treningu. „Odłącz” zapisuje odłączenie i odrzucenie jednym zapytaniem, żeby automat nie połączył treningu od razu ponownie; potem zostaje wybór ręczny. Karta propozycji i „To nie ten” usunięte. Pierwsze uruchomienie łączy też starsze treningi, które pasują.
+  - Odrzucone: łączenie dopiero po otwarciu szczegółów (historia długo bez ikony zegarka i bez tętna); osobny przełącznik „łącz automatycznie” (właściciel chce, żeby działo się samo).
+- **Czas serii:** odhaczenie serii zapisuje jej czas (`workout_sets.done_at`, epoch millis UTC, schemat v6, AutoMigration 5 → 6 z testem). Serie sprzed tej wersji, z importu v1 i dodane w edytorze nie mają czasu. Cofnięcie odhaczenia czyści czas.
+- **Okno ćwiczenia (`domain/health/ExerciseHeartRate.kt`):** każda seria ma przedział od poprzedniego odhaczenia w treningu (dla pierwszej od startu treningu) do swojego, czyli przerwę przed serią i samą serię. Ćwiczenie obejmuje przedziały od pierwszej do ostatniej swojej serii. Średnie (ważone czasem) i maksymalne tętno jak dla całej sesji. Ćwiczenie bez serii z czasem albo z mniej niż 2 próbkami nie ma wykresu. Przy superseriach okna się nakładają — świadome uproszczenie.
+- **UI:** w karcie ćwiczenia w szczegółach treningu: „Tętno: średnie …, maks. …” i niski wykres (`GtSizes.ChartCompactHeight`) z pionowym znacznikiem w chwili odhaczenia każdej serii. `GlassLineChart` dostał opcjonalne `markers` (znacznik tuż za ostatnią próbką rysowany na krawędzi) i `height`; przykład w galerii.
+- Bez nowych zależności i uprawnień.
 
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 

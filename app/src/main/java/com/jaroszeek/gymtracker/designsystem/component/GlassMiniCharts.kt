@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.jaroszeek.gymtracker.designsystem.theme.GtAlpha
 import com.jaroszeek.gymtracker.designsystem.theme.GtMotion
@@ -64,6 +65,7 @@ fun GlassBarChart(values: List<Double>, labels: List<String>, description: Strin
                     color = if (index == highlighted) colors.textPrimary else colors.textTertiary,
                     style = GtTheme.typography.labelSmall,
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }

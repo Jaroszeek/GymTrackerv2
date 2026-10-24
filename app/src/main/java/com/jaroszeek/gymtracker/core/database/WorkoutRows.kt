@@ -20,6 +20,8 @@ data class ExerciseNameRow(val id: Long, val name: String)
 
 data class WorkoutHealthRow(val startedAt: Long, val endedAt: Long, val hcSessionId: String?, val hcMatchDismissed: Boolean)
 
+data class WorkoutSpanRow(val id: Long, val startedAt: Long, val endedAt: Long)
+
 data class WorkoutExerciseWithSets(
     @Embedded val exercise: WorkoutExerciseEntity,
     @Relation(parentColumns = ["id"], entityColumns = ["workout_exercise_id"]) val sets: List<WorkoutSetEntity>,

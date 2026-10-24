@@ -24,8 +24,9 @@ import com.jaroszeek.gymtracker.domain.home.weekStats
 import com.jaroszeek.gymtracker.domain.home.weeklyStreak
 import com.jaroszeek.gymtracker.domain.progress.Week
 import com.jaroszeek.gymtracker.domain.routine.Routine
-import com.jaroszeek.gymtracker.domain.workout.ExerciseRecords
+import com.jaroszeek.gymtracker.domain.workout.HeadlineRecord
 import com.jaroszeek.gymtracker.domain.workout.WorkoutListItem
+import com.jaroszeek.gymtracker.domain.workout.headlineRecords
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
 import java.time.Instant
@@ -71,7 +72,7 @@ data class HomeUiState(
     val week: WeekStats = WeekStats(),
     val lastWorkout: WorkoutListItem? = null,
     val workoutDays: Set<LocalDate> = emptySet(),
-    val records: List<ExerciseRecords> = emptyList(),
+    val records: List<HeadlineRecord> = emptyList(),
     /** Steps of the last 7 days, today last; null while Health Connect gives none (the card offers to connect). */
     val steps: List<Long>? = null,
     val body: BodySummary = BodySummary(),
@@ -140,7 +141,7 @@ class HomeViewModel @Inject constructor(
                 week = weekStats(training.history, Week.of(today), zone),
                 lastWorkout = training.history.firstOrNull(),
                 workoutDays = days,
-                records = records,
+                records = headlineRecords(records),
                 steps = if (permitted || activity.any { it.steps != null }) {
                     (STEP_DAYS - 1 downTo 0).map { back -> activity.firstOrNull { it.day == today.minusDays(back) }?.steps ?: 0 }
                 } else {
@@ -157,7 +158,12 @@ class HomeViewModel @Inject constructor(
             Log.e(TAG, "Loading Start failed", e)
             emit(HomeUiState(loading = false, error = true))
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), HomeUiState())
+        // The header is right from the first frame, so an evening start does not flash "Dzień dobry"
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+            HomeUiState(today = now.value.toLocalDate(), evening = now.value.hour !in DAY_HOURS),
+        )
 
     /** On every return to the screen: a new day or hour, or permissions changed in Health Connect. */
     fun onRefresh() {

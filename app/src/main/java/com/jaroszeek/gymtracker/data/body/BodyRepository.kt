@@ -34,7 +34,10 @@ class BodyRepository @Inject constructor(
     fun observeMeasurements(): Flow<List<BodyMeasurement>> =
         combine(dao.observeAll(), healthDao.observeMeasurements(BodyMetric.entries.map { it.key }, from = 0)) { manual, imported ->
             val entered = manual.mapNotNull { row -> BodyMetric.fromKey(row.type)?.let { BodyMeasurement(it, row.time, row.value, manualId = row.id) } }
-            val synced = imported.mapNotNull { row -> BodyMetric.fromKey(row.type)?.let { BodyMeasurement(it, row.time, row.value, origin = row.origin) } }
+            // Values that cannot be entered here stay out: a height of 0 m from another app gives an infinite BMI
+            val synced = imported.mapNotNull { row ->
+                BodyMetric.fromKey(row.type)?.takeIf { row.value in it.range }?.let { BodyMeasurement(it, row.time, row.value, origin = row.origin) }
+            }
             (entered + synced).withoutDuplicates()
         }.flowOn(io)
 

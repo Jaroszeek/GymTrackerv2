@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -31,6 +31,11 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,6 +50,7 @@ import com.jaroszeek.gymtracker.designsystem.component.GlassNumberField
 import com.jaroszeek.gymtracker.designsystem.component.GlassScaffold
 import com.jaroszeek.gymtracker.designsystem.component.GlassTextField
 import com.jaroszeek.gymtracker.designsystem.component.navBarContentPadding
+import com.jaroszeek.gymtracker.designsystem.component.reorderActions
 import com.jaroszeek.gymtracker.designsystem.theme.GtShapes
 import com.jaroszeek.gymtracker.designsystem.theme.GtSizes
 import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
@@ -149,11 +155,16 @@ fun RoutineEditorScreen(
                 )
             }
         }
-        items(draft.blocks, key = { it.id }) { block ->
+        itemsIndexed(draft.blocks, key = { _, block -> block.id }) { index, block ->
+            val moves = reorderActions(
+                onMoveUp = draft.blocks.getOrNull(index - 1)?.let { above -> { onMoveBlock(block.id, above.id) } },
+                onMoveDown = draft.blocks.getOrNull(index + 1)?.let { below -> { onMoveBlock(block.id, below.id) } },
+            )
             ReorderableItem(reorderState, key = block.id) { dragging ->
                 BlockCard(
                     block = block,
                     dragging = dragging,
+                    moves = moves,
                     onEditTargets = { variantId -> onEditTargets(block.id, variantId) },
                     onRemoveVariant = { variantId -> onRemoveVariant(block.id, variantId) },
                     onAddVariant = { onAddVariant(block.id) },
@@ -201,6 +212,7 @@ fun RoutineEditorScreen(
 private fun ReorderableCollectionItemScope.BlockCard(
     block: RoutineBlock,
     dragging: Boolean,
+    moves: List<CustomAccessibilityAction>,
     onEditTargets: (Long) -> Unit,
     onRemoveVariant: (Long) -> Unit,
     onAddVariant: () -> Unit,
@@ -230,6 +242,7 @@ private fun ReorderableCollectionItemScope.BlockCard(
                         tint = colors.textTertiary,
                         modifier = Modifier
                             .draggableHandle(onDragStarted = { onDragStarted() })
+                            .semantics { customActions = moves }
                             .size(GtSizes.Icon),
                     )
                 } else {
@@ -238,7 +251,7 @@ private fun ReorderableCollectionItemScope.BlockCard(
                 Row(
                     Modifier
                         .weight(1f)
-                        .clickable { onEditTargets(variant.id) },
+                        .clickable(role = Role.Button) { onEditTargets(variant.id) },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(GtSpacing.m),
                 ) {
@@ -269,7 +282,7 @@ private fun ReorderableCollectionItemScope.BlockCard(
 @Composable
 private fun TargetsForm(exercise: Exercise, targets: RoutineTargets, onChange: (RoutineTargets) -> Unit, onDone: () -> Unit) {
     val colors = GtTheme.colors
-    Text(exercise.name, style = GtTheme.typography.headline, maxLines = 2, overflow = TextOverflow.Ellipsis)
+    Text(exercise.name, Modifier.semantics { heading() }, style = GtTheme.typography.headline, maxLines = 2, overflow = TextOverflow.Ellipsis)
     Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
         GlassNumberField(
             value = targets.sets.toDouble(),

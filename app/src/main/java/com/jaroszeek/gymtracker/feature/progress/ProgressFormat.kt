@@ -8,14 +8,12 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import com.jaroszeek.gymtracker.R
 import com.jaroszeek.gymtracker.designsystem.component.ChartPoint
-import com.jaroszeek.gymtracker.designsystem.component.NumberInput
 import com.jaroszeek.gymtracker.domain.progress.RecordType
 import com.jaroszeek.gymtracker.domain.progress.Week
 import com.jaroszeek.gymtracker.domain.settings.WeightUnit
 import com.jaroszeek.gymtracker.feature.routines.LocalWeightUnit
 import com.jaroszeek.gymtracker.feature.routines.MASS_DECIMALS
 import com.jaroszeek.gymtracker.feature.routines.format
-import java.text.DecimalFormatSymbols
 import java.text.NumberFormat
 import java.time.DayOfWeek
 import java.time.Instant
@@ -76,9 +74,6 @@ fun weekLabel(week: Week, zone: ZoneId = ZoneId.systemDefault()): String {
         stringResource(R.string.week_range, formatter("d MMM").format(start), last)
     }
 }
-
-/** Estimates get one decimal: "116,7". */
-fun e1rmLabel(kg: Double): String = NumberInput.format(kg, decimals = 1, DecimalFormatSymbols.getInstance(Locale.getDefault()).decimalSeparator)
 
 /** "102,5 kg" for a chart value already in the shown unit ([shownIn]); charts call it outside composition. 0 [decimals] for volumes. */
 @Composable

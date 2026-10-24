@@ -186,6 +186,8 @@
     <string name="routine_add_variant">Dodaj wariant</string>
     <string name="routine_or">lub</string>
     <string name="routine_drag">Przeciągnij, aby zmienić kolejność</string>
+    <string name="action_move_up">Przesuń wyżej</string>
+    <string name="action_move_down">Przesuń niżej</string>
     <string name="routine_remove_variant">Usuń: %1$s</string>
     <string name="routine_target_sets_reps">%1$d × %2$s</string>
     <string name="routine_target_rest">przerwa %1$s</string>
@@ -199,6 +201,7 @@
     <string name="label_reps_max">Powtórzenia do</string>
     <string name="label_rest">Przerwa</string>
     <string name="unit_seconds">s</string>
+    <string name="rest_seconds">%1$d s</string>
     <string name="targets_weight_hint">Puste pole = bez ciężaru docelowego</string>
     <string name="targets_rest_hint">Puste pole = przerwa domyślna</string>
 
@@ -282,12 +285,10 @@
 
     <!-- Workout: background issues -->
     <string name="background_title">Trening w tle</string>
-    <string name="background_notifications">Powiadomienia są wyłączone: przerwy i treningu nie zobaczysz na ekranie blokady ani w Now Bar.</string>
-    <string name="background_notifications_action">Włącz powiadomienia</string>
-    <string name="background_battery">Telefon może zamknąć GymTracker w tle i przerwać odliczanie. Ustaw baterię aplikacji na „Bez ograniczeń”.</string>
-    <string name="background_battery_action">Ustawienia baterii</string>
-    <string name="background_exact_alarms">Zgoda „Alarmy i przypomnienia” pozwala obudzić telefon dokładnie na koniec przerwy. Bez niej telefon nie zasypia przez całą przerwę.</string>
-    <string name="background_exact_alarms_action">Zezwól na alarmy</string>
+    <string name="background_text">Koniec przerwy i powiadomienie na ekranie blokady lub w Now Bar mogą nie dotrzeć.</string>
+    <string name="background_notifications_action">Powiadomienia</string>
+    <string name="background_battery_action">Bateria: „Bez ograniczeń”</string>
+    <string name="background_exact_alarms_action">Alarmy</string>
     <string name="background_diagnostics">Diagnostyka</string>
     <string name="background_hide">Ukryj</string>
 
@@ -374,6 +375,7 @@
 
     <!-- Workout from history -->
     <string name="workout_detail_not_found">Tego treningu już nie ma.</string>
+    <string name="workout_editor_error">Nie udało się wczytać treningu.</string>
     <string name="workout_detail_time">%1$s–%2$s</string>
     <string name="delete_workout_title">Usunąć trening?</string>
     <string name="delete_workout_text">Trening zniknie z historii, a rekordy i wykresy przeliczą się bez niego.</string>
@@ -517,6 +519,7 @@
     <string name="hr_zones_missing">Podaj wiek albo tętno maksymalne na ekranie Health Connect, a pokażemy czas w strefach.</string>
     <string name="hr_empty">Brak pomiarów tętna z tej sesji.</string>
     <string name="hr_source">Z aplikacji %1$s</string>
+    <string name="hr_exercise">Tętno: średnie %1$s, maks. %2$s</string>
     <string name="kcal_active">Kalorie aktywne</string>
     <string name="kcal_total">Kalorie łącznie</string>
     <string name="session_imported">Zaimportowane</string>
@@ -524,9 +527,6 @@
     <string name="session_not_found">Tej sesji już nie ma w Health Connect.</string>
     <string name="session_imported_text">Sesja z Health Connect. Zmienisz ją w aplikacji, która ją zapisała.</string>
     <string name="link_title">Sesja z zegarka</string>
-    <string name="link_proposal">%1$s z %2$s, %3$s–%4$s. To ten trening?</string>
-    <string name="link_confirm">Połącz</string>
-    <string name="link_dismiss">To nie ten</string>
     <string name="link_choose">Połącz z sesją z zegarka</string>
     <string name="link_unlink">Odłącz sesję z zegarka</string>
     <string name="link_sheet_title">Sesje z zegarka</string>
@@ -658,6 +658,13 @@
         <item quantity="many">i %d innych ćwiczeń</item>
         <item quantity="other">i %d innego ćwiczenia</item>
     </plurals>
+    <string name="home_records_others">+%d</string>
+    <plurals name="home_records_others_description">
+        <item quantity="one">i %d inny rekord</item>
+        <item quantity="few">i %d inne rekordy</item>
+        <item quantity="many">i %d innych rekordów</item>
+        <item quantity="other">i %d innego rekordu</item>
+    </plurals>
     <string name="home_calendar_previous">Poprzedni miesiąc</string>
     <string name="home_calendar_next">Następny miesiąc</string>
     <plurals name="home_calendar_workouts">
@@ -698,6 +705,14 @@
     <string name="profile_data_title">Dane</string>
     <string name="profile_weight">Waga</string>
     <string name="profile_height">Wzrost</string>
+    <plurals name="profile_age_years">
+        <item quantity="one">%1$d rok</item>
+        <item quantity="few">%1$d lata</item>
+        <item quantity="many">%1$d lat</item>
+        <item quantity="other">%1$d roku</item>
+    </plurals>
+    <string name="profile_age_set">Wpisz wiek</string>
+    <string name="profile_age_title">Twój wiek</string>
     <string name="profile_bmi_text">Orientacyjnie: BMI nie odróżnia mięśni od tłuszczu.</string>
     <string name="profile_composition_title">Skład ciała</string>
     <string name="profile_body_fat">Tkanka tłuszczowa</string>
@@ -719,6 +734,7 @@
     <!-- Date, time and source of a measurement -->
     <string name="profile_measurement_meta">%1$s %2$s • %3$s</string>
     <string name="profile_delete_title">Usunąć pomiar?</string>
+    <string name="profile_delete_entry">Usuń: %1$s z %2$s</string>
     <string name="profile_delete_text">%1$s z %2$s zniknie z profilu i wykresów.</string>
     <string name="profile_kcal_title">Kalorie</string>
     <string name="profile_kcal_active">Aktywne</string>

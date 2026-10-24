@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
@@ -67,7 +67,6 @@ fun GlassNumberField(
             .padding(GtSpacing.s),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(label, color = colors.textSecondary, style = GtTheme.typography.labelSmall)
         BasicTextField(
             value = text,
             onValueChange = { input ->
@@ -84,12 +83,16 @@ fun GlassNumberField(
             ),
             singleLine = true,
             cursorBrush = SolidColor(colors.accent),
+            // The label is inside the decoration box, so TalkBack reads it with the field (as in M3)
             decorationBox = { field ->
-                Box(contentAlignment = Alignment.Center) {
-                    if (text.isEmpty() && placeholder != null) {
-                        Text(placeholder, color = colors.textTertiary, style = GtTheme.typography.numberL)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(label, color = colors.textSecondary, style = GtTheme.typography.labelSmall)
+                    Box(contentAlignment = Alignment.Center) {
+                        if (text.isEmpty() && placeholder != null) {
+                            Text(placeholder, color = colors.textTertiary, style = GtTheme.typography.numberL)
+                        }
+                        field()
                     }
-                    field()
                 }
             },
         )

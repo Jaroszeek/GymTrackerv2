@@ -33,6 +33,8 @@ import kotlinx.serialization.json.Json
         AutoMigration(from = 3, to = 4),
         // 4 -> 5: body values entered by hand (Etap 8)
         AutoMigration(from = 4, to = 5),
+        // 5 -> 6: when each set was ticked off (Etap 10)
+        AutoMigration(from = 5, to = 6),
     ],
 )
 @ColumnTypeConverters(StringListConverter::class)
@@ -47,7 +49,7 @@ abstract class GtDatabase : RoomDatabase() {
 
     companion object {
         const val NAME = "gymtracker.db"
-        const val VERSION = 5
+        const val VERSION = 6
     }
 }
 

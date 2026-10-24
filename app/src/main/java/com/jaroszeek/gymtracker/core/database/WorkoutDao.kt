@@ -101,6 +101,24 @@ interface WorkoutDao {
     @Query("SELECT hc_session_id FROM workouts WHERE hc_session_id IS NOT NULL")
     fun observeLinkedSessions(): Flow<List<String>>
 
+    /** Workouts without a session that were not unlinked by hand: the ones linked by themselves. */
+    @Query("SELECT id, started_at AS startedAt, ended_at AS endedAt FROM workouts WHERE hc_session_id IS NULL AND hc_match_dismissed = 0")
+    fun observeUnlinked(): Flow<List<WorkoutSpanRow>>
+
+    /**
+     * Links only while the workout has no session, was not unlinked by hand and [sessionId] is no other
+     * workout's, so a link worked out from an outdated read changes nothing. Returns the rows changed.
+     */
+    @Query(
+        "UPDATE workouts SET hc_session_id = :sessionId WHERE id = :id AND hc_session_id IS NULL AND hc_match_dismissed = 0 " +
+            "AND NOT EXISTS (SELECT 1 FROM workouts WHERE hc_session_id = :sessionId)",
+    )
+    suspend fun linkIfFree(id: Long, sessionId: String): Int
+
+    /** One statement, so automatic linking cannot link the workout again between the two changes. */
+    @Query("UPDATE workouts SET hc_session_id = NULL, hc_match_dismissed = 1 WHERE id = :id")
+    suspend fun unlinkHealthSession(id: Long)
+
     /** Sets go with them (cascade). */
     @Query("DELETE FROM workout_exercises WHERE workout_id = :workoutId")
     suspend fun deleteExercises(workoutId: Long)

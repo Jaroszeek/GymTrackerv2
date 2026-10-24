@@ -116,9 +116,6 @@ interface HealthDao {
     @Upsert
     suspend fun saveToken(token: SyncTokenEntity)
 
-    @Query("DELETE FROM sync_tokens WHERE record_type = :recordType")
-    suspend fun deleteToken(recordType: String)
-
     @Query("DELETE FROM sync_tokens")
     suspend fun deleteTokens()
 

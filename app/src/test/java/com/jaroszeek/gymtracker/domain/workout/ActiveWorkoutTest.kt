@@ -133,6 +133,20 @@ class ActiveWorkoutTest {
     }
 
     @Test
+    fun tickingOffStampsTheTimeAndUntickingClearsIt() {
+        var workout = empty.addExercise(listOf(bench))
+        val exercise = workout.exercise()
+        val last = exercise.sets.last()
+        workout = workout.complete(exercise.id, last.id, now = 42_000, defaultRestSeconds = 90)
+        assertEquals(42_000L, workout.exercise().sets.last().doneAt)
+        assertNull(workout.exercise().sets.first().doneAt)
+
+        // A set added after it copies its values but not its time
+        assertNull(workout.addSet(exercise.id).exercise().sets.last().doneAt)
+        assertNull(workout.uncomplete(exercise.id, last.id).exercise().sets.last().doneAt)
+    }
+
+    @Test
     fun restCanBeShortenedExtendedAndEnds() {
         var workout = empty.addExercise(listOf(dips))
         val exercise = workout.exercise()

@@ -20,6 +20,14 @@ interface ExerciseDao {
     @Query("SELECT id, external_id AS externalId FROM exercises WHERE external_id IS NOT NULL")
     suspend fun externalIds(): List<ExternalIdRow>
 
+    /** Exercises with one of [externalIds], in a routine or in a saved workout. */
+    @Query(
+        """SELECT id FROM exercises WHERE external_id IN (:externalIds)
+               UNION SELECT exercise_id FROM routine_variants
+               UNION SELECT exercise_id FROM workout_exercises""",
+    )
+    fun observeCommonIds(externalIds: Collection<String>): Flow<List<Long>>
+
     @Query("SELECT id, external_id AS externalId, name FROM exercises WHERE source != 'custom'")
     suspend fun bundled(): List<BundledRow>
 

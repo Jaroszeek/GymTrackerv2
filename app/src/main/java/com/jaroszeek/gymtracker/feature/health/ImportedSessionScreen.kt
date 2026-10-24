@@ -20,6 +20,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModel
@@ -120,7 +122,7 @@ fun ImportedSessionScreen(state: ImportedSessionUiState, onBack: () -> Unit, mod
                 is ImportedSessionUiState.Content -> {
                     val session = state.session
                     Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
-                        Text(session.label(), style = GtTheme.typography.displaySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text(session.label(), Modifier.semantics { heading() }, style = GtTheme.typography.displaySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         session.subtitle()?.let { Text(it, style = GtTheme.typography.title, maxLines = 2, overflow = TextOverflow.Ellipsis) }
                         Text(
                             stringResource(

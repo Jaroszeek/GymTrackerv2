@@ -1,9 +1,10 @@
 package com.jaroszeek.gymtracker.designsystem.theme
 
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.animation.core.spring
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.kyant.shapes.Capsule
 import com.kyant.shapes.RoundedRectangle
@@ -70,6 +71,7 @@ object GtSizes {
     val MiniRingStroke = 3.dp
     val SetBadge = 32.dp
     val ChartHeight = 180.dp
+    val ChartCompactHeight = 112.dp
     val ChartEmptyHeight = 96.dp
     val ChartStroke = 2.5.dp
     val ChartDot = 4.dp
@@ -88,6 +90,7 @@ object GtAlpha {
     const val DISABLED = 0.4f
     const val CHART_FILL = 0.28f
     const val CHART_GLOW = 0.55f
+    const val CHART_MARKER = 0.5f
 
     /** Accent light behind a set that set a record, at full strength. */
     const val RECORD_GLOW = 0.32f
@@ -104,6 +107,9 @@ object GtMotion {
     /** Overlays (dialog, sheet) and general enter/exit. */
     val Standard = spring<Float>(dampingRatio = 0.85f, stiffness = 380f)
     val Slide = spring(dampingRatio = 0.85f, stiffness = 420f, visibilityThreshold = IntOffset.VisibilityThreshold)
+
+    /** Screen to screen: a short slide without overshoot (vynox). */
+    val Page = spring(stiffness = Spring.StiffnessMediumLow, visibilityThreshold = IntOffset.VisibilityThreshold)
 
     /** A chart line drawing itself from the left. */
     val Reveal = spring<Float>(dampingRatio = 1f, stiffness = 120f)

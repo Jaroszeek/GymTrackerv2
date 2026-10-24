@@ -102,4 +102,35 @@ class WorkoutResultTest {
         val workout = workout(withBests(1, bests, set(11, 62.5, 5), set(12, 65.0, 3)))
         assertEquals(65.0, workout.recordHits().single { it.type == RecordType.Weight }.valueKg!!, 0.0)
     }
+
+    private fun hit(exerciseId: Long, type: RecordType, valueKg: Double?) = RecordHit(exerciseId, type, PerformedSet(valueKg, 5), valueKg)
+
+    @Test
+    fun startShowsTheMostImportantRecordPerExercise() {
+        val records = listOf(
+            // Newest workout first
+            ExerciseRecords(3, 3_000, 100, "Bench", listOf(hit(100, RecordType.Reps, null), hit(100, RecordType.E1rm, 118.0))),
+            ExerciseRecords(2, 2_000, 200, "Squat", listOf(hit(200, RecordType.SessionVolume, 4_000.0), hit(200, RecordType.SetVolume, 900.0))),
+            ExerciseRecords(1, 1_000, 100, "Bench", listOf(hit(100, RecordType.E1rm, 115.0), hit(100, RecordType.Weight, 100.0))),
+        )
+        assertEquals(
+            listOf(
+                // The newer e1RM; the older one is the same kind, so the others are reps and weight
+                HeadlineRecord(3, 3_000, "Bench", hit(100, RecordType.E1rm, 118.0), others = 2),
+                HeadlineRecord(2, 2_000, "Squat", hit(200, RecordType.SetVolume, 900.0), others = 1),
+            ),
+            headlineRecords(records),
+        )
+    }
+
+    @Test
+    fun aHeadlineFromAnOlderWorkoutSortsByItsDate() {
+        val records = listOf(
+            ExerciseRecords(3, 3_000, 100, "Bench", listOf(hit(100, RecordType.SessionVolume, 3_000.0))),
+            ExerciseRecords(2, 2_000, 200, "Squat", listOf(hit(200, RecordType.Weight, 140.0))),
+            ExerciseRecords(1, 1_000, 100, "Bench", listOf(hit(100, RecordType.Weight, 100.0))),
+        )
+        assertEquals(listOf(2L to 0, 1L to 1), headlineRecords(records).map { it.workoutId to it.others })
+        assertEquals(emptyList<HeadlineRecord>(), headlineRecords(emptyList()))
+    }
 }

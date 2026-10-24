@@ -3,6 +3,7 @@ package com.jaroszeek.gymtracker.feature.workout
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jaroszeek.gymtracker.core.datastore.AppPreferences
 import com.jaroszeek.gymtracker.core.di.DefaultDispatcher
 import com.jaroszeek.gymtracker.core.notifications.LiveUpdateChecks
 import com.jaroszeek.gymtracker.data.exercise.ExerciseRepository
@@ -54,6 +55,22 @@ data class BackgroundIssues(
     val batteryLimited: Boolean = false,
 ) {
     val any: Boolean get() = notificationsOff || exactAlarmsOff || batteryLimited
+
+    /** The current issues as stored when the user hides the card. */
+    val keys: Set<String> get() = buildSet {
+        if (notificationsOff) add(KEY_NOTIFICATIONS)
+        if (exactAlarmsOff) add(KEY_EXACT_ALARMS)
+        if (batteryLimited) add(KEY_BATTERY)
+    }
+
+    /** Hidden stays hidden, also after a restart, until an issue appears that was not there when the user hid the card. */
+    fun shown(hidden: Set<String>): Boolean = keys.any { it !in hidden }
+
+    companion object {
+        const val KEY_NOTIFICATIONS = "notifications"
+        const val KEY_EXACT_ALARMS = "exact_alarms"
+        const val KEY_BATTERY = "battery"
+    }
 }
 
 data class WorkoutUiState(
@@ -76,7 +93,7 @@ data class WorkoutUiState(
     val finished: FinishState? = null,
     /** The screen leaves: discarded, finished with nothing to save, or no workout running. */
     val closed: Boolean = false,
-    /** Empty once the user hid them for this workout. */
+    /** Empty while the user hid them; see [BackgroundIssues.shown]. */
     val issues: BackgroundIssues = BackgroundIssues(),
 )
 
@@ -92,7 +109,6 @@ private data class Local(
     val finishFailed: Boolean = false,
     val finished: FinishState? = null,
     val issues: BackgroundIssues = BackgroundIssues(),
-    val issuesHidden: Boolean = false,
     val recordHit: Boolean = false,
 )
 
@@ -102,6 +118,7 @@ class WorkoutViewModel @Inject constructor(
     exercises: ExerciseRepository,
     private val routines: RoutineRepository,
     private val checks: LiveUpdateChecks,
+    private val preferences: AppPreferences,
     @DefaultDispatcher private val dispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -115,7 +132,13 @@ class WorkoutViewModel @Inject constructor(
             emit(emptyMap())
         }
 
-    val state: StateFlow<WorkoutUiState> = combine(manager.ready, manager.workout, exercisesById, local) { ready, workout, byId, local ->
+    val state: StateFlow<WorkoutUiState> = combine(
+        manager.ready,
+        manager.workout,
+        exercisesById,
+        local,
+        preferences.hiddenBackgroundIssues,
+    ) { ready, workout, byId, local, hiddenIssues ->
         val loading = !ready || byId == null
         WorkoutUiState(
             loading = loading,
@@ -133,7 +156,7 @@ class WorkoutViewModel @Inject constructor(
             finishFailed = local.finishFailed,
             finished = local.finished,
             closed = !loading && workout == null && local.finished == null && !local.finishing,
-            issues = if (local.issuesHidden) BackgroundIssues() else local.issues,
+            issues = local.issues.takeIf { it.shown(hiddenIssues) } ?: BackgroundIssues(),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), WorkoutUiState())
 
@@ -150,7 +173,11 @@ class WorkoutViewModel @Inject constructor(
         }
     }
 
-    fun onHideIssues() = local.update { it.copy(issuesHidden = true) }
+    /** Remembers the issues shown now; a new one brings the card back. */
+    fun onHideIssues() {
+        val keys = local.value.issues.keys
+        viewModelScope.launch { preferences.setHiddenBackgroundIssues(keys) }
+    }
 
     fun onWeightChange(exerciseId: Long, setId: Long, weightKg: Double?) = manager.setWeight(exerciseId, setId, weightKg)
 

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jaroszeek.gymtracker.R
@@ -99,9 +101,19 @@ fun ExerciseEditorScreen(
             error = stringResource(R.string.editor_name_error).takeIf { state.showErrors && draft.name.isBlank() },
         )
         Section(stringResource(R.string.label_equipment)) {
-            GlassChip(stringResource(R.string.editor_no_equipment), selected = draft.equipment == null, onClick = { onEquipmentChange(null) })
+            GlassChip(
+                stringResource(R.string.editor_no_equipment),
+                selected = draft.equipment == null,
+                onClick = { onEquipmentChange(null) },
+                role = Role.RadioButton,
+            )
             Equipment.entries.forEach { equipment ->
-                GlassChip(stringResource(equipment.label), selected = draft.equipment == equipment, onClick = { onEquipmentChange(equipment) })
+                GlassChip(
+                    stringResource(equipment.label),
+                    selected = draft.equipment == equipment,
+                    onClick = { onEquipmentChange(equipment) },
+                    role = Role.RadioButton,
+                )
             }
         }
         Section(
@@ -140,7 +152,7 @@ fun ExerciseEditorScreen(
 private fun Section(title: String, error: String? = null, chips: @Composable () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
         Text(title, color = GtTheme.colors.textSecondary, style = GtTheme.typography.labelSmall)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) { chips() }
+        FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) { chips() }
         if (error != null) Text(error, color = GtTheme.colors.danger, style = GtTheme.typography.labelSmall)
     }
 }

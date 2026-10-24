@@ -3,6 +3,7 @@ package com.jaroszeek.gymtracker.data.workout
 import android.util.Log
 import com.jaroszeek.gymtracker.domain.workout.ActiveWorkout
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -38,7 +39,11 @@ class ActiveWorkoutStore(private val file: File) {
             return
         }
         val temp = File(file.parentFile, "${file.name}.tmp")
-        temp.writeText(json.encodeToString(workout))
+        // On the disk before the swap, so a power cut cannot leave an empty file in place of the workout
+        FileOutputStream(temp).use { out ->
+            out.write(json.encodeToString(workout).toByteArray())
+            out.fd.sync()
+        }
         Files.move(temp.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
     }
 
