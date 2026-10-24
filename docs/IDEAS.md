@@ -4,7 +4,7 @@ Pomysły, które pojawiły się w trakcie pracy, ale nie należą do bieżącego
 
 | Data | Pomysł | Kontekst |
 |---|---|---|
-| 2026-10-19 | Wymuszenie języka aplikacji na polski (per-app language), gdy system jest w innym języku | Teksty są tylko po polsku, a liczby mnogie liczą się według języka systemu: na angielskim systemie „2 serii” zamiast „2 serie”. Do decyzji w Etapie 9 razem z wersją EN. |
+| 2026-10-19 | Wymuszenie języka aplikacji na polski (per-app language), gdy system jest w innym języku | Teksty są tylko po polsku, a liczby mnogie liczą się według języka systemu: na angielskim systemie „2 serii” zamiast „2 serie”. **Zrobione w Etapie 10 (D-078).** |
 | 2026-10-19 | Przeciąganie bottom sheetu w dół, żeby go zamknąć | Na razie zamyka go scrim i gest wstecz (D-019). |
 | 2026-10-19 | Filtr kategorii (siłowe / rozciąganie / cardio) albo ukrycie rozciągania na liście | 123 z 876 ćwiczeń to rozciąganie; lista ich nie odróżnia poza badge w szczegółach. |
 | 2026-10-19 | Zmiana daty i godziny startu w edycji treningu | Edycja (D-053) zmienia nazwę, czas trwania i serie; start zostaje. Przyda się przy treningach zapisanych z opóźnieniem. |
@@ -16,3 +16,5 @@ Pomysły, które pojawiły się w trakcie pracy, ale nie należą do bieżącego
 | 2026-10-20 | Sesje z zegarka (HC) zaznaczone w kalendarzu aktywności na Starcie | Kalendarz pokazuje tylko treningi z aplikacji (D-070). |
 | 2026-10-20 | Masa beztłuszczowa z HC (`LeanBodyMassRecord`), gdy nie ma tkanki tłuszczowej | Teraz liczona tylko z wagi i tkanki tłuszczowej (D-071). |
 | 2026-10-24 | Kopie treningów w Health Connect po imporcie kopii zapasowej: usunąć stare i zapisać zaimportowane, kluczować je czymś stałym między bazami (np. czasem startu) | Opcjonalny zapis (D-064) kluczuje kopię id treningu. Po imporcie nowe treningi mogą dostać id dawnych i zastąpić ich kopie w HC, a kopie treningów spoza kopii zostają w HC. Zmiana klucza dubluje już zapisane kopie, więc wymaga migracji. |
+| 2026-10-24 | Szkice edytorów (rutyna, trening z historii, pomiar) w `SavedStateHandle` | Gdy system ubije proces w tle, niezapisany szkic edytora znika; aktywny trening i przerwa wracają (plik i alarm). Wymaga serializacji szkiców do `Bundle`. |
+| 2026-10-24 | Kolumna „siła” (push / pull) ćwiczeń w filtrach | Dane z bazy ćwiczeń mają to pole, ale schemat go nie przechowuje; dodanie to migracja i ponowny seed. |

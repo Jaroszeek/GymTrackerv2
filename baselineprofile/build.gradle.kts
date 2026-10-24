@@ -4,7 +4,7 @@ plugins {
 }
 
 // Macrobenchmarks against the release-like builds of :app (D-014) and the Baseline Profile generator (D-079):
-// `.\gradlew.bat :app:generateBaselineProfile`
+// `.\gradlew.bat :app:generateReleaseBaselineProfile`
 android {
     namespace = "com.jaroszeek.gymtracker.baselineprofile"
     compileSdk {

@@ -605,6 +605,40 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 - Do kopii Google i przenoszenia na nowy telefon idą baza i ustawienia. Wyłączone: `health.db` (D-060), plik trwającego treningu `active_workout.json` (tymczasowy) i `gymtracker.db-shm` (indeks pamięci współdzielonej SQLite, odtwarzany). Pamięć podręczna i `noBackupFilesDir` (pliki importu i poprzednie bazy) są poza kopią z definicji Androida.
 - Po przywróceniu na nowym telefonie tokeny HC (w `health.db`) nie istnieją, więc import z HC zaczyna się od nowa.
 
+## 2026-10-24 — Etap 10 (szlif, wydajność, QA)
+
+### D-078 Język aplikacji na stałe polski
+- Przy pierwszym starcie (i gdy ktoś wybierze w systemie „Domyślny język”) aplikacja ustawia sobie język pl-PL przez `LocaleManager.setApplicationLocales` (API 33+, bez AppCompat). Teksty są tylko po polsku, a Android wybiera formy liczby mnogiej według języka aplikacji, nie tekstów: na angielskim systemie wychodziło „0 treningu” zamiast „0 treningów”. Daty i nazwy dni są teraz też po polsku.
+- Zamyka pytanie z Etapu 9 i pomysł z IDEAS (2026-10-19). Właściciel nie odpowiedział na pytanie, więc wybrana jest rekomendacja.
+- **Alternatywy:** `createConfigurationContext` w aktywności (nie obejmuje powiadomień, serwisu i workerów); angielskie teksty jako domyślne i polskie w `values-pl` (tłumaczenie całej aplikacji poza zakresem).
+
+### D-079 Baseline Profile i pomiary
+- Plugin `androidx.baselineprofile` 1.5.0 (Apache-2.0, już w katalogu wersji od Etapu 1, D-014) z modułem `:baselineprofile`. Generator (`BaselineProfileGenerator`) ma dwa przebiegi: zimny start (`includeInStartupProfile = true`, z niego powstaje osobny `startup-prof.txt` do układu DEX) i przejście przez wszystkie zakładki (tylko `baseline-prof.txt`). Profile leżą w `app/src/release/generated/baselineProfiles` i są w repo, więc CI ich nie generuje.
+- AGP 9 włącza R8 także w kopiach `nonMinified*`, które plugin tworzy dla generatora; wtedy nazwy klas w profilu nie pasują do wydania. `finalizeDsl` w `app/build.gradle.kts` wyłącza w nich optymalizację.
+- Build `benchmark` (D-014) nie dostaje profilu, więc generator i benchmark startu pomijają go (`assumeFalse` na `.benchmark`); służy do pomiaru przewijania bez profilu.
+- Pomiar na emulatorze API 36 (benchmarkRelease, 10 zimnych startów): z profilem mediana 696 ms (min 627), bez profilu 754 ms (min 692), czyli ok. 8% szybciej. Pierwsza wersja bez osobnego profilu startu nie dała mierzalnej różnicy.
+- Przewijanie historii (300 treningów, build `benchmark`, `dumpsys gfxinfo`, 12 przeciągnięć): z rozmyciem p50 34–36 ms, p90 48 ms, jank 20–24%; z „Ogranicz przezroczystość” p50 34–36 ms, p90 46–48 ms, jank 20–26%. Rozmycie nie dodaje mierzalnego kosztu. Wątek UI (layout + rysowanie) to mediana 0,2 ms, resztę zajmuje GPU emulatora, dlatego liczby są wyższe niż w D-057 (rozrzut emulatora jak w D-024). Miarodajny będzie pomiar na telefonie (README, „Wydajność”).
+- Rozmiar: release 4,7 MB bez podpisu, profil dodaje ok. 10 KB.
+- **Alternatywy:** bez profilu (wolniejszy pierwszy start po instalacji); ręcznie pisany profil dla `profileinstaller` (szybko się dezaktualizuje).
+
+### D-080 Ikona i splash
+- Ikona adaptacyjna „Pierścień”: talerz obciążenia widziany z przodu, który jest też pierścieniem postępu (jak timer przerwy). Akcent Volt z gradientem jaśniejszym u góry na prawie czarnym tle z delikatną poświatą. Warstwa monochromatyczna (ikony tematyczne) to ten sam kształt.
+- Propozycje B „Słupki” (trzy rosnące serie) i C „Hantla” są w galerii debug (sekcja „Ikona aplikacji”) i na zrzucie `stage10-icon-proposals.png`; po wyborze właściciela zostaje jedna.
+- Splash z platformy (D-015): pierścień domyka się w 700 ms (`animated-vector` na warstwie ikony), tło jak okno aplikacji.
+
+### D-081 Dostępność (Etap 10)
+- Czcionka 200%: etykiety w stałych miejscach (navbar, przełącznik segmentowy, liczby w kafelkach Profilu i podsumowania treningu) zmniejszają się do szerokości (`TextStyle.fitting()`, `TextAutoSize.StepBased`, minimum 7 sp, które system i tak podwaja) zamiast tracić koniec słowa. Wiersze statystyk (`StatRow`, `FlowRow`) przy skali czcionki od 1,3 mają po 2 pozycje w wierszu.
+- TalkBack: etykieta (i błąd) pól tekstowych i liczbowych jest w `decorationBox`, więc czyta się razem z polem, jak w M3. Uchwyty przeciągania (układ Startu, edytor rutyn) mają akcje „Przesuń wyżej” i „Przesuń niżej” (`reorderActions`), bo czytnik ekranu nie przeciąga. Przełączniki i opcje to całe wiersze z rolą, nagłówki sekcji mają `heading()`.
+- Nakładka przerwy przewija się w poziomie i przy dużej czcionce, żeby „Pomiń” było zawsze osiągalne. Wysokość mini paska treningu jest mierzona, więc treść nie chowa się pod nim przy dużej czcionce.
+- Kontrast: palety i motywy sprawdzone w Etapie 1 i 9 (testy kontrastu na JVM); nowe elementy używają tylko tokenów.
+
+### D-082 Odporność (Etap 10)
+- Plik trwającego treningu jest zapisywany na dysk (`fsync`) przed podmianą, więc zanik zasilania nie zostawi pustego pliku. Zapis zakończonego treningu i jego zamknięcie idą razem poza anulowaniem: wyjście z ekranu tuż po „Zakończ” nie zostawi zapisanego treningu w toku.
+- Alarm końca przerwy trzyma odbiornik (`goAsync`), aż powiadomienie wyjdzie, także w procesie uruchomionym tylko dla alarmu; dźwięk jest trzymany do końca odtwarzania. Powtórne tapnięcia zapisu w Profilu nie zapisują dwa razy.
+- Pomiary z HC spoza zakresów z D-071 (np. wzrost 0 m z innej aplikacji) są pomijane, bo dawały nieskończone BMI.
+- Edytor treningu odróżnia błąd odczytu („Nie udało się wczytać treningu.”) od usuniętego treningu. Import kopii w procesie uruchomionym ponownie dla wybranego pliku czeka na odczyt trwającego treningu, zanim sprawdzi blokadę.
+- Sprawdzone na emulatorze: zabicie procesu w trakcie przerwy (przerwa wraca z właściwym czasem), obrót w trakcie treningu, pusta baza, brak zgód HC, oszczędzanie baterii z trybem samolotowym, 120 i 300 treningów.
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |

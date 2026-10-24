@@ -13,13 +13,25 @@
 | 6 | Historia i postępy | ✅ zaakceptowany (2026-10-19), wydanie `preview-stage-6`, sprawdzony na telefonie (2026-10-23) |
 | 7 | Health Connect | ✅ zaakceptowany (2026-10-20), wydanie `preview-stage-7`, sprawdzony na telefonie (2026-10-23) |
 | 8 | Start i Profil | ✅ zaakceptowany (2026-10-24), wydanie `preview-stage-8`, sprawdzony na telefonie (2026-10-23) |
-| 9 | Ustawienia i kopia zapasowa | 🔄 PR #9 otwarty (2026-10-24), wydanie `preview-stage-9`; czeka na test na telefonie i merge |
-| 10 | Szlif, wydajność, QA | — |
+| 9 | Ustawienia i kopia zapasowa | ✅ zaakceptowany (2026-10-24), wydanie `preview-stage-9`; czeka na test na telefonie |
+| 10 | Szlif, wydajność, QA | 🟡 PR otwarty, czeka na akceptację i wybór ikony oraz poprawek designu |
 | 11 | Wydanie i aktualizator | — |
 
 ## Bieżący stan
 
-- **Etap 9** (branch `feat/stage-9-settings-backup`, PR #9, wydanie testowe `preview-stage-9`).
+- **Etap 10** (branch `feat/stage-10-polish`) gotowy do przeglądu.
+  - Zrobione:
+    - Baseline Profile z osobnym profilem startu (D-079); zimny start na emulatorze: mediana 696 ms z profilem i 754 ms bez;
+    - pomiar przewijania historii z rozmyciem i bez: rozmycie nie dodaje mierzalnego kosztu (D-079);
+    - ikona „Pierścień” (adaptacyjna i tematyczna) i animowany splash; propozycje B i C w galerii (D-080);
+    - aplikacja zawsze po polsku, także na systemie w innym języku (D-078);
+    - dostępność: etykiety mieszczą się przy czcionce 200%, statystyki zawijają się, pola czytane z etykietą, akcje TalkBack „Przesuń wyżej / niżej” na uchwytach, przełączniki i opcje jako całe wiersze, nagłówki, nakładka przerwy przewija się w poziomie (D-081);
+    - odporność: zapis treningu odporny na zanik zasilania, alarm przerwy w procesie uruchomionym dla alarmu, podwójne tapnięcia, błędne pomiary z HC, błąd odczytu w edytorze treningu (D-082); powitanie na Starcie bez mignięcia „Dzień dobry” wieczorem;
+    - ruch z tokenów, usunięty martwy kod, ostrzeżenie Kotlina (`!!`) i lint `UseKtx` poprawione; README (Wydajność, struktura).
+  - Przegląd designu: lista poprawek do zatwierdzenia jest w PR (nie wdrożone, czekają na decyzję).
+  - Sprawdzone na emulatorze (API 36): wszystkie zakładki w motywie ciemnym i jasnym, czcionka 200%, obrót w trakcie treningu i przerwy, zabicie procesu w trakcie przerwy, pusta baza, brak zgód HC, oszczędzanie baterii z trybem samolotowym, 120 i 300 treningów.
+  - Testy: JVM 261/261, lint 0 błędów (1 znane ostrzeżenie o targetSdk 36).
+- **Etap 9** zaakceptowany i zmergowany (PR #9, 2026-10-24). Wydanie testowe `preview-stage-9`.
   - Zrobione:
     - Ustawienia (A5.9): wygląd (tryb, paleta z próbek, AMOLED, Material You, ograniczenie przezroczystości), jednostka masy kg / lb we wszystkich ekranach, domyślna przerwa, dźwięk i wibracja na koniec przerwy, wejścia do Health Connect (z datą ostatniej synchronizacji) i diagnostyki, Aktualizacje jako zaślepka, O aplikacji z wersją i licencjami;
     - kopia zapasowa (A5.10): eksport przez SAF (`VACUUM INTO`), import z walidacją, próbną migracją, dialogiem z podsumowaniem, podmianą przy starcie procesu i kopią poprzedniej bazy;
@@ -77,6 +89,18 @@
   - Test UI: `.\gradlew.bat :app:connectedDebugAndroidTest` (D-042).
   - Gdy emulator przestaje rysować (czarny ekran, tapnięcia bez reakcji, w logu `lowmemorykiller … device is not responding` i ANR „no focused window”), pomaga zimny start: `adb emu kill`, potem `emulator -avd gt-api36 -no-snapshot-load`.
 - **vynox:** sklonowany do `%TEMP%\vynox-ref`, tylko do odczytu.
+
+## Etap 10 — test na telefonie
+
+1. Instalacja: APK z wydania `preview-stage-10` albo `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Dane zostają.
+2. Ikona: nowa ikona w launcherze; z ikonami tematycznymi (Tapeta i styl → Ikony tematyczne) jest jednobarwna i czytelna. Przy zimnym starcie splash z domykającym się pierścieniem.
+3. System po angielsku: aplikacja dalej po polsku, „0 treningów” zamiast „0 treningu”.
+4. Czcionka 200% (Ustawienia → Wyświetlacz → Rozmiar czcionki): navbar, przełączniki segmentowe, Start, Postępy i Profil bez uciętych słów i liczb.
+5. TalkBack: na Starcie (tryb edycji) i w edytorze rutyny uchwyt przeciągania ma akcje „Przesuń wyżej / niżej” (menu akcji); pola w arkuszach czytane razem z etykietą.
+6. W poziomie: przerwa w trakcie treningu, nakładka przewija się do „Pomiń”.
+7. W trakcie przerwy usuń aplikację z ostatnich i otwórz: trening i przerwa wracają z właściwym czasem.
+8. Pomiar na telefonie (podłączony, odblokowany): komendy z README („Wydajność”); wyniki w `baselineprofile\build\outputs\connected_android_test_additional_output\`. Wyślij medianę `timeToInitialDisplayMs` dla obu wariantów i `frameDurationCpuMs` dla przewijania.
+9. Do raportu: zrzut ikony (zwykłej i tematycznej) i wszystko, co odstaje przy dużej czcionce.
 
 ## Etap 9 — test na telefonie
 
@@ -151,5 +175,6 @@
 
 ## Następny krok
 
-- Akceptacja Etapu 8, potem Etap 9 — Ustawienia i kopia zapasowa.
-- Wyniki testów Etapów 5–8 na telefonie (wyżej), gdy właściciel je przekaże.
+- Akceptacja Etapu 10: wybór ikony (A / B / C) i poprawek designu z PR; zatwierdzone poprawki wchodzą przed merge'em.
+- Potem Etap 11 — Wydanie i aktualizator.
+- Wyniki testów Etapów 9–10 na telefonie (wyżej), gdy właściciel je przekaże.
