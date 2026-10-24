@@ -26,6 +26,20 @@
     - import kopii GymTracker v1 tym samym przyciskiem, z listą tego, co nie przeszło (D-076);
     - reguły Android Auto Backup (D-077);
     - decyzje D-074…D-077, DataStore 1.3.0.
+  - Poprawki po przeglądzie kodu (agent): restart po potwierdzeniu importu z ViewModelu, odporny na drugie tapnięcie i wyjście z ekranu; podmiana bazy cofa się, gdy któryś plik się nie przeniesie; kopia z triggerem lub widokiem odrzucana; pliki robocze przerwanego importu sprzątane przy starcie; progresja w lb zaokrąglana w funtach; wibracja i dźwięk na koniec przerwy przed zwolnieniem blokady uśpienia (regresja z tego etapu); ustawienia czekają na wczytanie; serie z v1 grupowane po ćwiczeniu docelowym; wiek z v1 tylko w zakresie 1–120; grupa wyboru palety dla TalkBack.
+  - Poprawki z testów na emulatorze: próbka koloru bliskiego tłu karty (Porcelana na ciemnym, Onyks na jasnym) dostaje obwódkę; tekst `GlassDialog` przewija się, więc przy dużej czcionce przyciski zostają na ekranie.
+  - Sprawdzone na emulatorze (36.0, aplikacja po polsku):
+    - ustawienia w motywie ciemnym i jasnym, zmiana trybu i jednostki, ustawienia po wymuszonym zatrzymaniu aplikacji zostają;
+    - eksport przez „Zapisz jako” do Downloads (1,1 MB);
+    - import tej kopii: dialog z licznikami, restart (nowy PID), dane wracają, poprzednia baza w `previous/`, katalog roboczy czysty; także na świeżej instalacji;
+    - import syntetycznej kopii v1: dialog z listą pominiętych, po restarcie rutyna „Legacy” i trening z 2023;
+    - anulowanie importu usuwa plik roboczy;
+    - jednostka lb na Starcie, w Profilu, w historii i szczegółach treningu;
+    - dialog v1 przy czcionce 200% (przewijanie);
+    - ekran licencji.
+  - Testy: JVM 261/261, UI (`feature`) 3/3 na 36.0, lint 0 błędów (1 znane ostrzeżenie o targetSdk 36).
+  - Test `workoutAbandonedForADayGoesToHistoryInsteadOfComingBack` raz nie przeszedł: pierwszy menedżer („zmarły proces”) żył dalej w teście i po skoku zegara zapisywał trening ponownie. Teraz test kończy jego zakres; 4 kolejne przebiegi zielone.
+  - Znane ograniczenia: po imporcie kopie treningów w Health Connect (opcjonalny zapis, D-064) mogą wskazywać inne treningi, bo są kluczowane id treningu (IDEAS); liczby mnogie na systemie w innym języku niż polski (IDEAS, pytanie do właściciela).
 - **Etap 8** zaakceptowany i zmergowany (PR #8, 2026-10-24). Wydanie testowe `preview-stage-8`.
   - Zrobione:
     - Start: powitanie z datą, ikony edycji układu i ustawień, karta „Szybki start” (następna rutyna w kolejności albo powrót do trwającego treningu);
@@ -63,6 +77,20 @@
   - Test UI: `.\gradlew.bat :app:connectedDebugAndroidTest` (D-042).
   - Gdy emulator przestaje rysować (czarny ekran, tapnięcia bez reakcji, w logu `lowmemorykiller … device is not responding` i ANR „no focused window”), pomaga zimny start: `adb emu kill`, potem `emulator -avd gt-api36 -no-snapshot-load`.
 - **vynox:** sklonowany do `%TEMP%\vynox-ref`, tylko do odczytu.
+
+## Etap 9 — test na telefonie
+
+1. Instalacja: APK z wydania `preview-stage-9` albo `.\gradlew.bat assembleDebug`, potem `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Dane z poprzedniej wersji testowej zostają.
+2. Ustawienia (zębatka na Starcie albo w Profilu) → Wygląd: zmień tryb, paletę (próbki), AMOLED, Material You, „Ogranicz przezroczystość”. Zamknij aplikację (usuń z ostatnich) i otwórz: wszystko zostało, bez mignięcia domyślnego motywu.
+3. Trening → Jednostka masy „lb”: Start, Postępy (historia i szczegóły treningu), Profil i aktywny trening pokazują funty; pola serii i +/− idą co 5 lb, a podpowiedź progresji to pełne funty (np. 140 lb, nie 139,99). Wróć na „kg”.
+4. Domyślna przerwa, np. 2:00: ćwiczenie dodane w treningu ręcznie (bez rutyny) ma przerwę 2:00. Wibracja i dźwięk na koniec przerwy przy wygaszonym ekranie zgodnie z przełącznikami (dźwięk milknie w trybie cichym).
+5. Dane → „Eksportuj kopię” → zapisz w Pobranych albo na Dysku Google. Pod przyciskami: „Kopia zapisana.”
+6. „Importuj kopię” → plik z kroku 5: dialog z liczbą rutyn, treningów, pomiarów i zakresem dat → „Zastąp”. Aplikacja uruchamia się ponownie, dane bez zmian.
+7. Kopia z GymTrackera v1 (najpierw krok 5, żeby móc wrócić): „Importuj kopię” → plik v1 → „Zastąpić dane kopią z v1?” z listą tego, co nie przeszło → „Zastąp”. Porównaj z v1 rutyny, historię (liczba treningów, ciężary, serie), własne ćwiczenia i pomiary w Profilu. Rok urodzenia trafia do Profilu, jeśli wiek nie był wpisany. Powrót: import kopii z kroku 5.
+8. Plik, który nie jest kopią (np. zdjęcie albo PDF): „To nie jest kopia GymTrackera. Dane się nie zmieniły.”
+9. W trakcie treningu „Importuj kopię” jest wyłączone z wyjaśnieniem.
+10. O aplikacji: wersja 0.1.0, „Licencje i atrybucje” z tekstami licencji.
+11. Do raportu: zrzut dialogu importu kopii v1 i wszystko, co po imporcie różni się od v1.
 
 ## Etap 8 — test na telefonie
 

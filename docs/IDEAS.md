@@ -15,3 +15,4 @@ Pomysły, które pojawiły się w trakcie pracy, ale nie należą do bieżącego
 | 2026-10-20 | Ręczny pomiar ciała z wybraną datą i godziną | Nowy pomiar dostaje bieżący czas (D-071); przyda się przy dopisywaniu starszych ważeń. |
 | 2026-10-20 | Sesje z zegarka (HC) zaznaczone w kalendarzu aktywności na Starcie | Kalendarz pokazuje tylko treningi z aplikacji (D-070). |
 | 2026-10-20 | Masa beztłuszczowa z HC (`LeanBodyMassRecord`), gdy nie ma tkanki tłuszczowej | Teraz liczona tylko z wagi i tkanki tłuszczowej (D-071). |
+| 2026-10-24 | Kopie treningów w Health Connect po imporcie kopii zapasowej: usunąć stare i zapisać zaimportowane, kluczować je czymś stałym między bazami (np. czasem startu) | Opcjonalny zapis (D-064) kluczuje kopię id treningu. Po imporcie nowe treningi mogą dostać id dawnych i zastąpić ich kopie w HC, a kopie treningów spoza kopii zostają w HC. Zmiana klucza dubluje już zapisane kopie, więc wymaga migracji. |

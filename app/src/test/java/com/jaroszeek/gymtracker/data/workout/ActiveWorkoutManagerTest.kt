@@ -16,6 +16,7 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
@@ -97,12 +98,15 @@ class ActiveWorkoutManagerTest {
     @Test
     fun workoutComesBackAfterProcessDeath() = runTest {
         val clock = TestClock(testScheduler)
-        val first = manager(clock, CoroutineScope(StandardTestDispatcher(testScheduler)))
+        val process = CoroutineScope(StandardTestDispatcher(testScheduler))
+        val first = manager(clock, process)
         first.start(routine())
         val exercise = first.workout.value!!.exercises.single()
         first.completeSet(exercise.id, exercise.sets[0].id)
         advanceTimeBy(ActiveWorkoutManager.PERSIST_DEBOUNCE_MILLIS + 1)
         runCurrent()
+        // The process dies: its rest timer and saves no longer run
+        process.cancel()
 
         // A new process ten seconds later: the set is still done and the 60 s rest keeps counting from its end time
         clock.offsetMillis += 10_000
@@ -153,12 +157,15 @@ class ActiveWorkoutManagerTest {
     @Test
     fun workoutAbandonedForADayGoesToHistoryInsteadOfComingBack() = runTest {
         val clock = TestClock(testScheduler)
-        val first = manager(clock, CoroutineScope(StandardTestDispatcher(testScheduler)))
+        val process = CoroutineScope(StandardTestDispatcher(testScheduler))
+        val first = manager(clock, process)
         first.start(routine())
         val exercise = first.workout.value!!.exercises.single()
         first.completeSet(exercise.id, exercise.sets[0].id)
         advanceTimeBy(ActiveWorkoutManager.PERSIST_DEBOUNCE_MILLIS + 1)
         runCurrent()
+        // The process dies; alive, its rest timer would end the rest after the jump and save the workout again
+        process.cancel()
 
         clock.offsetMillis += ActiveWorkoutManager.STALE_AFTER_MILLIS + 1
         val second = manager(clock)
