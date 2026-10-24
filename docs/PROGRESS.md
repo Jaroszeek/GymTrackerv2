@@ -12,14 +12,21 @@
 | 5 | Powiadomienie, Live Update, przerwa w tle | ✅ zaakceptowany (2026-10-19), sprawdzony na telefonie (2026-10-23) |
 | 6 | Historia i postępy | ✅ zaakceptowany (2026-10-19), wydanie `preview-stage-6`, sprawdzony na telefonie (2026-10-23) |
 | 7 | Health Connect | ✅ zaakceptowany (2026-10-20), wydanie `preview-stage-7`, sprawdzony na telefonie (2026-10-23) |
-| 8 | Start i Profil | 🔄 PR otwarty (2026-10-20), wydanie `preview-stage-8`, sprawdzony na telefonie (2026-10-23); czeka na merge |
-| 9 | Ustawienia i kopia zapasowa | — |
+| 8 | Start i Profil | ✅ zaakceptowany (2026-10-24), wydanie `preview-stage-8`, sprawdzony na telefonie (2026-10-23) |
+| 9 | Ustawienia i kopia zapasowa | 🔄 w toku (branch `feat/stage-9-settings-backup`) |
 | 10 | Szlif, wydajność, QA | — |
 | 11 | Wydanie i aktualizator | — |
 
 ## Bieżący stan
 
-- **Etap 8** (branch `feat/stage-8-home-profile`, PR otwarty, wydanie testowe `preview-stage-8`).
+- **Etap 9** (branch `feat/stage-9-settings-backup`).
+  - Zrobione:
+    - Ustawienia (A5.9): wygląd (tryb, paleta z próbek, AMOLED, Material You, ograniczenie przezroczystości), jednostka masy kg / lb we wszystkich ekranach, domyślna przerwa, dźwięk i wibracja na koniec przerwy, wejścia do Health Connect (z datą ostatniej synchronizacji) i diagnostyki, Aktualizacje jako zaślepka, O aplikacji z wersją i licencjami;
+    - kopia zapasowa (A5.10): eksport przez SAF (`VACUUM INTO`), import z walidacją, próbną migracją, dialogiem z podsumowaniem, podmianą przy starcie procesu i kopią poprzedniej bazy;
+    - import kopii GymTracker v1 tym samym przyciskiem, z listą tego, co nie przeszło (D-076);
+    - reguły Android Auto Backup (D-077);
+    - decyzje D-074…D-077, DataStore 1.3.0.
+- **Etap 8** zaakceptowany i zmergowany (PR #8, 2026-10-24). Wydanie testowe `preview-stage-8`.
   - Zrobione:
     - Start: powitanie z datą, ikony edycji układu i ustawień, karta „Szybki start” (następna rutyna w kolejności albo powrót do trwającego treningu);
     - widżety: seria tygodni z tym tygodniem, ostatni trening, gotowość, rekordy z 7 dni, kalendarz aktywności, kroki z wykresem, waga z BMI i trendem;
@@ -46,7 +53,7 @@
   - Sprawdzone na emulatorze (D-050): promocja `FLAG_PROMOTED_ONGOING` na 36.1, akcje z panelu, wibracja na koniec przerwy przy wygaszonym ekranie (także w Doze), odliczanie na ekranie blokady, brak osieroconych powiadomień po `kill -9`, odtworzenie po powrocie. Testy: JVM 99/99, UI 4/4 (36.0), test powiadomienia 3/3 (36.1), lint 0 błędów.
   - Wydanie testowe `preview-stage-5` (pre-release z APK debug, D-051) na prośbę właściciela.
 - **Tryb pracy:** plan etapu nie czeka na akceptację (D-032), akceptacja na PR.
-- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-073).
+- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-077).
 - **Środowisko:**
   - Android Studio 2026.2.1 w `C:\Program Files\Android\Android Studio1` (JBR 25). Gdy `java` z PATH nie startuje, ustaw `$env:JAVA_HOME` na JBR.
   - `adb`: `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe`.
