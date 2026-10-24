@@ -23,8 +23,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,38 +46,41 @@ fun GlassTextField(
 ) {
     val colors = GtTheme.colors
     val singleLine = minLines == 1
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
-        Text(label, color = colors.textSecondary, style = GtTheme.typography.labelSmall)
-        BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .semantics { contentDescription = label }
-                .defaultMinSize(minHeight = GtSizes.MinTouch)
-                .clip(GtShapes.Medium)
-                .background(colors.surfaceRaised)
-                .specularEdge(GtShapes.Medium, colors)
-                .padding(horizontal = GtSpacing.l, vertical = GtSpacing.m),
-            textStyle = GtTheme.typography.body.copy(color = colors.textPrimary),
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences,
-                imeAction = if (singleLine) ImeAction.Next else ImeAction.Default,
-            ),
-            singleLine = singleLine,
-            minLines = minLines,
-            cursorBrush = SolidColor(colors.accent),
-            decorationBox = { field ->
-                Box(contentAlignment = if (singleLine) Alignment.CenterStart else Alignment.TopStart) {
+    // The label and the error are inside the decoration box: the field's node carries them for TalkBack, as in M3
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier,
+        textStyle = GtTheme.typography.body.copy(color = colors.textPrimary),
+        keyboardOptions = KeyboardOptions(
+            capitalization = KeyboardCapitalization.Sentences,
+            imeAction = if (singleLine) ImeAction.Next else ImeAction.Default,
+        ),
+        singleLine = singleLine,
+        minLines = minLines,
+        cursorBrush = SolidColor(colors.accent),
+        decorationBox = { field ->
+            Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
+                Text(label, color = colors.textSecondary, style = GtTheme.typography.labelSmall)
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = GtSizes.MinTouch)
+                        .clip(GtShapes.Medium)
+                        .background(colors.surfaceRaised)
+                        .specularEdge(GtShapes.Medium, colors)
+                        .padding(horizontal = GtSpacing.l, vertical = GtSpacing.m),
+                    contentAlignment = if (singleLine) Alignment.CenterStart else Alignment.TopStart,
+                ) {
                     if (value.isEmpty() && placeholder != null) {
                         Text(placeholder, color = colors.textTertiary, style = GtTheme.typography.body)
                     }
                     field()
                 }
-            },
-        )
-        if (error != null) Text(error, color = colors.danger, style = GtTheme.typography.labelSmall)
-    }
+                if (error != null) Text(error, color = colors.danger, style = GtTheme.typography.labelSmall)
+            }
+        },
+    )
 }
 
 /** Pill search field with a clear button. */

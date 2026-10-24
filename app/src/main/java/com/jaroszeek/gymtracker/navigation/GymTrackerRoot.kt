@@ -20,19 +20,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.jaroszeek.gymtracker.designsystem.component.GlassNavBar
 import com.jaroszeek.gymtracker.designsystem.component.GlassNavItem
@@ -48,11 +51,18 @@ import com.jaroszeek.gymtracker.feature.exercises.ExerciseEditorRoute
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseEditorViewModel
 import com.jaroszeek.gymtracker.feature.exercises.ExercisesRoute
 import com.jaroszeek.gymtracker.feature.health.HealthConnectRoute
-import com.jaroszeek.gymtracker.feature.home.HomeRoute
 import com.jaroszeek.gymtracker.feature.health.ImportedSessionRoute
 import com.jaroszeek.gymtracker.feature.health.ImportedSessionViewModel
 import com.jaroszeek.gymtracker.feature.health.PrivacyPolicyScreen
+import com.jaroszeek.gymtracker.feature.history.WorkoutDetailRoute
+import com.jaroszeek.gymtracker.feature.history.WorkoutDetailViewModel
+import com.jaroszeek.gymtracker.feature.history.WorkoutEditorRoute
+import com.jaroszeek.gymtracker.feature.history.WorkoutEditorViewModel
+import com.jaroszeek.gymtracker.feature.home.HomeRoute
 import com.jaroszeek.gymtracker.feature.profile.ProfileRoute
+import com.jaroszeek.gymtracker.feature.progress.ProgressRoute
+import com.jaroszeek.gymtracker.feature.progress.RoutineProgressRoute
+import com.jaroszeek.gymtracker.feature.progress.RoutineProgressViewModel
 import com.jaroszeek.gymtracker.feature.routines.RoutineEditorRoute
 import com.jaroszeek.gymtracker.feature.routines.RoutineEditorViewModel
 import com.jaroszeek.gymtracker.feature.routines.RoutinesRoute
@@ -63,13 +73,6 @@ import com.jaroszeek.gymtracker.feature.workout.NotificationPrompt
 import com.jaroszeek.gymtracker.feature.workout.WorkoutBarViewModel
 import com.jaroszeek.gymtracker.feature.workout.WorkoutMiniBar
 import com.jaroszeek.gymtracker.feature.workout.WorkoutRoute
-import com.jaroszeek.gymtracker.feature.history.WorkoutDetailRoute
-import com.jaroszeek.gymtracker.feature.history.WorkoutDetailViewModel
-import com.jaroszeek.gymtracker.feature.history.WorkoutEditorRoute
-import com.jaroszeek.gymtracker.feature.history.WorkoutEditorViewModel
-import com.jaroszeek.gymtracker.feature.progress.ProgressRoute
-import com.jaroszeek.gymtracker.feature.progress.RoutineProgressRoute
-import com.jaroszeek.gymtracker.feature.progress.RoutineProgressViewModel
 
 private val NavItems = TopLevelTab.entries.map { GlassNavItem(it.label, it.icon, it.selectedIcon) }
 
@@ -94,6 +97,8 @@ fun GymTrackerRoot(openWorkoutRequests: Int = 0) {
     val showWorkoutBar = workout != null && !navigator.isOnTop(ActiveWorkoutKey)
     // The mini bar rides above the navbar and drops to the bottom when the navbar hides
     val workoutBarLift by animateDpAsState(if (hideOnScroll.visible) GtSizes.NavBarHeight + GtSizes.NavBarGap else 0.dp, label = "workoutBarLift")
+    // Measured: the mini bar grows with a large font, and the content must clear all of it
+    var workoutBarHeight by remember { mutableStateOf(GtSizes.MiniBarHeight) }
 
     // Every stack is decorated (keeps its saved state and view models); only the visible ones go on screen
     val decorated = TopLevelTab.entries.associateWith { tab ->
@@ -119,7 +124,8 @@ fun GymTrackerRoot(openWorkoutRequests: Int = 0) {
                         onClick = { navigator.open(TopLevelTab.Workout, ActiveWorkoutKey) },
                         modifier = Modifier
                             .windowInsetsPadding(WindowInsets.navigationBars)
-                            .padding(bottom = GtSizes.NavBarGap + workoutBarLift),
+                            .padding(bottom = GtSizes.NavBarGap + workoutBarLift)
+                            .onSizeChanged { workoutBarHeight = with(density) { it.height.toDp() } },
                     )
                 }
             }
@@ -143,7 +149,7 @@ fun GymTrackerRoot(openWorkoutRequests: Int = 0) {
         SharedTransitionLayout {
             CompositionLocalProvider(
                 LocalSharedTransitionScope provides this,
-                LocalChromeAboveNavBar provides if (showWorkoutBar) GtSizes.MiniBarHeight + GtSizes.NavBarGap else 0.dp,
+                LocalChromeAboveNavBar provides if (showWorkoutBar) workoutBarHeight + GtSizes.NavBarGap else 0.dp,
             ) {
                 NavDisplay(
                     entries = navigator.visibleTabs.flatMap { decorated.getValue(it) },

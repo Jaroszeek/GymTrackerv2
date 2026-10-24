@@ -28,7 +28,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,8 +42,9 @@ import com.jaroszeek.gymtracker.designsystem.component.GlassCard
 import com.jaroszeek.gymtracker.designsystem.component.GlassDialog
 import com.jaroszeek.gymtracker.designsystem.component.GlassIconButton
 import com.jaroszeek.gymtracker.designsystem.component.GlassScaffold
-import com.jaroszeek.gymtracker.designsystem.component.GlassSwitch
+import com.jaroszeek.gymtracker.designsystem.component.GlassSwitchRow
 import com.jaroszeek.gymtracker.designsystem.component.navBarContentPadding
+import com.jaroszeek.gymtracker.designsystem.component.reorderActions
 import com.jaroszeek.gymtracker.designsystem.theme.GtSizes
 import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
@@ -157,6 +158,12 @@ fun HomeScreen(
         if (state.editing) {
             item(key = "edit-header") { EditHeader(onDone = onEditDone) }
             items(state.layout.order, key = { it.key }) { widget ->
+                val order = state.layout.order
+                val index = order.indexOf(widget)
+                val moves = reorderActions(
+                    onMoveUp = order.getOrNull(index - 1)?.let { above -> { onMove(widget, above) } },
+                    onMoveDown = order.getOrNull(index + 1)?.let { below -> { onMove(widget, below) } },
+                )
                 ReorderableItem(reorderState, key = widget.key) { dragging ->
                     GlassCard(
                         Modifier
@@ -175,14 +182,14 @@ fun HomeScreen(
                                 tint = colors.textTertiary,
                                 modifier = Modifier
                                     .draggableHandle(onDragStarted = { haptics.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate) })
+                                    .semantics { customActions = moves }
                                     .size(GtSizes.Icon),
                             )
-                            val label = stringResource(widget.label())
-                            Text(label, Modifier.weight(1f), style = GtTheme.typography.label)
-                            GlassSwitch(
+                            GlassSwitchRow(
+                                title = stringResource(widget.label()),
                                 checked = widget !in state.layout.hidden,
                                 onCheckedChange = { onToggle(widget) },
-                                modifier = Modifier.semantics { contentDescription = label },
+                                modifier = Modifier.weight(1f),
                             )
                         }
                     }

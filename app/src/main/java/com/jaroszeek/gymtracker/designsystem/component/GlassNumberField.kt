@@ -21,8 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -69,7 +67,6 @@ fun GlassNumberField(
             .padding(GtSpacing.s),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(label, color = colors.textSecondary, style = GtTheme.typography.labelSmall)
         BasicTextField(
             value = text,
             onValueChange = { input ->
@@ -78,9 +75,7 @@ fun GlassNumberField(
                     onValueChange(NumberInput.parse(input, decimals)?.coerceIn(range))
                 }
             },
-            modifier = Modifier
-                .fillMaxWidth()
-                .semantics { contentDescription = label },
+            modifier = Modifier.fillMaxWidth(),
             textStyle = GtTheme.typography.numberL.copy(color = colors.textPrimary, textAlign = TextAlign.Center),
             keyboardOptions = KeyboardOptions(
                 keyboardType = if (decimals > 0) KeyboardType.Decimal else KeyboardType.Number,
@@ -88,12 +83,16 @@ fun GlassNumberField(
             ),
             singleLine = true,
             cursorBrush = SolidColor(colors.accent),
+            // The label is inside the decoration box, so TalkBack reads it with the field (as in M3)
             decorationBox = { field ->
-                Box(contentAlignment = Alignment.Center) {
-                    if (text.isEmpty() && placeholder != null) {
-                        Text(placeholder, color = colors.textTertiary, style = GtTheme.typography.numberL)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(label, color = colors.textSecondary, style = GtTheme.typography.labelSmall)
+                    Box(contentAlignment = Alignment.Center) {
+                        if (text.isEmpty() && placeholder != null) {
+                            Text(placeholder, color = colors.textTertiary, style = GtTheme.typography.numberL)
+                        }
+                        field()
                     }
-                    field()
                 }
             },
         )

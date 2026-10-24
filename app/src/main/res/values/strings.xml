@@ -186,6 +186,8 @@
     <string name="routine_add_variant">Dodaj wariant</string>
     <string name="routine_or">lub</string>
     <string name="routine_drag">Przeciągnij, aby zmienić kolejność</string>
+    <string name="action_move_up">Przesuń wyżej</string>
+    <string name="action_move_down">Przesuń niżej</string>
     <string name="routine_remove_variant">Usuń: %1$s</string>
     <string name="routine_target_sets_reps">%1$d × %2$s</string>
     <string name="routine_target_rest">przerwa %1$s</string>
