@@ -67,6 +67,7 @@ import com.jaroszeek.gymtracker.feature.profile.decimalLabel
 import com.jaroszeek.gymtracker.feature.profile.label
 import com.jaroszeek.gymtracker.feature.progress.RecordBadges
 import com.jaroszeek.gymtracker.feature.progress.StatColumn
+import com.jaroszeek.gymtracker.feature.progress.StatRow
 import com.jaroszeek.gymtracker.feature.progress.SummaryRow
 import com.jaroszeek.gymtracker.feature.progress.countLabel
 import com.jaroszeek.gymtracker.feature.progress.dayLabel
@@ -190,7 +191,7 @@ fun HeroCard(streak: Int, week: WeekStats, onClick: () -> Unit, modifier: Modifi
             ),
         )
         Text(stringResource(R.string.home_week_title), Modifier.padding(top = GtSpacing.s), color = colors.textSecondary, style = GtTheme.typography.label)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
+        StatRow {
             StatColumn("${week.workouts}", stringResource(R.string.home_week_workouts), Modifier.weight(1f))
             StatColumn(durationLabel(week.durationMillis), stringResource(R.string.summary_duration), Modifier.weight(1f))
             StatColumn("${week.sets}", stringResource(R.string.progress_sets), Modifier.weight(1f))

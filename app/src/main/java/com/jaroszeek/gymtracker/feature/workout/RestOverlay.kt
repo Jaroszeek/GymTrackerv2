@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -60,10 +62,12 @@ private fun RestContent(rest: RestTimer?, next: String, onAdjust: (Int) -> Unit,
                 .align(Alignment.TopEnd)
                 .padding(GtSpacing.l),
         )
+        // Scrolls in landscape and with a large font, so "Pomiń" stays reachable
         Column(
             Modifier
                 .align(Alignment.Center)
-                .padding(horizontal = GtSpacing.xxl)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = GtSpacing.xxl, vertical = GtSpacing.l)
                 .widthIn(max = GtSizes.DialogMaxWidth),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(GtSpacing.xl),

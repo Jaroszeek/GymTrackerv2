@@ -54,6 +54,7 @@ import com.jaroszeek.gymtracker.designsystem.component.navBarContentPadding
 import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
+import com.jaroszeek.gymtracker.designsystem.theme.fitting
 import com.jaroszeek.gymtracker.domain.body.BmiCategory
 import com.jaroszeek.gymtracker.domain.body.BodyMeasurement
 import com.jaroszeek.gymtracker.domain.body.BodyMetric
@@ -238,6 +239,7 @@ private fun ValueTile(metric: BodyMetric, measurement: BodyMeasurement?, modifie
             style = GtTheme.typography.numberM,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
+            autoSize = GtTheme.typography.numberM.fitting(),
         )
         Text(
             measurement?.let { shortDate(it.time) } ?: stringResource(R.string.profile_add),

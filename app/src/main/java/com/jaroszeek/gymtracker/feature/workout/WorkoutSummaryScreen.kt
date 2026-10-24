@@ -39,6 +39,7 @@ import com.jaroszeek.gymtracker.designsystem.component.navBarContentPadding
 import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
+import com.jaroszeek.gymtracker.designsystem.theme.fitting
 import com.jaroszeek.gymtracker.domain.exercise.Exercise
 import com.jaroszeek.gymtracker.domain.progress.RecordType
 import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
@@ -126,7 +127,7 @@ internal fun SummaryStats(summary: WorkoutSummary, modifier: Modifier = Modifier
 private fun Stat(label: String, value: String, modifier: Modifier = Modifier) {
     GlassCard(modifier) {
         Text(label, color = GtTheme.colors.textSecondary, style = GtTheme.typography.labelSmall)
-        Text(value, style = GtTheme.typography.numberM, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(value, style = GtTheme.typography.numberM, maxLines = 1, overflow = TextOverflow.Ellipsis, autoSize = GtTheme.typography.numberM.fitting())
     }
 }
 

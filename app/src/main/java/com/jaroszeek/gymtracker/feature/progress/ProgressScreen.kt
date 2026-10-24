@@ -4,6 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -25,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -244,7 +247,7 @@ private fun SessionCard(session: HealthSession, onClick: () -> Unit) {
             color = colors.textSecondary,
             style = GtTheme.typography.label,
         )
-        Row(Modifier.fillMaxWidth().padding(top = GtSpacing.xs), horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
+        StatRow(Modifier.padding(top = GtSpacing.xs)) {
             StatColumn(durationLabel(session.durationMillis), stringResource(R.string.summary_duration), Modifier.weight(1f))
             when {
                 session.activeKcal != null -> StatColumn(kcalLabel(session.activeKcal), stringResource(R.string.kcal_active), Modifier.weight(1f))
@@ -259,13 +262,27 @@ private fun SessionCard(session: HealthSession, onClick: () -> Unit) {
 /** Duration, exercises, working sets and volume side by side. */
 @Composable
 internal fun SummaryRow(summary: WorkoutSummary, modifier: Modifier = Modifier) {
-    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
+    StatRow(modifier) {
         StatColumn(durationLabel(summary.durationMillis), stringResource(R.string.summary_duration), Modifier.weight(1f))
         StatColumn("${summary.exercises}", stringResource(R.string.summary_exercises), Modifier.weight(1f))
         StatColumn("${summary.sets}", stringResource(R.string.progress_sets), Modifier.weight(1f))
         StatColumn(massLabel(summary.volumeKg, decimals = 0), stringResource(R.string.summary_volume), Modifier.weight(1.3f))
     }
 }
+
+/** Stats side by side; with a large font two to a row, so the numbers are not cut off. */
+@Composable
+internal fun StatRow(modifier: Modifier = Modifier, content: @Composable FlowRowScope.() -> Unit) {
+    FlowRow(
+        modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(GtSpacing.m),
+        verticalArrangement = Arrangement.spacedBy(GtSpacing.s),
+        maxItemsInEachRow = if (LocalDensity.current.fontScale >= LARGE_FONT_SCALE) 2 else Int.MAX_VALUE,
+        content = content,
+    )
+}
+
+private const val LARGE_FONT_SCALE = 1.3f
 
 @Composable
 internal fun StatColumn(value: String, caption: String, modifier: Modifier = Modifier) {

@@ -58,6 +58,7 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtShapes
 import com.jaroszeek.gymtracker.designsystem.theme.GtSizes
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
+import com.jaroszeek.gymtracker.designsystem.theme.fitting
 
 @Immutable
 data class GlassNavItem(
@@ -190,6 +191,7 @@ private fun NavItem(
             style = GtTheme.typography.labelSmall,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
+            autoSize = GtTheme.typography.labelSmall.fitting(),
         )
     }
 }
