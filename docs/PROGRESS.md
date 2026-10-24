@@ -14,7 +14,7 @@
 | 7 | Health Connect | ✅ zaakceptowany (2026-10-20), wydanie `preview-stage-7`, sprawdzony na telefonie (2026-10-23) |
 | 8 | Start i Profil | ✅ zaakceptowany (2026-10-24), wydanie `preview-stage-8`, sprawdzony na telefonie (2026-10-23) |
 | 9 | Ustawienia i kopia zapasowa | ✅ zaakceptowany (2026-10-24), wydanie `preview-stage-9`; czeka na test na telefonie |
-| 10 | Szlif, wydajność, QA | 🟡 PR otwarty, czeka na akceptację i wybór ikony oraz poprawek designu |
+| 10 | Szlif, wydajność, QA | 🟡 PR #10 otwarty, poprawki designu i ikona A wdrożone; czeka na akceptację |
 | 11 | Wydanie i aktualizator | — |
 
 ## Bieżący stan
@@ -28,9 +28,10 @@
     - dostępność: etykiety mieszczą się przy czcionce 200%, statystyki zawijają się, pola czytane z etykietą, akcje TalkBack „Przesuń wyżej / niżej” na uchwytach, przełączniki i opcje jako całe wiersze, nagłówki, nakładka przerwy przewija się w poziomie (D-081);
     - odporność: zapis treningu odporny na zanik zasilania, alarm przerwy w procesie uruchomionym dla alarmu, podwójne tapnięcia, błędne pomiary z HC, błąd odczytu w edytorze treningu (D-082); powitanie na Starcie bez mignięcia „Dzień dobry” wieczorem;
     - ruch z tokenów, usunięty martwy kod, ostrzeżenie Kotlina (`!!`) i lint `UseKtx` poprawione; README (Wydajność, struktura).
-  - Przegląd designu: lista poprawek do zatwierdzenia jest w PR (nie wdrożone, czekają na decyzję).
+  - Przegląd designu: wszystkie poprawki A–H zatwierdzone i wdrożone (D-083): zwarta karta „Trening w tle” z zapamiętanym „Ukryj”, przyciski zakładki Trening, kafelek wieku z arkuszem, jeden rekord na ćwiczenie z „+N”, wyraźniejsza kropla navbara w jasnym motywie, linia bazowa serii i kroków, ranking wyszukiwarki, mocniejszy scrim paska stanu.
+  - Ikona: właściciel wybrał A „Pierścień”; propozycje B i C usunięte z galerii (D-080).
   - Sprawdzone na emulatorze (API 36): wszystkie zakładki w motywie ciemnym i jasnym, czcionka 200%, obrót w trakcie treningu i przerwy, zabicie procesu w trakcie przerwy, pusta baza, brak zgód HC, oszczędzanie baterii z trybem samolotowym, 120 i 300 treningów.
-  - Testy: JVM 261/261, lint 0 błędów (1 znane ostrzeżenie o targetSdk 36).
+  - Testy: JVM 274/274, UI 6/6 na emulatorze API 36, lint 0 błędów (1 znane ostrzeżenie o targetSdk 36).
 - **Etap 9** zaakceptowany i zmergowany (PR #9, 2026-10-24). Wydanie testowe `preview-stage-9`.
   - Zrobione:
     - Ustawienia (A5.9): wygląd (tryb, paleta z próbek, AMOLED, Material You, ograniczenie przezroczystości), jednostka masy kg / lb we wszystkich ekranach, domyślna przerwa, dźwięk i wibracja na koniec przerwy, wejścia do Health Connect (z datą ostatniej synchronizacji) i diagnostyki, Aktualizacje jako zaślepka, O aplikacji z wersją i licencjami;
@@ -175,6 +176,6 @@
 
 ## Następny krok
 
-- Akceptacja Etapu 10: wybór ikony (A / B / C) i poprawek designu z PR; zatwierdzone poprawki wchodzą przed merge'em.
+- Akceptacja Etapu 10 (PR #10) i merge.
 - Potem Etap 11 — Wydanie i aktualizator.
 - Wyniki testów Etapów 9–10 na telefonie (wyżej), gdy właściciel je przekaże.

@@ -623,7 +623,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 
 ### D-080 Ikona i splash
 - Ikona adaptacyjna „Pierścień”: talerz obciążenia widziany z przodu, który jest też pierścieniem postępu (jak timer przerwy). Akcent Volt z gradientem jaśniejszym u góry na prawie czarnym tle z delikatną poświatą. Warstwa monochromatyczna (ikony tematyczne) to ten sam kształt.
-- Propozycje B „Słupki” (trzy rosnące serie) i C „Hantla” są w galerii debug (sekcja „Ikona aplikacji”) i na zrzucie `stage10-icon-proposals.png`; po wyborze właściciela zostaje jedna.
+- Właściciel wybrał A (2026-10-24). Odrzucone propozycje B „Słupki” (trzy rosnące serie) i C „Hantla” zostały tylko na zrzucie `stage10-icon-proposals.png`; galeria debug pokazuje teraz właściwą ikonę (zwykłą, tematyczną i małą).
 - Splash z platformy (D-015): pierścień domyka się w 700 ms (`animated-vector` na warstwie ikony), tło jak okno aplikacji.
 
 ### D-081 Dostępność (Etap 10)
@@ -638,6 +638,17 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 - Pomiary z HC spoza zakresów z D-071 (np. wzrost 0 m z innej aplikacji) są pomijane, bo dawały nieskończone BMI.
 - Edytor treningu odróżnia błąd odczytu („Nie udało się wczytać treningu.”) od usuniętego treningu. Import kopii w procesie uruchomionym ponownie dla wybranego pliku czeka na odczyt trwającego treningu, zanim sprawdzi blokadę.
 - Sprawdzone na emulatorze: zabicie procesu w trakcie przerwy (przerwa wraca z właściwym czasem), obrót w trakcie treningu, pusta baza, brak zgód HC, oszczędzanie baterii z trybem samolotowym, 120 i 300 treningów.
+
+### D-083 Poprawki designu po przeglądzie (Etap 10)
+Właściciel zatwierdził wszystkie (2026-10-24):
+- **Karta „Trening w tle”:** jedno zdanie o ryzyku i krótkie przyciski tylko dla bieżących problemów („Powiadomienia”, „Bateria: »Bez ograniczeń«”, „Alarmy”) w zawijanym wierszu. „Ukryj” zapisuje w DataStore zbiór ukrytych problemów: karta nie wraca po restarcie procesu, ale wraca, gdy pojawi się problem spoza tego zbioru. Naprawiony problem nie jest usuwany ze zbioru, więc ten sam problem po powrocie nie pokaże karty (szczegóły zostają w diagnostyce).
+- **Zakładka Trening:** „Nowa rutyna” i „Szablony” obok siebie, „Pusty trening” jako akcja tekstowa pod nimi.
+- **Wiek w Profilu:** kafelek jak waga i wzrost („29 lat”), edycja w arkuszu z polem liczbowym; zapis dopiero po „Zapisz” (wcześniej po każdym znaku), puste pole usuwa wiek.
+- **Rekordy z 7 dni:** jeden wiersz na ćwiczenie z najważniejszym rekordem (e1RM > ciężar > powtórzenia > objętość serii > objętość treningu, najnowszy z danego rodzaju) i „+N” dla pozostałych rodzajów; wybór w `domain/` (`headlineRecords`) z testami.
+- **Navbar w jasnym motywie:** kropla ma mocniejsze wypełnienie akcentem (40%) i krawędź w ciemniejszym akcencie tekstowym; w ciemnym bez zmian. Pod czarnym tekstem w palecie mono kontrast ok. 6:1.
+- **Linia bazowa:** etykieta serii tygodni i kroków stoi na linii bazowej liczby (`alignByBaseline`).
+- **Wyszukiwarka ćwiczeń:** kolejność w trzech poziomach: dokładna nazwa, każde słowo zapytania zaczyna słowo nazwy, reszta (środek słowa albo polska nazwa). W poziomie najpierw ćwiczenia „częste” (z szablonów, rutyn i historii; jedno zapytanie `UNION` w `ExerciseDao`), potem nazwy zaczynające się od zapytania, potem alfabetycznie. Filtrowanie bez zmian.
+- **Pasek stanu:** scrim pod zegarem prawie pełny (96% koloru tła), potem krótkie przejście; wcześniej gradient od 85%.
 
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
