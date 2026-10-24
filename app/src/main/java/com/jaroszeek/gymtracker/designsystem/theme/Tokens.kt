@@ -1,9 +1,10 @@
 package com.jaroszeek.gymtracker.designsystem.theme
 
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.animation.core.spring
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.kyant.shapes.Capsule
 import com.kyant.shapes.RoundedRectangle
@@ -104,6 +105,9 @@ object GtMotion {
     /** Overlays (dialog, sheet) and general enter/exit. */
     val Standard = spring<Float>(dampingRatio = 0.85f, stiffness = 380f)
     val Slide = spring(dampingRatio = 0.85f, stiffness = 420f, visibilityThreshold = IntOffset.VisibilityThreshold)
+
+    /** Screen to screen: a short slide without overshoot (vynox). */
+    val Page = spring(stiffness = Spring.StiffnessMediumLow, visibilityThreshold = IntOffset.VisibilityThreshold)
 
     /** A chart line drawing itself from the left. */
     val Reveal = spring<Float>(dampingRatio = 1f, stiffness = 120f)

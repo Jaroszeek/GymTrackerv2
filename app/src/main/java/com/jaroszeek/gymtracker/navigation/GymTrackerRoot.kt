@@ -3,9 +3,7 @@ package com.jaroszeek.gymtracker.navigation
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -112,8 +110,8 @@ fun GymTrackerRoot(openWorkoutRequests: Int = 0) {
             AnimatedVisibility(
                 visible = showWorkoutBar,
                 modifier = Modifier.align(Alignment.BottomCenter),
-                enter = slideInVertically { it } + fadeIn(),
-                exit = slideOutVertically { it } + fadeOut(),
+                enter = slideInVertically(GtMotion.Slide) { it } + fadeIn(tween(GtMotion.FADE_IN_MILLIS)),
+                exit = slideOutVertically(GtMotion.Slide) { it } + fadeOut(tween(GtMotion.FADE_OUT_MILLIS)),
             ) {
                 workout?.let {
                     WorkoutMiniBar(
@@ -128,8 +126,8 @@ fun GymTrackerRoot(openWorkoutRequests: Int = 0) {
             AnimatedVisibility(
                 visible = hideOnScroll.visible,
                 modifier = Modifier.align(Alignment.BottomCenter),
-                enter = slideInVertically { it } + fadeIn(),
-                exit = slideOutVertically { it } + fadeOut(),
+                enter = slideInVertically(GtMotion.Slide) { it } + fadeIn(tween(GtMotion.FADE_IN_MILLIS)),
+                exit = slideOutVertically(GtMotion.Slide) { it } + fadeOut(tween(GtMotion.FADE_OUT_MILLIS)),
             ) {
                 GlassNavBar(
                     items = NavItems,
@@ -278,7 +276,7 @@ private fun entryProvider(navigator: TabNavigator): (NavKey) -> NavEntry<NavKey>
 
 // Transitions as in vynox: a short slide with a fade
 private fun forward(): ContentTransform =
-    (slideInHorizontally(spring(stiffness = Spring.StiffnessMediumLow)) { it / 5 } + fadeIn()) togetherWith fadeOut(tween(GtMotion.FADE_OUT_MILLIS))
+    (slideInHorizontally(GtMotion.Page) { it / 5 } + fadeIn(tween(GtMotion.FADE_IN_MILLIS))) togetherWith fadeOut(tween(GtMotion.FADE_OUT_MILLIS))
 
 private fun backward(): ContentTransform =
-    fadeIn(tween(GtMotion.FADE_IN_MILLIS)) togetherWith (slideOutHorizontally(spring(stiffness = Spring.StiffnessMediumLow)) { it / 5 } + fadeOut())
+    fadeIn(tween(GtMotion.FADE_IN_MILLIS)) togetherWith (slideOutHorizontally(GtMotion.Page) { it / 5 } + fadeOut(tween(GtMotion.FADE_OUT_MILLIS)))
