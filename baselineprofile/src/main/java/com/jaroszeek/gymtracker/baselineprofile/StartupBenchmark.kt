@@ -6,6 +6,8 @@ import androidx.benchmark.macro.StartupMode
 import androidx.benchmark.macro.StartupTimingMetric
 import androidx.benchmark.macro.junit4.MacrobenchmarkRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.Assume.assumeFalse
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,6 +22,10 @@ class StartupBenchmark {
 
     @get:Rule
     val rule = MacrobenchmarkRule()
+
+    // The `benchmark` build has no Baseline Profile, so "with profile" would measure the libraries' profiles only
+    @Before
+    fun releaseBuildOnly() = assumeFalse(targetAppId.endsWith(".benchmark"))
 
     @Test
     fun startupWithoutProfile() = startup(CompilationMode.None())
