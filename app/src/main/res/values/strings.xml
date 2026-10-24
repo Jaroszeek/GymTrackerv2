@@ -285,12 +285,10 @@
 
     <!-- Workout: background issues -->
     <string name="background_title">Trening w tle</string>
-    <string name="background_notifications">Powiadomienia są wyłączone: przerwy i treningu nie zobaczysz na ekranie blokady ani w Now Bar.</string>
-    <string name="background_notifications_action">Włącz powiadomienia</string>
-    <string name="background_battery">Telefon może zamknąć GymTracker w tle i przerwać odliczanie. Ustaw baterię aplikacji na „Bez ograniczeń”.</string>
-    <string name="background_battery_action">Ustawienia baterii</string>
-    <string name="background_exact_alarms">Zgoda „Alarmy i przypomnienia” pozwala obudzić telefon dokładnie na koniec przerwy. Bez niej telefon nie zasypia przez całą przerwę.</string>
-    <string name="background_exact_alarms_action">Zezwól na alarmy</string>
+    <string name="background_text">Koniec przerwy i powiadomienie na ekranie blokady lub w Now Bar mogą nie dotrzeć.</string>
+    <string name="background_notifications_action">Powiadomienia</string>
+    <string name="background_battery_action">Bateria: „Bez ograniczeń”</string>
+    <string name="background_exact_alarms_action">Alarmy</string>
     <string name="background_diagnostics">Diagnostyka</string>
     <string name="background_hide">Ukryj</string>
 
@@ -662,6 +660,13 @@
         <item quantity="many">i %d innych ćwiczeń</item>
         <item quantity="other">i %d innego ćwiczenia</item>
     </plurals>
+    <string name="home_records_others">+%d</string>
+    <plurals name="home_records_others_description">
+        <item quantity="one">i %d inny rekord</item>
+        <item quantity="few">i %d inne rekordy</item>
+        <item quantity="many">i %d innych rekordów</item>
+        <item quantity="other">i %d innego rekordu</item>
+    </plurals>
     <string name="home_calendar_previous">Poprzedni miesiąc</string>
     <string name="home_calendar_next">Następny miesiąc</string>
     <plurals name="home_calendar_workouts">
@@ -702,6 +707,14 @@
     <string name="profile_data_title">Dane</string>
     <string name="profile_weight">Waga</string>
     <string name="profile_height">Wzrost</string>
+    <plurals name="profile_age_years">
+        <item quantity="one">%1$d rok</item>
+        <item quantity="few">%1$d lata</item>
+        <item quantity="many">%1$d lat</item>
+        <item quantity="other">%1$d roku</item>
+    </plurals>
+    <string name="profile_age_set">Wpisz wiek</string>
+    <string name="profile_age_title">Twój wiek</string>
     <string name="profile_bmi_text">Orientacyjnie: BMI nie odróżnia mięśni od tłuszczu.</string>
     <string name="profile_composition_title">Skład ciała</string>
     <string name="profile_body_fat">Tkanka tłuszczowa</string>

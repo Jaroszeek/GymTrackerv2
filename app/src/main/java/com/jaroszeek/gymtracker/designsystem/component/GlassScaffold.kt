@@ -3,12 +3,13 @@ package com.jaroszeek.gymtracker.designsystem.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsTopHeight
@@ -84,17 +85,28 @@ internal fun Overlay(content: @Composable () -> Unit) {
     }
 }
 
-// Content scrolled under the status bar must not blend with the clock and system icons
+// Content scrolled under the status bar must not blend with the clock and system icons: almost solid behind them,
+// then a short fade
 @Composable
 private fun StatusBarScrim() {
-    val background = GtTheme.colors.background
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .windowInsetsTopHeight(WindowInsets.statusBars.add(WindowInsets(top = GtSpacing.xxl)))
-            .background(Brush.verticalGradient(listOf(background.copy(alpha = 0.85f), Color.Transparent))),
-    )
+    val scrim = GtTheme.colors.background.copy(alpha = STATUS_BAR_SCRIM_ALPHA)
+    Column(Modifier.fillMaxWidth()) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .windowInsetsTopHeight(WindowInsets.statusBars)
+                .background(scrim),
+        )
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(GtSpacing.xxl)
+                .background(Brush.verticalGradient(listOf(scrim, Color.Transparent))),
+        )
+    }
 }
+
+private const val STATUS_BAR_SCRIM_ALPHA = 0.96f
 
 /** Height of chrome floating above the navbar (the workout mini bar); [navBarContentPadding] adds it. */
 val LocalChromeAboveNavBar = compositionLocalOf { 0.dp }

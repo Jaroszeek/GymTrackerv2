@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.jaroszeek.gymtracker.designsystem.theme.GtPalette
 import com.jaroszeek.gymtracker.designsystem.theme.ThemeMode
 import com.jaroszeek.gymtracker.designsystem.theme.ThemeSettings
@@ -38,6 +39,11 @@ class AppPreferences @Inject constructor(private val store: DataStore<Preference
     val notificationPromptShown: Flow<Boolean> = data.map { it[NOTIFICATION_PROMPT_SHOWN] == true }
 
     suspend fun setNotificationPromptShown() = set(NOTIFICATION_PROMPT_SHOWN, true)
+
+    /** [com.jaroszeek.gymtracker.feature.workout.BackgroundIssues.keys] when the user hid the "Trening w tle" card. */
+    val hiddenBackgroundIssues: Flow<Set<String>> = data.map { it[HIDDEN_BACKGROUND_ISSUES].orEmpty() }.distinctUntilChanged()
+
+    suspend fun setHiddenBackgroundIssues(value: Set<String>) = set(HIDDEN_BACKGROUND_ISSUES, value)
 
     // Settings (A5.9)
 
@@ -132,6 +138,7 @@ class AppPreferences @Inject constructor(private val store: DataStore<Preference
     private companion object {
         const val TAG = "Preferences"
         val NOTIFICATION_PROMPT_SHOWN = booleanPreferencesKey("notification_prompt_shown")
+        val HIDDEN_BACKGROUND_ISSUES = stringSetPreferencesKey("hidden_background_issues")
         val HEALTH_SYNC_ON_OPEN = booleanPreferencesKey("health_sync_on_open")
         val HEALTH_BACKGROUND_SYNC = booleanPreferencesKey("health_background_sync")
         val HEALTH_WRITE_WORKOUTS = booleanPreferencesKey("health_write_workouts")

@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -84,7 +85,10 @@ fun ProfileRoute(onSettings: () -> Unit, onHealthConnect: () -> Unit, viewModel:
         state = state,
         onSettings = onSettings,
         onHealthConnect = onHealthConnect,
-        onAge = viewModel::onAge,
+        onAgeEdit = viewModel::onAgeEdit,
+        onAgeValue = viewModel::onAgeValue,
+        onAgeDismiss = viewModel::onAgeDismiss,
+        onAgeSave = viewModel::onAgeSave,
         onChart = viewModel::onChart,
         onRange = viewModel::onRange,
         onShowAll = viewModel::onShowAll,
@@ -105,7 +109,10 @@ fun ProfileScreen(
     state: ProfileUiState,
     onSettings: () -> Unit,
     onHealthConnect: () -> Unit,
-    onAge: (Int?) -> Unit,
+    onAgeEdit: () -> Unit,
+    onAgeValue: (Int?) -> Unit,
+    onAgeDismiss: () -> Unit,
+    onAgeSave: () -> Unit,
     onChart: (BodyChart) -> Unit,
     onRange: (ChartRange) -> Unit,
     onShowAll: () -> Unit,
@@ -145,7 +152,7 @@ fun ProfileScreen(
                 return@LazyColumn
             }
         }
-        item(key = "data") { DataCard(state.summary, state.age, onAge, onAdd) }
+        item(key = "data") { DataCard(state.summary, state.age, onAgeEdit, onAdd) }
         item(key = "composition") { CompositionCard(state.summary, onAdd) }
         item(key = "charts") { ChartsCard(state, onChart, onRange) }
         item(key = "calories") { CaloriesCard(state.calories, onHealthConnect) }
@@ -177,6 +184,10 @@ fun ProfileScreen(
     GlassBottomSheet(visible = adding != null, onDismissRequest = onAddDismiss) {
         if (adding != null) AddForm(adding, onAddMetric, onAddValue, onAddSave)
     }
+    val editingAge = state.editingAge
+    GlassBottomSheet(visible = editingAge != null, onDismissRequest = onAgeDismiss) {
+        if (editingAge != null) AgeForm(editingAge, onAgeValue, onAgeSave)
+    }
     val deleting = state.confirmDelete
     GlassDialog(
         visible = deleting != null,
@@ -193,9 +204,9 @@ fun ProfileScreen(
 private const val LOG_PREVIEW = 10
 private const val MAX_AGE = 120.0
 
-/** Weight, height, age and BMI; a tap on a value adds a new one. */
+/** Weight, height, age and BMI; a tap on a measured value adds a new one, on the age changes it. */
 @Composable
-private fun DataCard(summary: BodySummary, age: Int?, onAge: (Int?) -> Unit, onAdd: (BodyMetric) -> Unit) {
+private fun DataCard(summary: BodySummary, age: Int?, onAge: () -> Unit, onAdd: (BodyMetric) -> Unit) {
     val colors = GtTheme.colors
     GlassCard(Modifier.fillMaxWidth()) {
         Text(stringResource(R.string.profile_data_title), style = GtTheme.typography.title)
@@ -203,14 +214,14 @@ private fun DataCard(summary: BodySummary, age: Int?, onAge: (Int?) -> Unit, onA
             ValueTile(BodyMetric.Weight, summary.weight, Modifier.weight(1f), onAdd)
             ValueTile(BodyMetric.Height, summary.height, Modifier.weight(1f), onAdd)
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.m), verticalAlignment = Alignment.CenterVertically) {
-            GlassNumberField(
-                value = age?.toDouble(),
-                onValueChange = { onAge(it?.roundToInt()) },
+        Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
+            ValueTile(
                 label = stringResource(R.string.health_age),
+                value = age?.let { pluralStringResource(R.plurals.profile_age_years, it, it) },
+                caption = null,
+                action = stringResource(R.string.profile_age_set),
                 modifier = Modifier.weight(1f),
-                range = 0.0..MAX_AGE,
-                placeholder = stringResource(R.string.number_empty),
+                onClick = onAge,
             )
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
                 Text(stringResource(R.string.bmi_label), color = colors.textSecondary, style = GtTheme.typography.labelSmall)
@@ -231,21 +242,33 @@ private fun DataCard(summary: BodySummary, age: Int?, onAge: (Int?) -> Unit, onA
 
 @Composable
 private fun ValueTile(metric: BodyMetric, measurement: BodyMeasurement?, modifier: Modifier, onAdd: (BodyMetric) -> Unit) {
+    ValueTile(
+        label = stringResource(metric.label()),
+        value = measurement?.let { bodyValueLabel(metric, it.value) },
+        caption = measurement?.let { shortDate(it.time) },
+        action = stringResource(R.string.profile_add),
+        modifier = modifier,
+        onClick = { onAdd(metric) },
+    )
+}
+
+/** The [value] or "—", under it the [caption], or the [action] in the accent while there is no value. */
+@Composable
+private fun ValueTile(label: String, value: String?, caption: String?, action: String, modifier: Modifier, onClick: () -> Unit) {
     val colors = GtTheme.colors
-    Column(modifier.clickable(role = Role.Button) { onAdd(metric) }, verticalArrangement = Arrangement.spacedBy(GtSpacing.xxs)) {
-        Text(stringResource(metric.label()), color = colors.textSecondary, style = GtTheme.typography.labelSmall)
+    Column(modifier.clickable(role = Role.Button, onClick = onClick), verticalArrangement = Arrangement.spacedBy(GtSpacing.xxs)) {
+        Text(label, color = colors.textSecondary, style = GtTheme.typography.labelSmall)
         Text(
-            measurement?.let { bodyValueLabel(metric, it.value) } ?: stringResource(R.string.number_empty),
+            value ?: stringResource(R.string.number_empty),
             style = GtTheme.typography.numberM,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             autoSize = GtTheme.typography.numberM.fitting(),
         )
-        Text(
-            measurement?.let { shortDate(it.time) } ?: stringResource(R.string.profile_add),
-            color = if (measurement == null) colors.accentText else colors.textTertiary,
-            style = GtTheme.typography.labelSmall,
-        )
+        val note = if (value == null) action else caption
+        if (note != null) {
+            Text(note, color = if (value == null) colors.accentText else colors.textTertiary, style = GtTheme.typography.labelSmall)
+        }
     }
 }
 
@@ -401,6 +424,21 @@ private fun AddForm(adding: NewMeasurement, onMetric: (BodyMetric) -> Unit, onVa
     GlassButton(stringResource(R.string.action_save), onClick = onSave, enabled = adding.value != null, modifier = Modifier.fillMaxWidth())
 }
 
+/** Saving an empty field clears the age. */
+@Composable
+private fun AgeForm(age: AgeInput, onValue: (Int?) -> Unit, onSave: () -> Unit) {
+    Text(stringResource(R.string.profile_age_title), style = GtTheme.typography.headline)
+    GlassNumberField(
+        value = age.value?.toDouble(),
+        onValueChange = { onValue(it?.roundToInt()) },
+        label = stringResource(R.string.health_age),
+        modifier = Modifier.fillMaxWidth(),
+        range = 0.0..MAX_AGE,
+        placeholder = stringResource(R.string.number_empty),
+    )
+    GlassButton(stringResource(R.string.action_save), onClick = onSave, modifier = Modifier.fillMaxWidth())
+}
+
 @Composable
 private fun Message(text: String) {
     GlassCard(Modifier.fillMaxWidth()) {
@@ -414,8 +452,9 @@ private fun PreviewScreen(state: ProfileUiState) {
         GlassScaffold {
             ProfileScreen(
                 state = state,
-                onSettings = {}, onHealthConnect = {}, onAge = {}, onChart = {}, onRange = {}, onShowAll = {}, onAdd = {}, onAddMetric = {}, onAddValue = {},
-                onAddDismiss = {}, onAddSave = {}, onDeleteRequest = {}, onDeleteDismiss = {}, onDeleteConfirm = {},
+                onSettings = {}, onHealthConnect = {}, onAgeEdit = {}, onAgeValue = {}, onAgeDismiss = {}, onAgeSave = {}, onChart = {}, onRange = {},
+                onShowAll = {}, onAdd = {}, onAddMetric = {}, onAddValue = {}, onAddDismiss = {}, onAddSave = {}, onDeleteRequest = {}, onDeleteDismiss = {},
+                onDeleteConfirm = {},
             )
         }
     }
@@ -446,4 +485,17 @@ private fun ProfileScreenPreview() {
 @Composable
 private fun ProfileScreenEmptyPreview() {
     PreviewScreen(ProfileUiState(loading = false))
+}
+
+// The sheet's content alone: the sheet itself animates in, so a static preview would show it closed
+@Preview
+@Composable
+private fun AgeFormPreview() {
+    GymTrackerTheme {
+        GlassScaffold {
+            Column(Modifier.padding(GtSpacing.xxl), verticalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
+                AgeForm(AgeInput(29), onValue = {}, onSave = {})
+            }
+        }
+    }
 }

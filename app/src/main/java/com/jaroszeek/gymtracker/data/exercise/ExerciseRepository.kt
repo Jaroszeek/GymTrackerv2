@@ -18,6 +18,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -36,6 +37,13 @@ class ExerciseRepository @Inject constructor(
         seeder.ensureSeeded()
         emitAll(dao.observeAll().map { rows -> rows.map { it.toDomain() } })
     }.flowOn(io)
+
+    /**
+     * Ids of the exercises with one of [externalIds] (the templates'), in a routine or in a saved
+     * workout; the search ranks them first. Distinct, so saving a workout with the same exercises does not re-emit.
+     */
+    fun observeCommonIds(externalIds: Set<String>): Flow<Set<Long>> =
+        dao.observeCommonIds(externalIds).map { it.toSet() }.distinctUntilChanged().flowOn(io)
 
     fun observe(id: Long): Flow<Exercise?> = flow {
         seeder.ensureSeeded()

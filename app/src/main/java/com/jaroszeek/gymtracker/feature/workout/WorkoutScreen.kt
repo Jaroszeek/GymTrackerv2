@@ -418,7 +418,11 @@ private fun SetRow(
     }
 }
 
-/** What keeps the workout from running reliably with the screen off, each with the system screen that fixes it. */
+/**
+ * What keeps the workout from running reliably with the screen off: one sentence on the risk and a
+ * short button per issue that opens the system screen fixing it. Rows wrap, so it stays small at a large font.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun BackgroundIssuesCard(
     issues: BackgroundIssues,
@@ -427,18 +431,19 @@ fun BackgroundIssuesCard(
     onHide: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = GtTheme.colors
     GlassCard(modifier.fillMaxWidth()) {
         Text(stringResource(R.string.background_title), style = GtTheme.typography.title)
-        listOfNotNull(
-            Triple(R.string.background_notifications, R.string.background_notifications_action, SystemSettings.Notifications).takeIf { issues.notificationsOff },
-            Triple(R.string.background_battery, R.string.background_battery_action, SystemSettings.Battery).takeIf { issues.batteryLimited },
-            Triple(R.string.background_exact_alarms, R.string.background_exact_alarms_action, SystemSettings.ExactAlarms).takeIf { issues.exactAlarmsOff },
-        ).forEach { (text, action, screen) ->
-            Text(stringResource(text), color = colors.textSecondary, style = GtTheme.typography.bodySmall)
-            GlassButton(stringResource(action), onClick = { onOpenSettings(screen) }, style = GlassButtonStyle.Secondary, modifier = Modifier.fillMaxWidth())
+        Text(stringResource(R.string.background_text), color = GtTheme.colors.textSecondary, style = GtTheme.typography.bodySmall)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s), verticalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+            listOfNotNull(
+                (R.string.background_notifications_action to SystemSettings.Notifications).takeIf { issues.notificationsOff },
+                (R.string.background_battery_action to SystemSettings.Battery).takeIf { issues.batteryLimited },
+                (R.string.background_exact_alarms_action to SystemSettings.ExactAlarms).takeIf { issues.exactAlarmsOff },
+            ).forEach { (action, screen) ->
+                GlassButton(stringResource(action), onClick = { onOpenSettings(screen) }, style = GlassButtonStyle.Secondary)
+            }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
             GlassButton(stringResource(R.string.background_diagnostics), onClick = onDiagnostics, style = GlassButtonStyle.Ghost)
             GlassButton(stringResource(R.string.background_hide), onClick = onHide, style = GlassButtonStyle.Ghost)
         }
@@ -505,7 +510,7 @@ private fun ExerciseCardPreview() {
                     restHidden = true,
                     onShowRest = {},
                 )
-                BackgroundIssuesCard(BackgroundIssues(notificationsOff = true, batteryLimited = true), onOpenSettings = {}, onDiagnostics = {}, onHide = {})
+                BackgroundIssuesCard(BackgroundIssues(notificationsOff = true, exactAlarmsOff = true, batteryLimited = true), onOpenSettings = {}, onDiagnostics = {}, onHide = {})
                 ExerciseCard(
                     exercise = exercise,
                     exercises = emptyMap(),

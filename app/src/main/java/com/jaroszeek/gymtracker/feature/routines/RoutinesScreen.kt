@@ -4,13 +4,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -117,15 +120,32 @@ fun RoutinesScreen(
         }
         item(key = "actions") {
             Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
-                    GlassButton(stringResource(R.string.routines_new), onClick = onNew, icon = R.drawable.ic_add)
-                    GlassButton(stringResource(R.string.routines_templates), onClick = onTemplates, style = GlassButtonStyle.Secondary)
+                // Equal halves; with a large font the labels wrap and both pills take the taller height
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min),
+                    horizontalArrangement = Arrangement.spacedBy(GtSpacing.s),
+                ) {
+                    GlassButton(
+                        stringResource(R.string.routines_new),
+                        onClick = onNew,
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        icon = R.drawable.ic_add,
+                    )
+                    GlassButton(
+                        stringResource(R.string.routines_templates),
+                        onClick = onTemplates,
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        style = GlassButtonStyle.Secondary,
+                    )
                 }
                 GlassButton(
                     stringResource(R.string.routines_start_empty),
                     onClick = onStartEmpty,
+                    modifier = Modifier.fillMaxWidth(),
                     icon = R.drawable.ic_play_arrow,
-                    style = GlassButtonStyle.Secondary,
+                    style = GlassButtonStyle.Ghost,
                 )
             }
         }

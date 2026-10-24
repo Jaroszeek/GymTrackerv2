@@ -73,6 +73,47 @@ class ExerciseIndexTest {
     }
 
     @Test
+    fun commonExercisesComeFirstWithinATier() {
+        val benchDips = exercise("Bench Dips", primary = setOf(Muscle.Triceps), equipment = Equipment.BodyOnly)
+        val withCommon = ExerciseIndex(listOf(bench, dumbbellBench, benchDips), common = setOf(bench.id))
+        assertEquals(listOf(bench, benchDips, dumbbellBench), withCommon.search(ExerciseFilter("bench")))
+    }
+
+    @Test
+    fun exactNameThenWordPrefixesThenTheRest() {
+        val exact = exercise("Bench Press")
+        // In the rest: "press" only inside a word of the name; "bench" only in the alias
+        val inside = exercise("Benchpress Machine")
+        val alias = exercise("Smith Machine Press", listOf("bench press na suwnicy"))
+        val ranked = ExerciseIndex(listOf(alias, inside, bench, exact))
+        assertEquals(listOf(exact, bench, inside, alias), ranked.search(ExerciseFilter("Bench press")))
+    }
+
+    @Test
+    fun exactNameMatchBeatsCommonExercises() {
+        val exact = exercise("Bench Press")
+        val withCommon = ExerciseIndex(listOf(bench, dumbbellBench, exact), common = setOf(bench.id, dumbbellBench.id))
+        assertEquals(listOf(exact, bench, dumbbellBench), withCommon.search(ExerciseFilter("bench press")))
+    }
+
+    @Test
+    fun aliasOnlyMatchesComeLastEvenWhenCommon() {
+        val custom = exercise("Wyciskanie na skosie")
+        val withCommon = ExerciseIndex(listOf(bench, dumbbellBench, custom), common = setOf(bench.id))
+        assertEquals(listOf(custom, bench, dumbbellBench), withCommon.search(ExerciseFilter("wyciskanie")))
+    }
+
+    @Test
+    fun polishDiacriticsRankLikePlainLetters() {
+        val dumbbellRow = exercise("Wiosłowanie hantlą", primary = setOf(Muscle.MiddleBack), equipment = Equipment.Dumbbell)
+        val barbellRow = exercise("Bent Over Barbell Row", listOf("wiosłowanie sztangą"), primary = setOf(Muscle.MiddleBack))
+        val rows = ExerciseIndex(listOf(barbellRow, dumbbellRow), common = setOf(barbellRow.id))
+        assertEquals(listOf(dumbbellRow, barbellRow), rows.search(ExerciseFilter("wiosłowanie")))
+        assertEquals(listOf(dumbbellRow, barbellRow), rows.search(ExerciseFilter("WIOSLOWANIE")))
+        assertEquals(listOf(dumbbellRow), rows.search(ExerciseFilter("wioslowanie hantla")))
+    }
+
+    @Test
     fun bodyPartMatchesPrimaryMusclesOnly() {
         assertEquals(listOf(deadlift), search(bodyParts = setOf(BodyPart.Back)))
         assertEquals(listOf(deadlift), search(bodyParts = setOf(BodyPart.Legs)))

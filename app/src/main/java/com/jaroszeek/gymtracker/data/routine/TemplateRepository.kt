@@ -45,6 +45,9 @@ class TemplateRepository internal constructor(
         TemplateParser.parse(readTemplates(), byExternalId)
     }
 
+    /** External ids of the exercises the templates use; the exercise search ranks them first. */
+    suspend fun exerciseExternalIds(): Set<String> = withContext(io) { TemplateParser.externalIds(readTemplates()) }
+
     /** Adds every routine of the template to the user's routines; returns their ids. */
     suspend fun copy(template: RoutineTemplate): List<Long> = template.routines.map { routines.save(null, it) }
 
@@ -92,4 +95,9 @@ internal object TemplateParser {
                 },
             )
         }
+
+    fun externalIds(json: String): Set<String> =
+        Json.decodeFromString<List<TemplateJson>>(json)
+            .flatMap { it.routines }.flatMap { it.blocks }.flatMap { it.variants }
+            .mapTo(HashSet()) { it.exercise }
 }

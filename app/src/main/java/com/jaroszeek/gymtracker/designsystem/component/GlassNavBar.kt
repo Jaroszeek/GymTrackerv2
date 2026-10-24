@@ -74,6 +74,10 @@ private const val DROPLET_STROKE_ALPHA = 0.35f
 private const val HIGHLIGHT_GLOW_ALPHA = 0.3f
 private val HighlightGlowRadius = 22.dp
 
+// On light glass a pale accent wash almost disappears: a stronger fill and an edge in the darker text accent
+private const val DROPLET_FILL_ALPHA_LIGHT = 0.4f
+private const val DROPLET_STROKE_ALPHA_LIGHT = 0.6f
+
 /**
  * Floating glass "island" navigation, recreated from vynox (D-010). The droplet indicator
  * stretches toward the motion on tab change and springs back; [highlightedIndex] is emphasized.
@@ -86,7 +90,9 @@ fun GlassNavBar(
     modifier: Modifier = Modifier,
     highlightedIndex: Int = items.size / 2,
 ) {
-    val accent = GtTheme.colors.accent
+    val colors = GtTheme.colors
+    val fill = colors.accent.copy(alpha = if (colors.isDark) GtAlpha.ACCENT_WASH else DROPLET_FILL_ALPHA_LIGHT)
+    val stroke = if (colors.isDark) colors.accent.copy(alpha = DROPLET_STROKE_ALPHA) else colors.accentText.copy(alpha = DROPLET_STROKE_ALPHA_LIGHT)
     val haptics = LocalHapticFeedback.current
     val droplet = remember { LiquidSpan(selectedIndex.toFloat(), selectedIndex + 1f) }
     LaunchedEffect(selectedIndex) { droplet.animateTo(selectedIndex.toFloat(), selectedIndex + 1f) }
@@ -107,7 +113,7 @@ fun GlassNavBar(
         Row(
             Modifier
                 .fillMaxSize()
-                .drawBehind { drawDroplet(droplet, items.size, accent) }
+                .drawBehind { drawDroplet(droplet, items.size, fill, stroke) }
                 .selectableGroup(),
         ) {
             items.forEachIndexed { index, item ->
@@ -126,7 +132,7 @@ fun GlassNavBar(
     }
 }
 
-private fun DrawScope.drawDroplet(droplet: LiquidSpan, count: Int, accent: Color) {
+private fun DrawScope.drawDroplet(droplet: LiquidSpan, count: Int, fill: Color, stroke: Color) {
     val slot = size.width / count
     val inset = DropletInset.toPx()
     val left = droplet.start * slot + inset
@@ -136,8 +142,8 @@ private fun DrawScope.drawDroplet(droplet: LiquidSpan, count: Int, accent: Color
     val topLeft = Offset(left, (size.height - height) / 2)
     val dropletSize = Size(right - left, height)
     val radius = CornerRadius(height / 2)
-    drawRoundRect(accent.copy(alpha = GtAlpha.ACCENT_WASH), topLeft, dropletSize, radius)
-    drawRoundRect(accent.copy(alpha = DROPLET_STROKE_ALPHA), topLeft, dropletSize, radius, style = Stroke(GtSizes.Hairline.toPx()))
+    drawRoundRect(fill, topLeft, dropletSize, radius)
+    drawRoundRect(stroke, topLeft, dropletSize, radius, style = Stroke(GtSizes.Hairline.toPx()))
 }
 
 @Composable

@@ -119,4 +119,19 @@ class RoutineRepositoryTest {
         val ids = TemplateRepository(database, exercises, routines, Dispatchers.IO) { asset("templates/templates.json") }.copy(templates.first())
         assertEquals(listOf("Push", "Pull", "Legs"), ids.map { routines.observe(it).first()!!.name })
     }
+
+    @Test
+    fun commonExercisesAreTheTemplateOnesPlusTheRoutineOnes() = runTest {
+        val bench = exercise("Barbell Bench Press - Medium Grip")
+        val externalIds = TemplateRepository(database, exercises, routines, Dispatchers.IO) { asset("templates/templates.json") }.exerciseExternalIds()
+        val templateIds = exercises.observeCommonIds(externalIds).first()
+        // Every template exercise resolves to an id
+        assertEquals(externalIds.size, templateIds.size)
+        assertTrue(bench.id in templateIds)
+
+        val custom = exercises.observe(exercises.saveCustom(null, ExerciseDraft(name = "Landmine Press", primaryMuscles = setOf(Muscle.Shoulders)))).first()!!
+        assertTrue(custom.id !in exercises.observeCommonIds(externalIds).first())
+        routines.save(null, RoutineDraft(name = "Shoulders").addBlock(custom))
+        assertEquals(templateIds + custom.id, exercises.observeCommonIds(externalIds).first())
+    }
 }

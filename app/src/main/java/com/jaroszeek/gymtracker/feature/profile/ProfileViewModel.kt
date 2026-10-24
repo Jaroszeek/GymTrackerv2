@@ -53,6 +53,9 @@ data class NewMeasurement(
     val unit: WeightUnit = WeightUnit.Kg,
 )
 
+/** The age sheet with the age as entered; saving it empty clears the age. */
+data class AgeInput(val value: Int? = null)
+
 data class ProfileUiState(
     val loading: Boolean = true,
     val error: Boolean = false,
@@ -68,6 +71,7 @@ data class ProfileUiState(
     val chartPoints: List<ChartPoint> = emptyList(),
     val chartEmpty: Boolean = true,
     val adding: NewMeasurement? = null,
+    val editingAge: AgeInput? = null,
     val confirmDelete: BodyMeasurement? = null,
     val showAll: Boolean = false,
 )
@@ -76,6 +80,7 @@ private data class Local(
     val chart: BodyChart = BodyChart.Weight,
     val range: ChartRange = ChartRange.ThreeMonths,
     val adding: NewMeasurement? = null,
+    val editingAge: AgeInput? = null,
     val confirmDelete: BodyMeasurement? = null,
     val showAll: Boolean = false,
 )
@@ -118,6 +123,7 @@ class ProfileViewModel @Inject constructor(
                 chartPoints = points.within(local.range, clock.instant(), zone),
                 chartEmpty = points.isEmpty(),
                 adding = local.adding,
+                editingAge = local.editingAge,
                 confirmDelete = local.confirmDelete,
                 showAll = local.showAll,
             )
@@ -137,8 +143,18 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun onAge(age: Int?) {
-        viewModelScope.launch { preferences.setBirthYear(age?.let { Year.now(clock.withZone(zone)).value - it }) }
+    /** The sheet starts at the current age. */
+    fun onAgeEdit() = local.update { it.copy(editingAge = AgeInput(state.value.age)) }
+
+    fun onAgeValue(age: Int?) = local.update { it.copy(editingAge = it.editingAge?.copy(value = age)) }
+
+    fun onAgeDismiss() = local.update { it.copy(editingAge = null) }
+
+    fun onAgeSave() {
+        // Only from the open sheet: a second tap while it closes must not clear the age
+        val input = local.value.editingAge ?: return
+        onAgeDismiss()
+        viewModelScope.launch { preferences.setBirthYear(input.value?.let { Year.now(clock.withZone(zone)).value - it }) }
     }
 
     fun onChart(chart: BodyChart) = local.update { it.copy(chart = chart) }

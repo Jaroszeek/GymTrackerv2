@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jaroszeek.gymtracker.core.di.DefaultDispatcher
 import com.jaroszeek.gymtracker.data.exercise.ExerciseRepository
+import com.jaroszeek.gymtracker.data.routine.TemplateRepository
 import com.jaroszeek.gymtracker.domain.exercise.BodyPart
 import com.jaroszeek.gymtracker.domain.exercise.EquipmentGroup
 import com.jaroszeek.gymtracker.domain.exercise.Exercise
@@ -25,7 +26,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
@@ -41,6 +41,7 @@ sealed interface ExercisesUiState {
 @HiltViewModel
 class ExercisesViewModel @Inject constructor(
     repository: ExerciseRepository,
+    templates: TemplateRepository,
     @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -55,7 +56,11 @@ class ExercisesViewModel @Inject constructor(
     private val attempt = MutableStateFlow(0)
 
     val state: StateFlow<ExercisesUiState> = combine(
-        attempt.flatMapLatest { repository.observeAll() }.map { ExerciseIndex(it) },
+        // The index is rebuilt when the exercises or the common ones change, not per keystroke
+        attempt.flatMapLatest {
+            val templateExercises = templates.exerciseExternalIds()
+            combine(repository.observeAll(), repository.observeCommonIds(templateExercises)) { all, common -> ExerciseIndex(all, common) }
+        },
         snapshotFlow { query },
         chips,
     ) { index, query, chips ->

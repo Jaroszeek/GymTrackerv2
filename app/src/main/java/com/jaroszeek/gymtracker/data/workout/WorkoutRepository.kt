@@ -97,7 +97,7 @@ class WorkoutRepository @Inject constructor(
         .map { rows ->
             rows.map { it.toDomain() }.flatMap { workout ->
                 workout.recordHits(bestsBefore(workout)).groupBy { it.exerciseId }.map { (exerciseId, hits) ->
-                    ExerciseRecords(workout.id, workout.startedAt, exerciseId, exerciseName = "", hits.mapTo(HashSet()) { it.type })
+                    ExerciseRecords(workout.id, workout.startedAt, exerciseId, exerciseName = "", hits)
                 }
             }
         }

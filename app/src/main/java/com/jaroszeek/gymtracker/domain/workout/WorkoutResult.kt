@@ -45,7 +45,33 @@ fun ActiveWorkout.targetChanges(): List<TargetChange> = exercises.mapNotNull { e
 }
 
 /** Records of an exercise in a past workout, for Start (A5.1). */
-data class ExerciseRecords(val workoutId: Long, val startedAt: Long, val exerciseId: Long, val exerciseName: String, val types: Set<RecordType>)
+data class ExerciseRecords(val workoutId: Long, val startedAt: Long, val exerciseId: Long, val exerciseName: String, val hits: List<RecordHit>)
+
+/** An exercise's row on Start: its most important record and how many other kinds of record it set in those days. */
+data class HeadlineRecord(val workoutId: Long, val startedAt: Long, val exerciseName: String, val hit: RecordHit, val others: Int)
+
+/**
+ * One row per exercise of [records] (newest workout first), newest first. Of each kind of record the
+ * newest one counts, which is also the best.
+ */
+fun headlineRecords(records: List<ExerciseRecords>): List<HeadlineRecord> =
+    records.groupBy { it.exerciseId }.values
+        .mapNotNull { workouts ->
+            val hits = workouts.flatMap { workout -> workout.hits.map { workout to it } }
+            val (workout, hit) = hits.minByOrNull { it.second.type.headlineRank } ?: return@mapNotNull null
+            HeadlineRecord(workout.workoutId, workout.startedAt, workout.exerciseName, hit, others = hits.distinctBy { it.second.type }.size - 1)
+        }
+        .sortedByDescending { it.startedAt }
+
+// Strength before reps before volume: e1RM > max weight > max reps > set volume > session volume
+private val RecordType.headlineRank: Int
+    get() = when (this) {
+        RecordType.E1rm -> 0
+        RecordType.Weight -> 1
+        RecordType.Reps -> 2
+        RecordType.SetVolume -> 3
+        RecordType.SessionVolume -> 4
+    }
 
 /** A record of the workout for the summary: the set that set it and the value; reps records show the set itself. */
 data class RecordHit(val exerciseId: Long, val type: RecordType, val set: PerformedSet, val valueKg: Double?)

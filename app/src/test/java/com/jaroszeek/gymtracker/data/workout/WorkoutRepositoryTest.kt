@@ -305,7 +305,7 @@ class WorkoutRepositoryTest {
 
         val record = workouts.observeRecordsSince(5 * HOUR).first().single()
         assertEquals(listOf<Any>(recent, 10 * HOUR, bench.id, bench.name), listOf(record.workoutId, record.startedAt, record.exerciseId, record.exerciseName))
-        assertTrue(record.types.containsAll(setOf(RecordType.Weight, RecordType.E1rm, RecordType.SetVolume, RecordType.SessionVolume)))
+        assertTrue(record.hits.map { it.type }.containsAll(setOf(RecordType.Weight, RecordType.E1rm, RecordType.SetVolume, RecordType.SessionVolume)))
         // The first bench workout set none either
         assertEquals(listOf(recent), workouts.observeRecordsSince(0).first().map { it.workoutId })
     }
