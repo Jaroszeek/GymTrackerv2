@@ -122,6 +122,18 @@ class AppPreferences @Inject constructor(private val store: DataStore<Preference
 
     suspend fun setMaxHeartRate(value: Int?) = set(MAX_HEART_RATE, value)
 
+    // Updates (A5.11)
+
+    /** Check for a new version when the app opens, at most once a day; on unless turned off. */
+    val updateAutoCheck: Flow<Boolean> = flag(UPDATE_AUTO_CHECK, default = true)
+
+    /** Epoch millis of the last successful update check. */
+    val updateLastCheck: Flow<Long?> = data.map { it[UPDATE_LAST_CHECK] }.distinctUntilChanged()
+
+    suspend fun setUpdateAutoCheck(value: Boolean) = set(UPDATE_AUTO_CHECK, value)
+
+    suspend fun setUpdateLastCheck(value: Long?) = set(UPDATE_LAST_CHECK, value)
+
     private fun flag(key: Preferences.Key<Boolean>, default: Boolean) = data.map { it[key] ?: default }.distinctUntilChanged()
 
     /** Null removes the value. */
@@ -156,5 +168,7 @@ class AppPreferences @Inject constructor(private val store: DataStore<Preference
         val DEFAULT_REST_SECONDS = intPreferencesKey("default_rest_seconds")
         val REST_SOUND = booleanPreferencesKey("rest_sound")
         val REST_VIBRATION = booleanPreferencesKey("rest_vibration")
+        val UPDATE_AUTO_CHECK = booleanPreferencesKey("update_auto_check")
+        val UPDATE_LAST_CHECK = longPreferencesKey("update_last_check")
     }
 }
