@@ -197,6 +197,23 @@ class WorkoutRepositoryTest {
     }
 
     @Test
+    fun setTimesAreSavedAndKeptByAnEdit() = runTest {
+        var workout = ActiveWorkout(null, "Push", 1_000, 1_000).addExercise(listOf(WorkoutVariant(exercise("Butterfly").id)))
+        val exercise = workout.exercises.single()
+        exercise.sets.take(2).forEachIndexed { index, set ->
+            workout = workout.updateSet(exercise.id, set.id) { it.copy(weightKg = 30.0, reps = 12) }.complete(exercise.id, set.id, now = 60_000L * (index + 1), defaultRestSeconds = 90)
+        }
+        val id = workouts.save(workout, endedAt = HOUR)!!
+        val saved = workouts.observeWorkout(id).first()!!
+        assertEquals(listOf(60_000L, 120_000L), saved.exercises.single().sets.map { it.doneAt })
+
+        // An edited set keeps its time; a set added in the editor has none
+        val entry = saved.exercises.single()
+        assertTrue(workouts.update(saved.updateSet(entry.id, entry.sets[0].id) { it.copy(reps = 10) }.addSet(entry.id)))
+        assertEquals(listOf(60_000L, 120_000L, null), workouts.observeWorkout(id).first()!!.exercises.single().sets.map { it.doneAt })
+    }
+
+    @Test
     fun anEditWithoutExistingExercisesChangesNothing() = runTest {
         val id = saveSets(1_000, exercise("Butterfly").id, listOf(PerformedSet(30.0, 12)))
         val saved = workouts.observeWorkout(id).first()!!
@@ -341,6 +358,39 @@ class WorkoutRepositoryTest {
         saveSets(HOUR, bench.id, listOf(PerformedSet(60.0, 8)))
 
         assertEquals(listOf(null, routineId), workouts.observeHistory().first().map { it.routineId })
+    }
+
+    @Test
+    fun unlinkedWorkoutsLeaveOutLinkedAndDismissedOnesAndUnlinkingDismissesInOneStep() = runTest {
+        val butterfly = exercise("Butterfly").id
+        val linked = saveSets(1_000, butterfly, listOf(PerformedSet(30.0, 12)))
+        val dismissed = saveSets(HOUR * 2, butterfly, listOf(PerformedSet(30.0, 10)))
+        val free = saveSets(HOUR * 4, butterfly, listOf(PerformedSet(30.0, 8)))
+        workouts.linkHealthSession(linked, "hc-1")
+        workouts.dismissHealthMatch(dismissed)
+
+        assertEquals(listOf(listOf(free, HOUR * 4, HOUR * 5)), workouts.observeUnlinked().first().map { listOf(it.id, it.startedAt, it.endedAt) })
+
+        workouts.unlinkHealthSession(linked)
+        assertEquals(HealthLink(1_000, 1_000 + HOUR, sessionId = null, dismissed = true), workouts.observeHealthLink(linked).first())
+        assertEquals(listOf(free), workouts.observeUnlinked().first().map { it.id })
+    }
+
+    @Test
+    fun anAutomaticLinkIsMadeOnlyWhileTheWorkoutAndTheSessionAreFree() = runTest {
+        val butterfly = exercise("Butterfly").id
+        val first = saveSets(1_000, butterfly, listOf(PerformedSet(30.0, 12)))
+        val second = saveSets(HOUR * 2, butterfly, listOf(PerformedSet(30.0, 10)))
+        val third = saveSets(HOUR * 4, butterfly, listOf(PerformedSet(30.0, 8)))
+        workouts.dismissHealthMatch(third)
+
+        assertTrue(workouts.autoLinkHealthSession(first, "hc-1"))
+        // Linked already, the session is another workout's, unlinked by hand
+        assertFalse(workouts.autoLinkHealthSession(first, "hc-2"))
+        assertFalse(workouts.autoLinkHealthSession(second, "hc-1"))
+        assertFalse(workouts.autoLinkHealthSession(third, "hc-3"))
+
+        assertEquals(listOf(third to null, second to null, first to "hc-1"), workouts.observeHistory().first().map { it.id to it.healthSessionId })
     }
 
     private fun assertBests(expected: PersonalBests, actual: PersonalBests) {

@@ -483,7 +483,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
   - horyzont zgody na starsze dane to 365 dni;
   - po ponad 30 dniach bez synchronizacji token wygasa, a pełny import przelicza ostatnie 30 dni (365 ze zgodą na starsze dane). Dni między ostatnią synchronizacją a tym okresem mogą zostać bez sum kroków i kalorii. Z synchronizacją w tle to nie występuje. Poprawka wymaga sprawdzenia, jak HC odpowiada na agregaty sprzed okna 30 dni bez zgody na starsze dane: gdyby rzucał wyjątek, dni zostałyby nieprzeliczone na stałe.
 
-### D-062 Łączenie treningu z sesją z zegarka
+### D-062 Łączenie treningu z sesją z zegarka (propozycję zastąpiło automatyczne łączenie, D-084)
 - **Propozycja:** sesja, która nakłada się z treningiem najdłużej, o ile wspólny czas to co najmniej połowa dłuższego z nich. Dzięki temu krótki spacer na siłownię nie pasuje. Pokazujemy ją tylko wtedy, gdy trening nie ma połączenia, a propozycji nie odrzucono („To nie ten”).
 - **Ręcznie:** do 6 sesji, które zaczęły się do 12 h od treningu, najbliższe pierwsze. Sesje połączone z innym treningiem są pominięte. Odłączenie odrzuca też propozycję, żeby nie wracała.
 - **Historia:**
@@ -611,6 +611,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 - Przy pierwszym starcie (i gdy ktoś wybierze w systemie „Domyślny język”) aplikacja ustawia sobie język pl-PL przez `LocaleManager.setApplicationLocales` (API 33+, bez AppCompat). Teksty są tylko po polsku, a Android wybiera formy liczby mnogiej według języka aplikacji, nie tekstów: na angielskim systemie wychodziło „0 treningu” zamiast „0 treningów”. Daty i nazwy dni są teraz też po polsku.
 - Zamyka pytanie z Etapu 9 i pomysł z IDEAS (2026-10-19). Właściciel nie odpowiedział na pytanie, więc wybrana jest rekomendacja.
 - **Alternatywy:** `createConfigurationContext` w aktywności (nie obejmuje powiadomień, serwisu i workerów); angielskie teksty jako domyślne i polskie w `values-pl` (tłumaczenie całej aplikacji poza zakresem).
+- **Pierwszy start (poprawka 2026-10-24):** język ustawiony w pierwszym procesie działa dopiero od następnego, więc zaraz po instalacji na systemie EN daty były po angielsku, a liczby mnogie według reguł angielskich („6 ćwiczenia”). Teraz pierwszy proces ustawia `Locale.setDefault`, a `MainActivity` dostaje polską konfigurację w `attachBaseContext`, gdy jej język nie jest polski. Powiadomienia nie używają liczby mnogiej, więc nie trzeba tego w serwisie. Lint `AppBundleLocaleChanges` wyciszony: polskie teksty są zasobami domyślnymi, więc żaden podział pakietu ich nie pominie.
 
 ### D-079 Baseline Profile i pomiary
 - Plugin `androidx.baselineprofile` 1.5.0 (Apache-2.0, już w katalogu wersji od Etapu 1, D-014) z modułem `:baselineprofile`. Generator (`BaselineProfileGenerator`) ma dwa przebiegi: zimny start (`includeInStartupProfile = true`, z niego powstaje osobny `startup-prof.txt` do układu DEX) i przejście przez wszystkie zakładki (tylko `baseline-prof.txt`). Profile leżą w `app/src/release/generated/baselineProfiles` i są w repo, więc CI ich nie generuje.
@@ -649,6 +650,14 @@ Właściciel zatwierdził wszystkie (2026-10-24):
 - **Linia bazowa:** etykieta serii tygodni i kroków stoi na linii bazowej liczby (`alignByBaseline`).
 - **Wyszukiwarka ćwiczeń:** kolejność w trzech poziomach: dokładna nazwa, każde słowo zapytania zaczyna słowo nazwy, reszta (środek słowa albo polska nazwa). W poziomie najpierw ćwiczenia „częste” (z szablonów, rutyn i historii; jedno zapytanie `UNION` w `ExerciseDao`), potem nazwy zaczynające się od zapytania, potem alfabetycznie. Filtrowanie bez zmian.
 - **Pasek stanu:** scrim pod zegarem prawie pełny (96% koloru tła), potem krótkie przejście; wcześniej gradient od 85%.
+
+### D-084 Tętno w ćwiczeniu i automatyczne łączenie z zegarkiem (2026-10-24, prośba właściciela)
+- **Automatyczne łączenie zamiast propozycji (zmienia D-062):** trening bez połączenia, którego nie odłączono ręcznie, łączy się sam z sesją z zegarka wybraną tą samą regułą co dotąd propozycja (`bestMatch`: wspólny czas co najmniej połowa dłuższego). Robi to `WatchLinker`, który obserwuje treningi i zaimportowane sesje, więc działa po każdej synchronizacji i po zapisie treningu, bez otwierania szczegółów. Jedna sesja trafia do jednego treningu. „Odłącz” zapisuje odłączenie i odrzucenie jednym zapytaniem, żeby automat nie połączył treningu od razu ponownie; potem zostaje wybór ręczny. Karta propozycji i „To nie ten” usunięte. Pierwsze uruchomienie łączy też starsze treningi, które pasują.
+  - Odrzucone: łączenie dopiero po otwarciu szczegółów (historia długo bez ikony zegarka i bez tętna); osobny przełącznik „łącz automatycznie” (właściciel chce, żeby działo się samo).
+- **Czas serii:** odhaczenie serii zapisuje jej czas (`workout_sets.done_at`, epoch millis UTC, schemat v6, AutoMigration 5 → 6 z testem). Serie sprzed tej wersji, z importu v1 i dodane w edytorze nie mają czasu. Cofnięcie odhaczenia czyści czas.
+- **Okno ćwiczenia (`domain/health/ExerciseHeartRate.kt`):** każda seria ma przedział od poprzedniego odhaczenia w treningu (dla pierwszej od startu treningu) do swojego, czyli przerwę przed serią i samą serię. Ćwiczenie obejmuje przedziały od pierwszej do ostatniej swojej serii. Średnie (ważone czasem) i maksymalne tętno jak dla całej sesji. Ćwiczenie bez serii z czasem albo z mniej niż 2 próbkami nie ma wykresu. Przy superseriach okna się nakładają — świadome uproszczenie.
+- **UI:** w karcie ćwiczenia w szczegółach treningu: „Tętno: średnie …, maks. …” i niski wykres (`GtSizes.ChartCompactHeight`) z pionowym znacznikiem w chwili odhaczenia każdej serii. `GlassLineChart` dostał opcjonalne `markers` (znacznik tuż za ostatnią próbką rysowany na krawędzi) i `height`; przykład w galerii.
+- Bez nowych zależności i uprawnień.
 
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 

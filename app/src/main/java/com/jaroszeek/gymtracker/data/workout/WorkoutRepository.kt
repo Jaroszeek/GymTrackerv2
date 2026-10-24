@@ -8,6 +8,7 @@ import com.jaroszeek.gymtracker.core.database.WorkoutSetEntity
 import com.jaroszeek.gymtracker.core.database.WorkoutWithExercises
 import com.jaroszeek.gymtracker.core.di.IoDispatcher
 import com.jaroszeek.gymtracker.data.progress.toDomain
+import com.jaroszeek.gymtracker.domain.health.UnlinkedWorkout
 import com.jaroszeek.gymtracker.domain.progress.ExerciseProgress
 import com.jaroszeek.gymtracker.domain.progress.PersonalBests
 import com.jaroszeek.gymtracker.domain.routine.PerformedSet
@@ -64,7 +65,7 @@ class WorkoutRepository @Inject constructor(
     suspend fun save(workout: ActiveWorkout, endedAt: Long): Long? = database.withWriteTransaction {
         val done = workout.exercises.mapNotNull { exercise ->
             val sets = exercise.sets.filter { it.done }.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
-            LoggedExercise(0, exercise.variant.exerciseId, exercise.variant.routineVariantId, sets.map { LoggedSet(0, it.type, it.weightKg, it.reps ?: 0) })
+            LoggedExercise(0, exercise.variant.exerciseId, exercise.variant.routineVariantId, sets.map { LoggedSet(0, it.type, it.weightKg, it.reps ?: 0, it.doneAt) })
         }
         val kept = existing(done)
         if (kept.isEmpty()) return@withWriteTransaction null
@@ -141,6 +142,23 @@ class WorkoutRepository @Inject constructor(
 
     suspend fun dismissHealthMatch(id: Long) = withContext(io) { dao.dismissHealthMatch(id) }
 
+    /** Workouts without a session that were not unlinked by hand: what [autoLinkHealthSession] links. */
+    fun observeUnlinked(): Flow<List<UnlinkedWorkout>> =
+        dao.observeUnlinked().map { rows -> rows.map { UnlinkedWorkout(it.id, it.startedAt, it.endedAt) } }.flowOn(io)
+
+    /**
+     * A link made by itself; false, and nothing changes, when the workout or the session got linked
+     * meanwhile or the workout was unlinked by hand.
+     */
+    suspend fun autoLinkHealthSession(id: Long, sessionId: String): Boolean =
+        (withContext(io) { dao.linkIfFree(id, sessionId) } > 0).also { if (it) _changed.tryEmit(id) }
+
+    /** Unlinked on purpose: dismissed in the same step, so the session is neither proposed nor linked again. */
+    suspend fun unlinkHealthSession(id: Long) {
+        withContext(io) { dao.unlinkHealthSession(id) }
+        _changed.tryEmit(id)
+    }
+
     /** The workout as Health Connect gets it: name, span and whether a watch session already stands for it. */
     suspend fun forHealth(id: Long): WorkoutEntity? = withContext(io) { dao.workout(id) }
 
@@ -161,7 +179,7 @@ class WorkoutRepository @Inject constructor(
             val rowId = dao.insertExercise(
                 WorkoutExerciseEntity(workoutId = workoutId, exerciseId = exercise.exerciseId, position = position, routineVariantId = exercise.routineVariantId),
             )
-            dao.insertSets(exercise.sets.mapIndexed { index, set -> WorkoutSetEntity(0, rowId, index, set.type.key, set.weightKg, set.reps) })
+            dao.insertSets(exercise.sets.mapIndexed { index, set -> WorkoutSetEntity(0, rowId, index, set.type.key, set.weightKg, set.reps, set.doneAt) })
         }
     }
 }
@@ -179,7 +197,7 @@ private fun WorkoutWithExercises.toDomain() = LoggedWorkout(
             id = row.exercise.id,
             exerciseId = row.exercise.exerciseId,
             routineVariantId = row.exercise.routineVariantId,
-            sets = row.sets.sortedBy { it.position }.map { LoggedSet(it.id, SetType.fromKey(it.type), it.weightKg, it.reps) },
+            sets = row.sets.sortedBy { it.position }.map { LoggedSet(it.id, SetType.fromKey(it.type), it.weightKg, it.reps, it.doneAt) },
         )
     },
 )

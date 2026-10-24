@@ -18,14 +18,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -48,13 +46,17 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
 import com.jaroszeek.gymtracker.domain.exercise.Exercise
+import com.jaroszeek.gymtracker.domain.health.ExerciseHeartRate
 import com.jaroszeek.gymtracker.domain.health.HealthSession
+import com.jaroszeek.gymtracker.domain.health.HeartRateSample
+import com.jaroszeek.gymtracker.domain.health.exerciseHeartRate
 import com.jaroszeek.gymtracker.domain.progress.RecordType
 import com.jaroszeek.gymtracker.domain.routine.SetType
 import com.jaroszeek.gymtracker.domain.workout.LoggedExercise
 import com.jaroszeek.gymtracker.domain.workout.LoggedSet
 import com.jaroszeek.gymtracker.domain.workout.LoggedWorkout
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseImage
+import com.jaroszeek.gymtracker.feature.health.ExerciseHeartRateChart
 import com.jaroszeek.gymtracker.feature.health.HeartRateCard
 import com.jaroszeek.gymtracker.feature.health.label
 import com.jaroszeek.gymtracker.feature.health.sourceLabel
@@ -78,7 +80,6 @@ fun WorkoutDetailRoute(viewModel: WorkoutDetailViewModel, onBack: () -> Unit, on
         onDeleteConfirm = viewModel::onDeleteConfirm,
         onLinkSession = viewModel::onLinkSession,
         onUnlinkSession = viewModel::onUnlinkSession,
-        onDismissProposal = viewModel::onDismissProposal,
         onChooseSession = viewModel::onChooseSession,
         onChooseDismiss = viewModel::onChooseDismiss,
     )
@@ -94,7 +95,6 @@ fun WorkoutDetailScreen(
     onDeleteConfirm: () -> Unit,
     onLinkSession: (String) -> Unit,
     onUnlinkSession: () -> Unit,
-    onDismissProposal: () -> Unit,
     onChooseSession: () -> Unit,
     onChooseDismiss: () -> Unit,
     modifier: Modifier = Modifier,
@@ -115,8 +115,8 @@ fun WorkoutDetailScreen(
             when (state) {
                 is WorkoutDetailUiState.Content -> {
                     if (state.deleteFailed) Text(stringResource(R.string.workout_delete_failed), color = GtTheme.colors.danger, style = GtTheme.typography.bodySmall)
-                    WorkoutDetails(state.workout, state.exercises, state.records) {
-                        WatchSession(state.health, onLinkSession, onUnlinkSession, onDismissProposal, onChooseSession)
+                    WorkoutDetails(state.workout, state.exercises, state.records, state.exerciseHeartRate) {
+                        WatchSession(state.health, onUnlinkSession, onChooseSession)
                     }
                 }
                 WorkoutDetailUiState.NotFound, WorkoutDetailUiState.Deleted -> Message(stringResource(R.string.workout_detail_not_found))
@@ -157,15 +157,9 @@ fun WorkoutDetailScreen(
     }
 }
 
-/** The linked session's heart rate, a proposal to link one, or the way to pick one by hand; nothing without sessions. */
+/** The linked session's heart rate, or the way to pick one by hand; nothing without sessions. */
 @Composable
-private fun WatchSession(
-    health: WorkoutHealth,
-    onLink: (String) -> Unit,
-    onUnlink: () -> Unit,
-    onDismissProposal: () -> Unit,
-    onChoose: () -> Unit,
-) {
+private fun WatchSession(health: WorkoutHealth, onUnlink: () -> Unit, onChoose: () -> Unit) {
     when {
         health.session != null -> {
             HeartRateCard(health.session, health.heartRate, health.heartRateSummary)
@@ -176,22 +170,6 @@ private fun WatchSession(
                 icon = R.drawable.ic_link_off,
                 modifier = Modifier.fillMaxWidth(),
             )
-        }
-        health.proposal != null -> GlassCard(Modifier.fillMaxWidth()) {
-            val session = health.proposal
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
-                Icon(painterResource(R.drawable.ic_watch), contentDescription = null, Modifier.size(GtSizes.IconSmall), tint = GtTheme.colors.accentText)
-                Text(stringResource(R.string.link_title), style = GtTheme.typography.title)
-            }
-            Text(
-                stringResource(R.string.link_proposal, session.label(), sourceLabel(session.origin), timeLabel(session.startTime), timeLabel(session.endTime)),
-                color = GtTheme.colors.textSecondary,
-                style = GtTheme.typography.bodySmall,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
-                GlassButton(stringResource(R.string.link_confirm), onClick = { onLink(session.id) }, icon = R.drawable.ic_link)
-                GlassButton(stringResource(R.string.link_dismiss), onClick = onDismissProposal, style = GlassButtonStyle.Ghost)
-            }
         }
         health.candidates.isNotEmpty() -> GlassButton(
             stringResource(R.string.link_choose),
@@ -224,6 +202,7 @@ private fun WorkoutDetails(
     workout: LoggedWorkout,
     exercises: Map<Long, Exercise>,
     records: Map<Long, Set<RecordType>>,
+    heartRate: Map<Long, ExerciseHeartRate>,
     watchSession: @Composable () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
@@ -236,17 +215,18 @@ private fun WorkoutDetails(
     }
     SummaryStats(workout.summary())
     watchSession()
-    workout.exercises.forEach { exercise -> ExerciseSets(exercise, exercises[exercise.exerciseId], records) }
+    workout.exercises.forEach { exercise -> ExerciseSets(exercise, exercises[exercise.exerciseId], records, heartRate[exercise.id]) }
 }
 
 @Composable
-private fun ExerciseSets(exercise: LoggedExercise, info: Exercise?, records: Map<Long, Set<RecordType>>) {
+private fun ExerciseSets(exercise: LoggedExercise, info: Exercise?, records: Map<Long, Set<RecordType>>, heartRate: ExerciseHeartRate?) {
     GlassCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(GtSpacing.l)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
             ExerciseImage(info?.images?.firstOrNull(), null, GtShapes.Small, Modifier.size(GtSizes.ThumbnailSmall))
             Text(info?.name.orEmpty(), style = GtTheme.typography.title, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         exercise.sets.forEachIndexed { index, set -> SetLine(index + 1, set, records[set.id]) }
+        heartRate?.let { ExerciseHeartRateChart(it, Modifier.padding(top = GtSpacing.xs)) }
     }
 }
 
@@ -276,9 +256,19 @@ private fun WorkoutDetailScreenPreview() {
     val workout = LoggedWorkout(
         id = 1, routineId = 1, name = "Push", startedAt = 1_760_000_000_000, endedAt = 1_760_003_125_000,
         exercises = listOf(
-            LoggedExercise(1, 1, null, listOf(LoggedSet(2, SetType.Warmup, 40.0, 10), LoggedSet(3, SetType.Working, 80.0, 8), LoggedSet(4, SetType.Working, 82.5, 6))),
+            LoggedExercise(
+                1,
+                1,
+                null,
+                listOf(
+                    LoggedSet(2, SetType.Warmup, 40.0, 10, 1_760_000_300_000),
+                    LoggedSet(3, SetType.Working, 80.0, 8, 1_760_000_480_000),
+                    LoggedSet(4, SetType.Working, 82.5, 6, 1_760_000_660_000),
+                ),
+            ),
         ),
     )
+    val samples = List(140) { HeartRateSample(workout.startedAt + it * 5_000L, 100 + (it % 36) * 2) }
     GymTrackerTheme {
         GlassScaffold {
             WorkoutDetailScreen(
@@ -286,9 +276,10 @@ private fun WorkoutDetailScreenPreview() {
                     workout,
                     emptyMap(),
                     mapOf(4L to setOf(RecordType.Weight, RecordType.E1rm)),
-                    health = WorkoutHealth(proposal = HealthSession("s", "com.sec.android.app.shealth", 70, null, workout.startedAt, workout.endedAt)),
+                    health = WorkoutHealth(session = HealthSession("s", "com.sec.android.app.shealth", 70, null, workout.startedAt, workout.endedAt), heartRate = samples),
+                    exerciseHeartRate = exerciseHeartRate(workout, samples),
                 ),
-                {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
+                {}, {}, {}, {}, {}, {}, {}, {}, {},
             )
         }
     }

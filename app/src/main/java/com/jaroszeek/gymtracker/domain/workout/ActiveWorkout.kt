@@ -15,6 +15,8 @@ data class WorkoutSet(
     val weightKg: Double? = null,
     val reps: Int? = null,
     val done: Boolean = false,
+    /** When it was ticked off, epoch millis UTC; null while not done (and in files from before Etap 10). */
+    val doneAt: Long? = null,
 ) {
     /** A set without reps cannot be ticked off; no weight means bodyweight. */
     val canComplete: Boolean get() = (reps ?: 0) > 0
@@ -138,12 +140,12 @@ data class ActiveWorkout(
         val exercise = exercises.firstOrNull { it.id == exerciseId } ?: return this
         val set = exercise.sets.firstOrNull { it.id == setId }?.takeIf { it.canComplete && !it.done } ?: return this
         val restSeconds = exercise.variant.targets?.restSeconds ?: defaultRestSeconds
-        return updateSet(exerciseId, set.id) { it.copy(done = true) }
+        return updateSet(exerciseId, set.id) { it.copy(done = true, doneAt = now) }
             .copy(rest = RestTimer(now, now + restSeconds * MILLIS_PER_SECOND, exerciseId, setId))
     }
 
     /** Unticking a set cancels the rest. */
-    fun uncomplete(exerciseId: Long, setId: Long): ActiveWorkout = updateSet(exerciseId, setId) { it.copy(done = false) }.copy(rest = null)
+    fun uncomplete(exerciseId: Long, setId: Long): ActiveWorkout = updateSet(exerciseId, setId) { it.copy(done = false, doneAt = null) }.copy(rest = null)
 
     /** Shortens or extends the rest; a rest pushed to the past ends. */
     fun adjustRest(deltaSeconds: Int, now: Long): ActiveWorkout {

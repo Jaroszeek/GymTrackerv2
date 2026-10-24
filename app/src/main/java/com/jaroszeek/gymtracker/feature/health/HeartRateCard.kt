@@ -26,6 +26,7 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtSizes
 import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
+import com.jaroszeek.gymtracker.domain.health.ExerciseHeartRate
 import com.jaroszeek.gymtracker.domain.health.HealthSession
 import com.jaroszeek.gymtracker.domain.health.HeartRateSample
 import com.jaroszeek.gymtracker.domain.health.HeartRateSummary
@@ -65,6 +66,34 @@ fun HeartRateCard(session: HealthSession, samples: List<HeartRateSample>, summar
                 session.totalKcal?.let { Value(stringResource(R.string.kcal_total), kcalLabel(it), Modifier.weight(1f)) }
             }
         }
+    }
+}
+
+/** An exercise's heart rate in its card: average and maximum, and the chart with a marker where each set was ticked off. */
+@Composable
+fun ExerciseHeartRateChart(heartRate: ExerciseHeartRate, modifier: Modifier = Modifier) {
+    val colors = GtTheme.colors
+    val points = remember(heartRate) { heartRate.samples.map { ChartPoint(it.time, it.bpm.toDouble()) } }
+    val resources = LocalResources.current
+    val bpm = remember(resources) { { value: Double -> resources.getString(R.string.value_bpm, value.roundToInt()) } }
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
+            Icon(painterResource(R.drawable.ic_favorite), contentDescription = null, Modifier.size(GtSizes.IconSmall), tint = colors.accentText)
+            Text(
+                stringResource(R.string.hr_exercise, bpmLabel(heartRate.averageBpm), bpmLabel(heartRate.maxBpm)),
+                color = colors.textSecondary,
+                style = GtTheme.typography.label,
+            )
+        }
+        GlassLineChart(
+            points,
+            valueLabel = bpm,
+            dateLabel = { timeLabel(it) },
+            emptyText = stringResource(R.string.hr_empty),
+            axisLabel = { "${it.roundToInt()}" },
+            markers = heartRate.setTimes,
+            height = GtSizes.ChartCompactHeight,
+        )
     }
 }
 

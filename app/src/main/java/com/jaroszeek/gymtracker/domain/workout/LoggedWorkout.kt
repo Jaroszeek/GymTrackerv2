@@ -6,8 +6,8 @@ import com.jaroszeek.gymtracker.domain.progress.volumeKg
 import com.jaroszeek.gymtracker.domain.routine.PerformedSet
 import com.jaroszeek.gymtracker.domain.routine.SetType
 
-/** A set of a finished workout; 0 reps only while it is being edited. */
-data class LoggedSet(val id: Long, val type: SetType, val weightKg: Double?, val reps: Int) {
+/** A set of a finished workout; 0 reps only while it is being edited. [doneAt]: when it was ticked off, if known. */
+data class LoggedSet(val id: Long, val type: SetType, val weightKg: Double?, val reps: Int, val doneAt: Long? = null) {
     val performed: PerformedSet get() = PerformedSet(weightKg, reps, type)
 }
 

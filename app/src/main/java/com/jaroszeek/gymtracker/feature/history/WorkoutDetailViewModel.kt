@@ -9,10 +9,11 @@ import com.jaroszeek.gymtracker.data.health.HealthRepository
 import com.jaroszeek.gymtracker.data.health.observeMaxHeartRate
 import com.jaroszeek.gymtracker.data.workout.WorkoutRepository
 import com.jaroszeek.gymtracker.domain.exercise.Exercise
+import com.jaroszeek.gymtracker.domain.health.ExerciseHeartRate
 import com.jaroszeek.gymtracker.domain.health.HealthSession
 import com.jaroszeek.gymtracker.domain.health.HeartRateSample
 import com.jaroszeek.gymtracker.domain.health.HeartRateSummary
-import com.jaroszeek.gymtracker.domain.health.bestMatch
+import com.jaroszeek.gymtracker.domain.health.exerciseHeartRate
 import com.jaroszeek.gymtracker.domain.health.linkCandidates
 import com.jaroszeek.gymtracker.domain.health.summarize
 import com.jaroszeek.gymtracker.domain.progress.RecordType
@@ -52,6 +53,8 @@ sealed interface WorkoutDetailUiState {
         val confirmDelete: Boolean = false,
         val deleteFailed: Boolean = false,
         val health: WorkoutHealth = WorkoutHealth(),
+        /** Per entry id the heart rate during that exercise, from the linked session. */
+        val exerciseHeartRate: Map<Long, ExerciseHeartRate> = emptyMap(),
         /** The sheet to link a session by hand. */
         val choosingSession: Boolean = false,
     ) : WorkoutDetailUiState
@@ -66,8 +69,6 @@ data class WorkoutHealth(
     val session: HealthSession? = null,
     val heartRate: List<HeartRateSample> = emptyList(),
     val heartRateSummary: HeartRateSummary? = null,
-    /** An overlapping session, while nothing is linked and no proposal was turned down. */
-    val proposal: HealthSession? = null,
     /** To link by hand: started within 12 h and not linked to another workout. */
     val candidates: List<HealthSession> = emptyList(),
 )
@@ -107,7 +108,6 @@ class WorkoutDetailViewModel @AssistedInject constructor(
             session = session,
             heartRate = heartRate,
             heartRateSummary = summarize(heartRate, maxHeartRate),
-            proposal = if (link != null && session == null && !link.dismissed) bestMatch(link.startedAt, link.endedAt, free) else null,
             // ponytail: the sheet does not scroll; a scrolling one if 12 h ever hold more sessions
             candidates = if (link != null && session == null) linkCandidates(link.startedAt, free).take(MAX_CANDIDATES) else emptyList(),
         )
@@ -129,6 +129,7 @@ class WorkoutDetailViewModel @AssistedInject constructor(
                     confirmDelete = flags.confirmDelete,
                     deleteFailed = flags.deleteFailed,
                     health = watch,
+                    exerciseHeartRate = exerciseHeartRate(detail.first, watch.heartRate),
                     choosingSession = flags.choosingSession,
                 )
             }
@@ -164,16 +165,9 @@ class WorkoutDetailViewModel @AssistedInject constructor(
         viewModelScope.launch { workouts.linkHealthSession(id, sessionId) }
     }
 
+    /** Unlinked on purpose: the workout is not linked automatically again, only by hand. */
     fun onUnlinkSession() {
-        viewModelScope.launch {
-            workouts.linkHealthSession(id, null)
-            // Unlinked on purpose: the same session is not proposed again
-            workouts.dismissHealthMatch(id)
-        }
-    }
-
-    fun onDismissProposal() {
-        viewModelScope.launch { workouts.dismissHealthMatch(id) }
+        viewModelScope.launch { workouts.unlinkHealthSession(id) }
     }
 
     fun onChooseSession() = choosingSession.update { true }

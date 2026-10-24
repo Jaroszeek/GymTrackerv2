@@ -65,4 +65,6 @@ data class WorkoutSetEntity(
     /** Null = bodyweight. */
     @ColumnInfo(name = "weight_kg") val weightKg: Double?,
     val reps: Int,
+    /** When it was ticked off, epoch millis UTC; null for sets from before version 6, from the v1 import and added in the editor. */
+    @ColumnInfo(name = "done_at") val doneAt: Long? = null,
 )

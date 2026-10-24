@@ -71,6 +71,7 @@ object GtSizes {
     val MiniRingStroke = 3.dp
     val SetBadge = 32.dp
     val ChartHeight = 180.dp
+    val ChartCompactHeight = 112.dp
     val ChartEmptyHeight = 96.dp
     val ChartStroke = 2.5.dp
     val ChartDot = 4.dp
@@ -89,6 +90,7 @@ object GtAlpha {
     const val DISABLED = 0.4f
     const val CHART_FILL = 0.28f
     const val CHART_GLOW = 0.55f
+    const val CHART_MARKER = 0.5f
 
     /** Accent light behind a set that set a record, at full strength. */
     const val RECORD_GLOW = 0.32f

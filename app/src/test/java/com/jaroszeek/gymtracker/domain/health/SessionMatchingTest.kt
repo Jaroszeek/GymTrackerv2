@@ -114,6 +114,46 @@ class SessionMatchingTest {
         assertEquals(listOf(night, sameApp, next, nap), listOf(night, copy, sameApp, next, nap).withoutDuplicateSleep())
     }
 
+    /** A workout from minute [start] to minute [end]. */
+    private fun workout(id: Long, start: Int, end: Int) = UnlinkedWorkout(id, start * MINUTE, end * MINUTE)
+
+    @Test
+    fun theMatchingSessionIsLinkedByItself() {
+        val watch = session("watch", 62, 118)
+        val walk = session("walk", 50, 65)
+        assertEquals(mapOf(1L to "watch"), autoLinks(listOf(workout(1, 60, 120)), listOf(walk, watch), linked = emptySet()))
+    }
+
+    @Test
+    fun aSessionTakenByAnotherWorkoutIsNotReused() {
+        // Half of the session overlaps each of two workouts in a row
+        val workouts = listOf(workout(1, 60, 120), workout(2, 120, 180))
+        assertEquals(mapOf(1L to "watch"), autoLinks(workouts, listOf(session("watch", 90, 150)), linked = emptySet()))
+    }
+
+    @Test
+    fun ofTwoWorkoutsCompetingForASessionTheEarlierGetsItAndTheLaterItsNextBestMatch() {
+        // The same hour logged twice: "best" overlaps both by 55 min, "second" the later one by 50
+        val workouts = listOf(workout(2, 70, 130), workout(1, 60, 120))
+        val sessions = listOf(session("best", 65, 125), session("second", 80, 130))
+        assertEquals(mapOf(1L to "best", 2L to "second"), autoLinks(workouts, sessions, linked = emptySet()))
+    }
+
+    @Test
+    fun withoutAMatchNothingIsLinked() {
+        assertEquals(emptyMap<Long, String>(), autoLinks(listOf(workout(1, 60, 120)), listOf(session("walk", 50, 65)), linked = emptySet()))
+        assertEquals(emptyMap<Long, String>(), autoLinks(listOf(workout(1, 60, 120)), emptyList(), linked = emptySet()))
+        assertEquals(emptyMap<Long, String>(), autoLinks(emptyList(), listOf(session("watch", 60, 120)), linked = emptySet()))
+    }
+
+    @Test
+    fun aSessionLinkedAlreadyIsSkipped() {
+        val best = session("best", 60, 120)
+        val second = session("second", 70, 125)
+        assertEquals(mapOf(1L to "second"), autoLinks(listOf(workout(1, 60, 120)), listOf(best, second), linked = setOf("best")))
+        assertEquals(emptyMap<Long, String>(), autoLinks(listOf(workout(1, 60, 120)), listOf(best), linked = setOf("best")))
+    }
+
     private companion object {
         const val MINUTE = 60_000L
         const val RUN = 56

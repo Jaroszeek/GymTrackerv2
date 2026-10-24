@@ -12,8 +12,10 @@ import com.jaroszeek.gymtracker.domain.body.BodyMetric
 import com.jaroszeek.gymtracker.domain.routine.PerformedSet
 import com.jaroszeek.gymtracker.domain.routine.RoutineDraft
 import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
+import com.jaroszeek.gymtracker.domain.routine.SetType
 import com.jaroszeek.gymtracker.domain.workout.ActiveWorkout
 import com.jaroszeek.gymtracker.domain.workout.HealthLink
+import com.jaroszeek.gymtracker.domain.workout.LoggedSet
 import com.jaroszeek.gymtracker.domain.workout.WorkoutVariant
 import com.jaroszeek.gymtracker.testing.inMemoryHealthDatabase
 import com.jaroszeek.gymtracker.testing.seeder
@@ -163,6 +165,30 @@ class MigrationTest {
         assertTrue(body.add(BodyMetric.Weight, 80.0))
         assertEquals(listOf(80.0), body.observeMeasurements().first().map { it.value })
         health.close()
+    }
+
+    @Test
+    fun version5MigratesKeepingSets() = runTest {
+        createFromSchema(version = 5).run {
+            execSQL(
+                """INSERT INTO exercises (id, external_id, name, aliases_pl, category, instructions, images, source)
+                   VALUES (1, NULL, 'Landmine Press', '[]', 'strength', '[]', '[]', 'custom')""",
+            )
+            execSQL("INSERT INTO workouts (id, routine_id, name, started_at, ended_at, hc_session_id, hc_match_dismissed) VALUES (1, NULL, 'Shoulders', 1000, 2000, NULL, 0)")
+            execSQL("INSERT INTO workout_exercises (id, workout_id, exercise_id, position, routine_variant_id) VALUES (1, 1, 1, 0, NULL)")
+            execSQL("INSERT INTO workout_sets (id, workout_exercise_id, position, type, weight_kg, reps) VALUES (1, 1, 0, 'working', 30.0, 8)")
+            close()
+        }
+
+        val current = Room.databaseBuilder<GtDatabase>(file.path).setDriver(BundledSQLiteDriver()).build().also { database = it }
+        val workouts = WorkoutRepository(current, Dispatchers.IO)
+        val migrated = workouts.observeWorkout(1).first()!!
+        val entry = migrated.exercises.single()
+        assertEquals(LoggedSet(1, SetType.Working, 30.0, 8, doneAt = null), entry.sets.single())
+
+        // The column added in version 6 works
+        assertTrue(workouts.update(migrated.updateSet(entry.id, 1) { it.copy(doneAt = 1_500) }))
+        assertEquals(listOf(1_500L), workouts.observeWorkout(1).first()!!.exercises.single().sets.map { it.doneAt })
     }
 
     private fun createFromSchema(version: Int): SQLiteConnection {

@@ -14,7 +14,7 @@
 | 7 | Health Connect | ✅ zaakceptowany (2026-10-20), wydanie `preview-stage-7`, sprawdzony na telefonie (2026-10-23) |
 | 8 | Start i Profil | ✅ zaakceptowany (2026-10-24), wydanie `preview-stage-8`, sprawdzony na telefonie (2026-10-23) |
 | 9 | Ustawienia i kopia zapasowa | ✅ zaakceptowany (2026-10-24), wydanie `preview-stage-9`; czeka na test na telefonie |
-| 10 | Szlif, wydajność, QA | 🟡 PR #10 otwarty, poprawki designu i ikona A wdrożone; czeka na akceptację |
+| 10 | Szlif, wydajność, QA | 🟡 PR #10 otwarty, poprawki designu, ikona A, tętno w ćwiczeniu i automatyczne łączenie z zegarkiem wdrożone; czeka na akceptację |
 | 11 | Wydanie i aktualizator | — |
 
 ## Bieżący stan
@@ -30,8 +30,14 @@
     - ruch z tokenów, usunięty martwy kod, ostrzeżenie Kotlina (`!!`) i lint `UseKtx` poprawione; README (Wydajność, struktura).
   - Przegląd designu: wszystkie poprawki A–H zatwierdzone i wdrożone (D-083): zwarta karta „Trening w tle” z zapamiętanym „Ukryj”, przyciski zakładki Trening, kafelek wieku z arkuszem, jeden rekord na ćwiczenie z „+N”, wyraźniejsza kropla navbara w jasnym motywie, linia bazowa serii i kroków, ranking wyszukiwarki, mocniejszy scrim paska stanu.
   - Ikona: właściciel wybrał A „Pierścień”; propozycje B i C usunięte z galerii (D-080).
+  - Na prośbę właściciela (2026-10-24, D-084):
+    - trening łączy się sam z sesją z zegarka (zamiast propozycji); „Odłącz” wyklucza ponowne automatyczne połączenie, zostaje wybór ręczny;
+    - odhaczenie serii zapisuje jej czas (schemat v6, migracja 5 → 6 z testem);
+    - w szczegółach treningu każde ćwiczenie ma średnie i maksymalne tętno oraz wykres ze znacznikami serii;
+    - przy okazji: pierwszy start po instalacji na systemie w innym języku miał angielskie daty i liczby mnogie; teraz po polsku od razu (D-078).
+  - Sprawdzone na emulatorze (API 36): trening „Push” z 7 seriami odhaczanymi co ok. 35 s, sesja z tętnem z aplikacji testowej (`benchmark`), synchronizacja przy starcie połączyła je sama; wykresy w obu ćwiczeniach ze znacznikami serii (motyw ciemny i jasny); „Odłącz” zostawia trening bez połączenia, ręczne połączenie działa; pierwszy start z wyczyszczonym językiem aplikacji na systemie EN: daty i „6 ćwiczeń” po polsku.
   - Sprawdzone na emulatorze (API 36): wszystkie zakładki w motywie ciemnym i jasnym, czcionka 200%, obrót w trakcie treningu i przerwy, zabicie procesu w trakcie przerwy, pusta baza, brak zgód HC, oszczędzanie baterii z trybem samolotowym, 120 i 300 treningów.
-  - Testy: JVM 274/274, UI 6/6 na emulatorze API 36, lint 0 błędów (1 znane ostrzeżenie o targetSdk 36).
+  - Testy: JVM 290/290, UI 6/6 na emulatorze API 36, lint 0 błędów (1 znane ostrzeżenie o targetSdk 36).
 - **Etap 9** zaakceptowany i zmergowany (PR #9, 2026-10-24). Wydanie testowe `preview-stage-9`.
   - Zrobione:
     - Ustawienia (A5.9): wygląd (tryb, paleta z próbek, AMOLED, Material You, ograniczenie przezroczystości), jednostka masy kg / lb we wszystkich ekranach, domyślna przerwa, dźwięk i wibracja na koniec przerwy, wejścia do Health Connect (z datą ostatniej synchronizacji) i diagnostyki, Aktualizacje jako zaślepka, O aplikacji z wersją i licencjami;
@@ -80,7 +86,7 @@
   - Sprawdzone na emulatorze (D-050): promocja `FLAG_PROMOTED_ONGOING` na 36.1, akcje z panelu, wibracja na koniec przerwy przy wygaszonym ekranie (także w Doze), odliczanie na ekranie blokady, brak osieroconych powiadomień po `kill -9`, odtworzenie po powrocie. Testy: JVM 99/99, UI 4/4 (36.0), test powiadomienia 3/3 (36.1), lint 0 błędów.
   - Wydanie testowe `preview-stage-5` (pre-release z APK debug, D-051) na prośbę właściciela.
 - **Tryb pracy:** plan etapu nie czeka na akceptację (D-032), akceptacja na PR.
-- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-077).
+- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-084).
 - **Środowisko:**
   - Android Studio 2026.2.1 w `C:\Program Files\Android\Android Studio1` (JBR 25). Gdy `java` z PATH nie startuje, ustaw `$env:JAVA_HOME` na JBR.
   - `adb`: `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe`.
@@ -102,6 +108,7 @@
 7. W trakcie przerwy usuń aplikację z ostatnich i otwórz: trening i przerwa wracają z właściwym czasem.
 8. Pomiar na telefonie (podłączony, odblokowany): komendy z README („Wydajność”); wyniki w `baselineprofile\build\outputs\connected_android_test_additional_output\`. Wyślij medianę `timeToInitialDisplayMs` dla obu wariantów i `frameDurationCpuMs` dla przewijania.
 9. Do raportu: zrzut ikony (zwykłej i tematycznej) i wszystko, co odstaje przy dużej czcionce.
+10. Tętno w ćwiczeniu (D-084): włącz trening na zegarku i w aplikacji, odhaczaj serie na bieżąco, zakończ oba. Po synchronizacji (otwarcie aplikacji po ponad 5 min albo „Synchronizuj teraz” w Health Connect) trening w historii ma ikonę zegarka bez potwierdzania, a w szczegółach każde ćwiczenie ma wykres tętna ze znacznikami serii. „Odłącz sesję z zegarka”: trening nie łączy się ponownie sam.
 
 ## Etap 9 — test na telefonie
 

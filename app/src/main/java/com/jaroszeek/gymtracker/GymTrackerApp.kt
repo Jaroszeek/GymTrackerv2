@@ -6,6 +6,7 @@ import android.os.LocaleList
 import com.jaroszeek.gymtracker.data.backup.BackupFiles
 import com.jaroszeek.gymtracker.data.backup.BackupManager
 import com.jaroszeek.gymtracker.data.health.HealthWriter
+import com.jaroszeek.gymtracker.data.health.WatchLinker
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -13,6 +14,8 @@ import javax.inject.Inject
 class GymTrackerApp : Application() {
 
     @Inject lateinit var healthWriter: HealthWriter
+
+    @Inject lateinit var watchLinker: WatchLinker
 
     override fun onCreate() {
         // A confirmed import becomes the database before anything opens it (A5.10)
@@ -23,6 +26,8 @@ class GymTrackerApp : Application() {
             if (applicationLocales.isEmpty) applicationLocales = LocaleList.forLanguageTags(APP_LOCALE)
         }
         healthWriter.start()
+        // After the writer, so it hears of each workout linked here and removes its Health Connect copy
+        watchLinker.start()
     }
 
     private companion object {

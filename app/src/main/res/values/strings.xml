@@ -519,6 +519,7 @@
     <string name="hr_zones_missing">Podaj wiek albo tętno maksymalne na ekranie Health Connect, a pokażemy czas w strefach.</string>
     <string name="hr_empty">Brak pomiarów tętna z tej sesji.</string>
     <string name="hr_source">Z aplikacji %1$s</string>
+    <string name="hr_exercise">Tętno: średnie %1$s, maks. %2$s</string>
     <string name="kcal_active">Kalorie aktywne</string>
     <string name="kcal_total">Kalorie łącznie</string>
     <string name="session_imported">Zaimportowane</string>
@@ -526,9 +527,6 @@
     <string name="session_not_found">Tej sesji już nie ma w Health Connect.</string>
     <string name="session_imported_text">Sesja z Health Connect. Zmienisz ją w aplikacji, która ją zapisała.</string>
     <string name="link_title">Sesja z zegarka</string>
-    <string name="link_proposal">%1$s z %2$s, %3$s–%4$s. To ten trening?</string>
-    <string name="link_confirm">Połącz</string>
-    <string name="link_dismiss">To nie ten</string>
     <string name="link_choose">Połącz z sesją z zegarka</string>
     <string name="link_unlink">Odłącz sesję z zegarka</string>
     <string name="link_sheet_title">Sesje z zegarka</string>
