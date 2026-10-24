@@ -14,7 +14,8 @@
     <uses-permission android:name="android.permission.health.WRITE_RESTING_HEART_RATE" />
     <uses-permission android:name="android.permission.health.WRITE_HEART_RATE_VARIABILITY" />
 
-    <application>
+    <!-- Cleartext only to the emulator host, for the updater test against a local server (-PupdateUrl) -->
+    <application android:networkSecurityConfig="@xml/network_security_benchmark">
         <!-- Lets macrobenchmarks trace the release-like benchmark build -->
         <profileable android:shell="true" />
 
