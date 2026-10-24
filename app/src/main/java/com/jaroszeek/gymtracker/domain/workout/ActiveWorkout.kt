@@ -5,6 +5,7 @@ import com.jaroszeek.gymtracker.domain.routine.DoubleProgression
 import com.jaroszeek.gymtracker.domain.routine.PerformedSet
 import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
 import com.jaroszeek.gymtracker.domain.routine.SetType
+import com.jaroszeek.gymtracker.domain.settings.WeightUnit
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -29,11 +30,11 @@ data class WorkoutVariant(
     val previous: List<PerformedSet> = emptyList(),
     /** Bests from before the workout, captured with [previous]; ticked-off sets are compared with them. */
     val bests: PersonalBests = PersonalBests(),
-    /** The weight the progression adds, from the unit masses are shown in. */
-    val incrementKg: Double = DoubleProgression.DEFAULT_INCREMENT_KG,
+    /** The unit masses are shown in: the progression adds its step and rounds in it. */
+    val unit: WeightUnit = WeightUnit.Kg,
 ) {
     /** Double progression suggestion (D-036) for this session. */
-    val progressionKg: Double? get() = targets?.let { DoubleProgression.nextWeight(it, previous, incrementKg) }
+    val progressionKg: Double? get() = targets?.let { DoubleProgression.nextWeight(it, previous, unit) }
 }
 
 /** An exercise of the workout; a routine block with alternatives keeps all of them and one is [selected]. */

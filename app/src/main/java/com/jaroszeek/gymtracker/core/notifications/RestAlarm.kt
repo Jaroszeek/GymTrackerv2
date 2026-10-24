@@ -68,28 +68,31 @@ class RestAlarm @Inject constructor(
         timer = scope.launch {
             try {
                 delay(endsAt - now)
-                ring()
+                // Before the lock goes, so the alert does not wait for the next wake-up
+                alert()
             } finally {
                 if (lock.isHeld) lock.release()
             }
         }
     }
 
-    /** The rest is over: vibrate and sound as set (screen off too) and let the workout move on. */
+    /** The exact alarm went off; the receiver's wake lock covers the short read of the settings. */
     fun ring() {
+        scope.launch { alert() }
+    }
+
+    /** The rest is over: vibrate and sound as set (screen off too) and let the workout move on. */
+    private suspend fun alert() {
         Log.i(TAG, "Rest over")
         manager.endRestIfDue()
-        // The receiver's wake lock covers this short read of the settings
-        scope.launch {
-            val alert = preferences.restAlert.first()
-            if (alert.vibration) {
-                context.getSystemService(VibratorManager::class.java).defaultVibrator.vibrate(
-                    VibrationEffect.createWaveform(VIBRATION_PATTERN, -1),
-                    VibrationAttributes.createForUsage(VibrationAttributes.USAGE_ALARM),
-                )
-            }
-            if (alert.sound) playSound()
+        val alert = preferences.restAlert.first()
+        if (alert.vibration) {
+            context.getSystemService(VibratorManager::class.java).defaultVibrator.vibrate(
+                VibrationEffect.createWaveform(VIBRATION_PATTERN, -1),
+                VibrationAttributes.createForUsage(VibrationAttributes.USAGE_ALARM),
+            )
         }
+        if (alert.sound) playSound()
     }
 
     /** The default notification sound; silent and Do Not Disturb modes keep it quiet. */

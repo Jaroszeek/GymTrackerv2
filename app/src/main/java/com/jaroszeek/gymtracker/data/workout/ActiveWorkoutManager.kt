@@ -88,13 +88,13 @@ class ActiveWorkoutManager @Inject constructor(
 
     /** Starts a workout with the blocks of [routine]; false when a workout is already running. */
     suspend fun start(routine: Routine): Boolean {
-        val incrementKg = incrementKg()
+        val unit = preferences.weightUnit.first()
         return start(
             routineId = routine.id,
             name = routine.name,
             blocks = routine.blocks.map { block ->
                 block.variants.map {
-                    WorkoutVariant(it.exercise.id, it.id, it.targets, workouts.lastSession(it.exercise.id), workouts.personalBests(it.exercise.id), incrementKg)
+                    WorkoutVariant(it.exercise.id, it.id, it.targets, workouts.lastSession(it.exercise.id), workouts.personalBests(it.exercise.id), unit)
                 }
             },
         )
@@ -105,12 +105,9 @@ class ActiveWorkoutManager @Inject constructor(
     suspend fun addExercise(exerciseId: Long) {
         val previous = workouts.lastSession(exerciseId)
         val bests = workouts.personalBests(exerciseId)
-        val incrementKg = incrementKg()
-        mutate { it.addExercise(listOf(WorkoutVariant(exerciseId, previous = previous, bests = bests, incrementKg = incrementKg))) }
+        val unit = preferences.weightUnit.first()
+        mutate { it.addExercise(listOf(WorkoutVariant(exerciseId, previous = previous, bests = bests, unit = unit))) }
     }
-
-    /** The progression adds 2.5 kg, or 5 lb when masses are shown in pounds. */
-    private suspend fun incrementKg(): Double = preferences.weightUnit.first().stepKg
 
     fun selectVariant(exerciseId: Long, index: Int) = mutate { it.selectVariant(exerciseId, index) }
 

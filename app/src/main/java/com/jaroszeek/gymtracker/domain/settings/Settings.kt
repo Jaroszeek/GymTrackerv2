@@ -1,5 +1,7 @@
 package com.jaroszeek.gymtracker.domain.settings
 
+import kotlin.math.roundToLong
+
 /** The unit masses are shown and entered in (A5.9); they are always stored in kg. [key] is stored. */
 enum class WeightUnit(val key: String) {
     Kg("kg"),
@@ -16,10 +18,14 @@ enum class WeightUnit(val key: String) {
     /** [step] in kg, e.g. for the progression suggestion. */
     val stepKg: Double get() = toKg(step)
 
+    /** [kg] rounded to hundredths of this unit: the same value as when typed into a field. */
+    fun roundKg(kg: Double): Double = toKg((fromKg(kg) * HUNDRED).roundToLong() / HUNDRED)
+
     companion object {
         const val KG_PER_LB = 0.45359237
         private const val KG_STEP = 2.5
         private const val LB_STEP = 5.0
+        private const val HUNDRED = 100.0
 
         fun fromKey(key: String?): WeightUnit = entries.firstOrNull { it.key == key } ?: Kg
     }
