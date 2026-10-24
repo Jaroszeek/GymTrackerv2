@@ -10,6 +10,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.Direction
 import androidx.test.uiautomator.Until
+import org.junit.Assume.assumeTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -32,7 +33,13 @@ class GlassScrollBenchmark {
     @Test
     fun scrollWithoutBlur() = scroll(reduceTransparency = true)
 
-    private fun scroll(reduceTransparency: Boolean) = rule.measureRepeated(
+    private fun scroll(reduceTransparency: Boolean) {
+        // The gallery comes with the debug sources, which only the `benchmark` build carries (D-020)
+        assumeTrue(PACKAGE.endsWith(".benchmark"))
+        measure(reduceTransparency)
+    }
+
+    private fun measure(reduceTransparency: Boolean) = rule.measureRepeated(
         packageName = PACKAGE,
         metrics = listOf(FrameTimingMetric()),
         compilationMode = CompilationMode.Full(),
@@ -61,7 +68,7 @@ class GlassScrollBenchmark {
     }
 
     private companion object {
-        const val PACKAGE = "com.jaroszeek.gymtracker.benchmark"
+        val PACKAGE = targetAppId
         const val GALLERY = "com.jaroszeek.gymtracker.designsystem.gallery.GalleryActivity"
         const val ITERATIONS = 5
         const val FLINGS = 3

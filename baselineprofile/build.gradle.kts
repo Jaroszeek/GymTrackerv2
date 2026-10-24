@@ -1,9 +1,10 @@
 plugins {
     alias(libs.plugins.android.test)
+    alias(libs.plugins.baselineprofile)
 }
 
-// Macrobenchmarks against the release-like `benchmark` build of :app (D-014).
-// The Baseline Profile generator joins this module in Stage 10.
+// Macrobenchmarks against the release-like builds of :app (D-014) and the Baseline Profile generator (D-079):
+// `.\gradlew.bat :app:generateBaselineProfile`
 android {
     namespace = "com.jaroszeek.gymtracker.baselineprofile"
     compileSdk {
@@ -39,4 +40,12 @@ dependencies {
     implementation(libs.androidx.benchmark.macro.junit4)
     implementation(libs.androidx.test.junit)
     implementation(libs.androidx.test.uiautomator)
+}
+
+// The variant under test, for the generator and the startup benchmark (`targetAppId` in Journeys.kt)
+androidComponents {
+    onVariants { variant ->
+        val loader = variant.artifacts.getBuiltArtifactsLoader()
+        variant.instrumentationRunnerArguments.put("targetAppId", variant.testedApks.map { loader.load(it)?.applicationId })
+    }
 }
