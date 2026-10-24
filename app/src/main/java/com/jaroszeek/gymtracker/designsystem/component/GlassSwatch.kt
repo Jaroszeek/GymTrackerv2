@@ -32,6 +32,7 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
 import com.jaroszeek.gymtracker.designsystem.theme.contentColorFor
+import com.jaroszeek.gymtracker.designsystem.theme.contrastRatio
 import com.jaroszeek.gymtracker.designsystem.theme.gtColors
 
 /** A color to pick, e.g. a palette's accent; the selected one has a ring and a check. */
@@ -41,6 +42,8 @@ fun GlassSwatch(color: Color, selected: Boolean, onClick: () -> Unit, label: Str
     val interaction = remember { MutableInteractionSource() }
     val scale = rememberPressScale(interaction)
     val ring by animateDpAsState(if (selected) GtSpacing.xxs else GtSizes.Hairline, label = "swatchRing")
+    // A color close to the card gets an edge, or the circle disappears (Porcelain on dark, Onyx on light)
+    val edge = if (contrastRatio(color, colors.surface) < MIN_UI_CONTRAST) colors.textSecondary else Color.Transparent
     Box(
         modifier
             .size(GtSizes.MinTouch)
@@ -58,13 +61,17 @@ fun GlassSwatch(color: Color, selected: Boolean, onClick: () -> Unit, label: Str
                 .border(ring, if (selected) colors.textPrimary else colors.hairline, GtShapes.Pill)
                 .padding(ring + GtSpacing.xxs)
                 .clip(GtShapes.Pill)
-                .background(color),
+                .background(color)
+                .border(GtSizes.Hairline, edge, GtShapes.Pill),
             contentAlignment = Alignment.Center,
         ) {
             if (selected) Icon(painterResource(R.drawable.ic_check), contentDescription = null, Modifier.size(GtSizes.IconSmall), tint = contentColorFor(color))
         }
     }
 }
+
+/** WCAG 2.1 non-text contrast. */
+private const val MIN_UI_CONTRAST = 3f
 
 @Preview
 @Composable

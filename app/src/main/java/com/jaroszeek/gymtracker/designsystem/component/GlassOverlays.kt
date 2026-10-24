@@ -28,6 +28,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -80,7 +82,17 @@ fun GlassDialog(
             ) {
                 Column(Modifier.padding(GtSpacing.xxl), verticalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
                     Text(title, style = GtTheme.typography.headline)
-                    if (text != null) Text(text, color = GtTheme.colors.textSecondary, style = GtTheme.typography.body)
+                    // A long text (or a large font) scrolls, so the buttons stay on screen
+                    if (text != null) {
+                        Text(
+                            text,
+                            Modifier
+                                .weight(1f, fill = false)
+                                .verticalScroll(rememberScrollState()),
+                            color = GtTheme.colors.textSecondary,
+                            style = GtTheme.typography.body,
+                        )
+                    }
                     Row(
                         Modifier
                             .fillMaxWidth()
