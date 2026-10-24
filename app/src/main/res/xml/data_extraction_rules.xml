@@ -1,16 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Health Connect data never leaves the phone (D-060); the rest of the backup rules come with Etap 9 (A5.10) -->
+<!--
+  Android Auto Backup (A5.10): the database and the settings go along. Never: Health Connect data (D-060),
+  the workout in progress (a temporary file) and SQLite's shared-memory index. The cache and noBackupFilesDir,
+  where imports are prepared and replaced databases are kept, are left out by Android itself.
+-->
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="database" path="health.db" />
         <exclude domain="database" path="health.db-shm" />
         <exclude domain="database" path="health.db-wal" />
         <exclude domain="database" path="health.db-journal" />
+        <exclude domain="database" path="gymtracker.db-shm" />
+        <exclude domain="file" path="active_workout.json" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="database" path="health.db" />
         <exclude domain="database" path="health.db-shm" />
         <exclude domain="database" path="health.db-wal" />
         <exclude domain="database" path="health.db-journal" />
+        <exclude domain="database" path="gymtracker.db-shm" />
+        <exclude domain="file" path="active_workout.json" />
     </device-transfer>
 </data-extraction-rules>

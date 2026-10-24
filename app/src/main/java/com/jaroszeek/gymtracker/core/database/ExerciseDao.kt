@@ -20,6 +20,9 @@ interface ExerciseDao {
     @Query("SELECT id, external_id AS externalId FROM exercises WHERE external_id IS NOT NULL")
     suspend fun externalIds(): List<ExternalIdRow>
 
+    @Query("SELECT id, external_id AS externalId, name FROM exercises WHERE source != 'custom'")
+    suspend fun bundled(): List<BundledRow>
+
     @Query("SELECT COUNT(*) FROM exercises WHERE source != 'custom'")
     suspend fun countSeeded(): Int
 
@@ -52,3 +55,5 @@ interface ExerciseDao {
 }
 
 data class ExternalIdRow(val id: Long, val externalId: String)
+
+data class BundledRow(val id: Long, val externalId: String, val name: String)
