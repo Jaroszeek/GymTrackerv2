@@ -22,6 +22,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.jaroszeek.gymtracker.core.datastore.AppPreferences
 import com.jaroszeek.gymtracker.core.notifications.WorkoutService
+import com.jaroszeek.gymtracker.core.update.UpdateManager
 import com.jaroszeek.gymtracker.data.health.HealthSync
 import com.jaroszeek.gymtracker.data.workout.ActiveWorkoutManager
 import com.jaroszeek.gymtracker.designsystem.component.GlassScaffold
@@ -51,6 +52,8 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var healthSync: HealthSync
 
     @Inject lateinit var preferences: AppPreferences
+
+    @Inject lateinit var updates: UpdateManager
 
     /** How the app looks (A5.9); null until read, while the splash screen stays. */
     private lateinit var look: StateFlow<Look?>
@@ -87,6 +90,10 @@ class MainActivity : ComponentActivity() {
                 workouts.workout.map { it != null }.distinctUntilChanged().filter { it }.collect { WorkoutService.start(this@MainActivity) }
             }
         }
+        lifecycleScope.launch {
+            // The system's confirmation of an update (A5.11) can only start from a visible activity
+            repeatOnLifecycle(Lifecycle.State.STARTED) { updates.userActions.collect(::startActivity) }
+        }
         setLookedContent { GymTrackerRoot(openWorkoutRequests) }
     }
 
@@ -113,8 +120,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        // Sync on open (A6); the privacy policy alone, opened by Health Connect, does not count
-        if (intent?.action != Intent.ACTION_VIEW_PERMISSION_USAGE) healthSync.onAppStart()
+        // Sync on open (A6) and the daily update check (A5.11); the privacy policy alone, opened by Health Connect, does not count
+        if (intent?.action != Intent.ACTION_VIEW_PERMISSION_USAGE) {
+            healthSync.onAppStart()
+            updates.checkIfDue()
+        }
     }
 
     companion object {

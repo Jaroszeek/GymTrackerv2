@@ -37,6 +37,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jaroszeek.gymtracker.BuildConfig
 import com.jaroszeek.gymtracker.R
@@ -67,6 +68,9 @@ import com.jaroszeek.gymtracker.feature.progress.shortDate
 import com.jaroszeek.gymtracker.feature.progress.timeLabel
 import com.jaroszeek.gymtracker.feature.routines.label
 import com.jaroszeek.gymtracker.feature.routines.restLabel
+import com.jaroszeek.gymtracker.feature.update.UpdateUiState
+import com.jaroszeek.gymtracker.feature.update.UpdateViewModel
+import com.jaroszeek.gymtracker.feature.update.UpdatesCard
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -77,14 +81,17 @@ fun SettingsRoute(
     onHealthConnect: () -> Unit,
     onDiagnostics: () -> Unit,
     onLicenses: () -> Unit,
+    updateViewModel: UpdateViewModel = hiltViewModel(),
 ) {
     val loaded by viewModel.state.collectAsStateWithLifecycle()
+    val updates by updateViewModel.state.collectAsStateWithLifecycle()
     val resources = LocalResources.current
     val export = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(BACKUP_MIME_TYPE)) { uri -> uri?.let(viewModel::onExport) }
     val import = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> uri?.let(viewModel::onImport) }
     val state = loaded ?: return
     SettingsScreen(
         state = state,
+        updates = updates,
         version = BuildConfig.VERSION_NAME,
         actions = SettingsActions(
             onBack = onBack,
@@ -101,6 +108,9 @@ fun SettingsRoute(
             onConfirmImport = viewModel::onConfirmImport,
             onDismissBackup = viewModel::onDismissBackup,
             onLicenses = onLicenses,
+            onCheckUpdates = updateViewModel::onCheck,
+            onInstallUpdate = updateViewModel::onInstall,
+            onAutoCheckUpdates = updateViewModel::onAutoCheck,
         ),
     )
 }
@@ -119,11 +129,19 @@ class SettingsActions(
     val onConfirmImport: () -> Unit = {},
     val onDismissBackup: () -> Unit = {},
     val onLicenses: () -> Unit = {},
+    val onCheckUpdates: () -> Unit = {},
+    val onInstallUpdate: () -> Unit = {},
+    val onAutoCheckUpdates: (Boolean) -> Unit = {},
 )
 
 @Composable
-fun SettingsScreen(state: SettingsUiState, version: String, actions: SettingsActions, modifier: Modifier = Modifier) {
-    val colors = GtTheme.colors
+fun SettingsScreen(
+    state: SettingsUiState,
+    version: String,
+    actions: SettingsActions,
+    modifier: Modifier = Modifier,
+    updates: UpdateUiState = UpdateUiState(),
+) {
     Column(
         modifier
             .fillMaxSize()
@@ -157,11 +175,7 @@ fun SettingsScreen(state: SettingsUiState, version: String, actions: SettingsAct
         DataCard(state, actions)
 
         SectionTitle(R.string.settings_updates)
-        GlassCard(Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.settings_updates_soon), color = colors.textSecondary, style = GtTheme.typography.bodySmall)
-            SwitchRow(R.string.settings_updates_auto, null, checked = false, onCheckedChange = {}, enabled = false)
-            GlassButton(stringResource(R.string.settings_updates_check), onClick = {}, Modifier.fillMaxWidth(), style = GlassButtonStyle.Secondary, enabled = false)
-        }
+        UpdatesCard(updates, actions.onCheckUpdates, actions.onInstallUpdate, actions.onAutoCheckUpdates)
 
         SectionTitle(R.string.settings_about)
         Entry(R.drawable.ic_fitness_center, stringResource(R.string.app_name), stringResource(R.string.settings_version, version), onClick = null)

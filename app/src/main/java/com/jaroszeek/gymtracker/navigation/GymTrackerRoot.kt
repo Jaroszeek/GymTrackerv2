@@ -69,7 +69,9 @@ import com.jaroszeek.gymtracker.feature.routines.RoutinesRoute
 import com.jaroszeek.gymtracker.feature.routines.TemplatesRoute
 import com.jaroszeek.gymtracker.feature.settings.LicensesRoute
 import com.jaroszeek.gymtracker.feature.settings.SettingsRoute
+import com.jaroszeek.gymtracker.feature.update.UpdatePrompt
 import com.jaroszeek.gymtracker.feature.workout.NotificationPrompt
+import com.jaroszeek.gymtracker.feature.workout.NotificationPromptViewModel
 import com.jaroszeek.gymtracker.feature.workout.WorkoutBarViewModel
 import com.jaroszeek.gymtracker.feature.workout.WorkoutMiniBar
 import com.jaroszeek.gymtracker.feature.workout.WorkoutRoute
@@ -161,8 +163,11 @@ fun GymTrackerRoot(openWorkoutRequests: Int = 0) {
                 )
             }
         }
-        // Inside the scaffold: dialogs need its overlay host
-        NotificationPrompt()
+        // Inside the scaffold: dialogs need its overlay host. One at a time: the update waits for the notification question
+        val notificationPrompt: NotificationPromptViewModel = hiltViewModel()
+        val askingNotifications by notificationPrompt.visible.collectAsStateWithLifecycle()
+        NotificationPrompt(notificationPrompt)
+        if (!askingNotifications) UpdatePrompt()
     }
 }
 
