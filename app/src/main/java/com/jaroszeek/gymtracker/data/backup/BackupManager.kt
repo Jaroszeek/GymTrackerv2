@@ -256,7 +256,8 @@ class BackupManager internal constructor(
 
         /** Tables every version of this app's database has, besides Room's own. */
         private val V2_TABLES = setOf("exercises", "exercise_muscles", "room_master_table")
-        private val SUFFIXES = listOf("", "-wal", "-shm", "-journal")
+        /** The database, its journals and the lock file Room keeps next to it. */
+        private val SUFFIXES = listOf("", "-wal", "-shm", "-journal", ".lck")
         private val STAMP = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").withZone(ZoneOffset.UTC)
 
         /**
