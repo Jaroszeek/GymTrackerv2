@@ -7,6 +7,7 @@ import com.jaroszeek.gymtracker.domain.exercise.Exercise
 import com.jaroszeek.gymtracker.domain.exercise.ExerciseDraft
 import com.jaroszeek.gymtracker.domain.exercise.Muscle
 import com.jaroszeek.gymtracker.domain.progress.PersonalBests
+import com.jaroszeek.gymtracker.domain.progress.RecordType
 import com.jaroszeek.gymtracker.domain.progress.volumeKg
 import com.jaroszeek.gymtracker.domain.routine.PerformedSet
 import com.jaroszeek.gymtracker.domain.routine.RoutineDraft
@@ -24,11 +25,15 @@ import com.jaroszeek.gymtracker.testing.seeder
 import java.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -288,6 +293,54 @@ class WorkoutRepositoryTest {
         advanceUntilIdle()
 
         assertEquals(listOf(first, second, first, second, second), emitted)
+    }
+
+    @Test
+    fun recentRecordsComeFromTheWorkoutsSinceTheTimeGivenAgainstEverythingBefore() = runTest {
+        val bench = exercise("Barbell Bench Press - Medium Grip")
+        saveSets(1_000, bench.id, listOf(PerformedSet(60.0, 10)))
+        val recent = saveSets(10 * HOUR, bench.id, listOf(PerformedSet(62.5, 10)))
+        // A first session sets no records
+        saveSets(20 * HOUR, exercise("Butterfly").id, listOf(PerformedSet(30.0, 12)))
+
+        val record = workouts.observeRecordsSince(5 * HOUR).first().single()
+        assertEquals(listOf<Any>(recent, 10 * HOUR, bench.id, bench.name), listOf(record.workoutId, record.startedAt, record.exerciseId, record.exerciseName))
+        assertTrue(record.types.containsAll(setOf(RecordType.Weight, RecordType.E1rm, RecordType.SetVolume, RecordType.SessionVolume)))
+        // The first bench workout set none either
+        assertEquals(listOf(recent), workouts.observeRecordsSince(0).first().map { it.workoutId })
+    }
+
+    @Test
+    fun recentRecordsShowARenamedExercise() = runTest {
+        val draft = ExerciseDraft(name = "Landmine Press", primaryMuscles = setOf(Muscle.Shoulders))
+        val id = exercises.saveCustom(null, draft)
+        saveSets(1_000, id, listOf(PerformedSet(30.0, 10)))
+        saveSets(HOUR, id, listOf(PerformedSet(32.5, 10)))
+        // One collection: the rename after the first value has to come through on its own
+        val names = withContext(Dispatchers.Default) {
+            withTimeout(5_000) {
+                val seen = mutableListOf<String>()
+                workouts.observeRecordsSince(HOUR)
+                    .map { it.single().exerciseName }
+                    .onEach { name ->
+                        seen += name
+                        if (seen.size == 1) exercises.saveCustom(id, draft.copy(name = "Half-Kneeling Landmine Press"))
+                    }
+                    .first { it != draft.name }
+                seen
+            }
+        }
+        assertEquals(listOf("Landmine Press", "Half-Kneeling Landmine Press"), names)
+    }
+
+    @Test
+    fun historyCarriesTheRoutineOfEachWorkout() = runTest {
+        val bench = exercise("Barbell Bench Press - Medium Grip")
+        val routineId = routines.save(null, RoutineDraft(name = "Push").addBlock(bench))
+        workouts.save(workout(1_000, WorkoutVariant(bench.id) to listOf(60.0 to 10)).copy(routineId = routineId), endedAt = 2_000)
+        saveSets(HOUR, bench.id, listOf(PerformedSet(60.0, 8)))
+
+        assertEquals(listOf(null, routineId), workouts.observeHistory().first().map { it.routineId })
     }
 
     private fun assertBests(expected: PersonalBests, actual: PersonalBests) {

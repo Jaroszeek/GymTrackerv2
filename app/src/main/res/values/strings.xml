@@ -8,13 +8,6 @@
     <string name="nav_progress">Postępy</string>
     <string name="nav_profile">Profil</string>
 
-    <string name="placeholder_title">Wkrótce</string>
-    <string name="placeholder_home">Tu pojawi się podsumowanie tygodnia, seria treningów i szybki start.</string>
-    <string name="placeholder_exercises">Baza ok. 870 ćwiczeń ze zdjęciami, wyszukiwarką i filtrami.</string>
-    <string name="placeholder_workout">Twoje rutyny, gotowe szablony i start treningu.</string>
-    <string name="placeholder_progress">Rekordy, szacowany 1RM i wykresy postępów.</string>
-    <string name="placeholder_profile">Waga, skład ciała i dane z Health Connect.</string>
-
     <string name="action_close">Zamknij</string>
     <string name="label_weight">Ciężar</string>
     <string name="label_reps">Powtórzenia</string>
@@ -630,4 +623,116 @@
     <string name="source_mi_fitness" translatable="false">Mi Fitness</string>
     <string name="source_zepp" translatable="false">Zepp</string>
     <string name="source_oura" translatable="false">Oura</string>
+
+    <!-- Start (A5.1) -->
+    <string name="home_greeting_day">Dzień dobry</string>
+    <string name="home_greeting_evening">Dobry wieczór</string>
+    <string name="home_edit_layout">Edytuj układ</string>
+    <string name="settings_title">Ustawienia</string>
+    <string name="home_quick_title">Szybki start</string>
+    <string name="home_quick_proposed">Następna w kolejności</string>
+    <string name="home_quick_other">Inna rutyna</string>
+    <string name="home_quick_empty">Nie masz jeszcze rutyn. Zacznij pusty trening albo ułóż rutynę, a podpowiem następną.</string>
+    <string name="home_quick_create">Utwórz rutynę</string>
+    <string name="home_quick_running">Trening w toku</string>
+    <string name="home_streak_title">Seria tygodni</string>
+    <plurals name="home_streak_weeks">
+        <item quantity="one">tydzień</item>
+        <item quantity="few">tygodnie</item>
+        <item quantity="many">tygodni</item>
+        <item quantity="other">tygodnia</item>
+    </plurals>
+    <string name="home_streak_none">Zrób trening w tym tygodniu, żeby zacząć serię.</string>
+    <string name="home_streak_done">Ten tydzień już zaliczony.</string>
+    <string name="home_streak_pending">Trening w tym tygodniu przedłuży serię.</string>
+    <string name="home_week_title">Ten tydzień</string>
+    <string name="home_week_workouts">Treningi</string>
+    <string name="home_last_title">Ostatni trening</string>
+    <string name="home_last_empty">Tu pojawi się Twój ostatni trening z czasem, seriami i objętością.</string>
+    <string name="home_last_start">Zacznij trening</string>
+    <string name="home_records_title">Rekordy z 7 dni</string>
+    <string name="home_records_empty">Przez ostatnie 7 dni bez rekordów. Każdy trening to nowa szansa.</string>
+    <plurals name="home_records_more">
+        <item quantity="one">i %d inne ćwiczenie</item>
+        <item quantity="few">i %d inne ćwiczenia</item>
+        <item quantity="many">i %d innych ćwiczeń</item>
+        <item quantity="other">i %d innego ćwiczenia</item>
+    </plurals>
+    <string name="home_calendar_previous">Poprzedni miesiąc</string>
+    <string name="home_calendar_next">Następny miesiąc</string>
+    <plurals name="home_calendar_workouts">
+        <item quantity="one">%d trening</item>
+        <item quantity="few">%d treningi</item>
+        <item quantity="many">%d treningów</item>
+        <item quantity="other">%d treningu</item>
+    </plurals>
+    <string name="home_calendar_day">%1$s, trening</string>
+    <string name="home_calendar_today">dziś</string>
+    <string name="home_steps_title">Kroki</string>
+    <string name="home_steps_today">dziś</string>
+    <string name="home_steps_connect">Połącz Health Connect, a kroki z telefonu i zegarka pojawią się tutaj.</string>
+    <string name="home_steps_description">Kroki z 7 dni: %1$s</string>
+    <string name="home_body_title">Waga i BMI</string>
+    <string name="home_body_empty">Dodaj wagę i wzrost w Profilu, a pokażę tu trend i BMI.</string>
+    <string name="home_body_add">Dodaj pomiar</string>
+    <string name="home_body_trend">Waga z 90 dni, od %1$s do %2$s</string>
+    <string name="home_body_no_height">Dodaj wzrost, żeby policzyć BMI.</string>
+    <string name="home_edit_title">Układ Startu</string>
+    <string name="home_edit_text">Przeciągnij, żeby zmienić kolejność. Przełącznik pokazuje lub ukrywa widżet.</string>
+    <string name="home_edit_reset">Przywróć domyślny</string>
+    <string name="home_all_hidden">Wszystkie widżety są ukryte.</string>
+    <string name="home_widget_hero">Seria i ten tydzień</string>
+    <string name="home_widget_last_workout">Ostatni trening</string>
+    <string name="home_widget_readiness">Gotowość</string>
+    <string name="home_widget_records">Rekordy z 7 dni</string>
+    <string name="home_widget_calendar">Kalendarz aktywności</string>
+    <string name="home_widget_steps">Kroki</string>
+    <string name="home_widget_body">Waga i BMI</string>
+    <string name="bmi_label">BMI</string>
+    <string name="bmi_underweight">Niedowaga</string>
+    <string name="bmi_normal">Prawidłowe</string>
+    <string name="bmi_overweight">Nadwaga</string>
+    <string name="bmi_obese">Otyłość</string>
+
+    <!-- Profile (A5.8) -->
+    <string name="profile_data_title">Dane</string>
+    <string name="profile_weight">Waga</string>
+    <string name="profile_height">Wzrost</string>
+    <string name="profile_bmi_text">Orientacyjnie: BMI nie odróżnia mięśni od tłuszczu.</string>
+    <string name="profile_composition_title">Skład ciała</string>
+    <string name="profile_body_fat">Tkanka tłuszczowa</string>
+    <string name="profile_fat_mass">Masa tłuszczu</string>
+    <string name="profile_lean_mass">Masa beztłuszczowa</string>
+    <string name="profile_skeletal_muscle">Mięśnie szkieletowe</string>
+    <string name="profile_composition_text">Masy liczone z ostatniej wagi i tkanki tłuszczowej. Mięśnie szkieletowe wpisujesz ręcznie, bo Health Connect ich nie zapisuje.</string>
+    <string name="profile_add">Dodaj pomiar</string>
+    <string name="profile_add_title">Nowy pomiar</string>
+    <string name="profile_add_now">Zapisany z bieżącą datą i godziną.</string>
+    <string name="profile_add_range">Dozwolone %1$s–%2$s %3$s</string>
+    <string name="profile_charts_title">Wykresy</string>
+    <string name="profile_chart_empty">Brak pomiarów w tym okresie.</string>
+    <string name="profile_chart_bmi_empty">BMI pojawi się po dodaniu wagi i wzrostu.</string>
+    <string name="profile_history_title">Pomiary</string>
+    <string name="profile_history_empty">Brak pomiarów. Dodaj pierwszy albo połącz Health Connect, żeby pobrać je z wagi lub zegarka.</string>
+    <string name="profile_history_all">Pokaż wszystkie (%1$d)</string>
+    <string name="profile_source_manual">Wpisane ręcznie</string>
+    <!-- Date, time and source of a measurement -->
+    <string name="profile_measurement_meta">%1$s %2$s • %3$s</string>
+    <string name="profile_delete_title">Usunąć pomiar?</string>
+    <string name="profile_delete_text">%1$s z %2$s zniknie z profilu i wykresów.</string>
+    <string name="profile_kcal_title">Kalorie</string>
+    <string name="profile_kcal_active">Aktywne</string>
+    <string name="profile_kcal_total">Całkowite</string>
+    <string name="profile_kcal_today">Dziś</string>
+    <string name="profile_kcal_average">Średnio z 7 dni</string>
+    <string name="profile_kcal_connect">Połącz Health Connect, żeby widzieć kalorie aktywne i całkowite z telefonu i zegarka.</string>
+    <string name="profile_kcal_none">Brak danych o kaloriach z ostatnich 7 dni.</string>
+    <string name="unit_cm">cm</string>
+    <string name="unit_percent">%</string>
+    <string name="value_cm">%1$s cm</string>
+    <string name="value_percent">%1$s %%</string>
+    <string name="value_measurement">%1$s · %2$s</string>
+
+    <!-- Settings stub until Etap 9 -->
+    <string name="settings_soon">Motyw, jednostki, kopia zapasowa i aktualizacje dojdą w kolejnej wersji.</string>
 </resources>

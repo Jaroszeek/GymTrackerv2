@@ -10,10 +10,13 @@ data class WorkoutListRow(
     val startedAt: Long,
     val endedAt: Long,
     val hcSessionId: String?,
+    val routineId: Long?,
     val exercises: Int,
     val sets: Int,
     val volumeKg: Double,
 )
+
+data class ExerciseNameRow(val id: Long, val name: String)
 
 data class WorkoutHealthRow(val startedAt: Long, val endedAt: Long, val hcSessionId: String?, val hcMatchDismissed: Boolean)
 

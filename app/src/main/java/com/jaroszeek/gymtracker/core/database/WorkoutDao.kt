@@ -62,7 +62,8 @@ interface WorkoutDao {
     // History
 
     @Query(
-        "SELECT w.id, w.name, w.started_at AS startedAt, w.ended_at AS endedAt, w.hc_session_id AS hcSessionId, COUNT(DISTINCT we.id) AS exercises, " +
+        "SELECT w.id, w.name, w.started_at AS startedAt, w.ended_at AS endedAt, w.hc_session_id AS hcSessionId, w.routine_id AS routineId, " +
+            "COUNT(DISTINCT we.id) AS exercises, " +
             "COUNT(CASE WHEN $WORK THEN 1 END) AS sets, COALESCE(SUM(CASE WHEN $WORK THEN $VOLUME END), 0) AS volumeKg " +
             "FROM $SETS GROUP BY w.id ORDER BY w.started_at DESC, w.id DESC",
     )
@@ -71,6 +72,14 @@ interface WorkoutDao {
     @Transaction
     @Query("SELECT * FROM workouts WHERE id = :id")
     fun observeWorkout(id: Long): Flow<WorkoutWithExercises?>
+
+    /** Newest first. */
+    @Transaction
+    @Query("SELECT * FROM workouts WHERE started_at >= :since ORDER BY started_at DESC, id DESC")
+    fun observeWorkoutsSince(since: Long): Flow<List<WorkoutWithExercises>>
+
+    @Query("SELECT id, name FROM exercises WHERE id IN (:ids)")
+    fun observeExerciseNames(ids: Collection<Long>): Flow<List<ExerciseNameRow>>
 
     @Query("UPDATE workouts SET name = :name, ended_at = :endedAt WHERE id = :id")
     suspend fun updateWorkout(id: Long, name: String, endedAt: Long)

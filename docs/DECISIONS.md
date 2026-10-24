@@ -49,6 +49,7 @@ Każda wersja schematu oznacza migrację i test migracji. Czas zapisujemy jako e
 | v3 / Etap 4 | `workouts` (routine_id SET NULL, name, started_at, ended_at), `workout_exercises` (workout_id, exercise_id RESTRICT, routine_variant_id SET NULL, position), `workout_sets` (type, weight_kg, reps) — tylko zakończone treningi (D-038) |
 | ~~v4 / Etap 6~~ | ~~`personal_records`~~ — zmienione w D-054: rekordy liczone przy odczycie, bez tabeli |
 | v4 / Etap 7 | zmienione w D-060: w `GtDatabase` tylko `workouts.hc_session_id` i `workouts.hc_match_dismissed`; dane z HC w osobnej bazie `health.db` |
+| v5 / Etap 8 | `body_measurements` (type, time, value) — pomiary ciała wpisane ręcznie (D-071) |
 
 - **Aktywny trening:** ~~wiersz `workouts` z `ended_at = NULL`~~ — zmienione w D-038: plik JSON z debounce, w bazie tylko zakończone treningi.
 - **Ochrona ćwiczeń używanych w historii:** zapewnia FK `RESTRICT` w bazie, a nie kod aplikacji.
@@ -381,7 +382,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 
 ### D-052 Import kopii z GymTracker v1 (zakres)
 - Na prośbę właściciela (2026-10-19) dopisany do A5.10 i Etapu 9: v2 wczytuje kopię zapasową z pierwszej wersji. Z repo `Jaroszeek/GymTracker` bierzemy tylko format pliku kopii, i to dopiero w Etapie 9; kodu, UI ani funkcji v1 nie przenosimy.
-- Domyślnie import kopii v1 zastępuje dane v2 jak zwykły import (poprzednia baza zostaje w kopii). Łączenie z danymi v2 wymagałoby deduplikacji ćwiczeń i treningów — do decyzji właściciela w planie Etapu 9.
+- Decyzja właściciela (2026-10-23): import kopii v1 zastępuje dane v2 jak zwykły import, po potwierdzeniu w dialogu (poprzednia baza zostaje w kopii). Bez łączenia z danymi v2, więc bez deduplikacji ćwiczeń i treningów.
 - Test na syntetycznej kopii w formacie v1; prawdziwa kopia właściciela nie trafia do repo (dane zdrowotne).
 
 ### D-053 Historia i postępy: układ (Etap 6)
@@ -429,6 +430,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 ### D-058 Wydanie testowe po każdym etapie, galeria bez ikony
 - Na polecenie właściciela (2026-10-19) każdy etap dostaje wydanie testowe `preview-stage-<nr>` na zasadach z D-051 (pre-release, APK debug zbudowany lokalnie). Etap 6 dostał je po merge'u, z `main`. Kolejne etapy dostaną je razem z PR, żeby dało się je sprawdzić na telefonie przed akceptacją.
 - Galeria komponentów nie ma już ikony w launcherze, bo właściciel nie chce jej na telefonie. Zostaje jako narzędzie deweloperskie, bo CLAUDE.md wymaga galerii dla każdego komponentu. Otwiera ją `adb shell am start -n …` (README) i macrobenchmark, który startuje ją po nazwie.
+- Właściciel potwierdził (2026-10-23): galeria zostaje, tylko w wariancie debug.
 
 ### D-059 Etap 7: zależności i uprawnienia
 - **Zależności:** `androidx.health.connect:connect-client` 1.1.0 (najnowsza stabilna, 1.2.0 jest w alpha) i `androidx.work:work-runtime-ktx` 2.12.0 (synchronizacja w tle). Obie Apache-2.0. Release: 4,69 MB (4 920 572 B; po Etapie 6: 4,04 MB, +0,65 MB).
@@ -533,6 +535,43 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
   - domena: strefy, gotowość, dopasowanie sesji;
   - migracja 3 → 4.
 - **Emulator:** przy pierwszym imporcie sesja z generatora miała same kalorie spoczynkowe (BMR), bo aplikacji ze zgodami nadanymi przez `pm grant` nie było jeszcze na liście priorytetów źródeł HC. Po rozłączeniu i ponownym połączeniu kalorie aktywne i łączne zgadzały się z danymi (533 i 697 kcal). Sumy kalorii zależą więc od listy priorytetów w HC (README); na telefonie Samsung Health jest na niej.
+
+### D-067 Układ Startu
+- Widżety i domyślna kolejność: seria tygodni z tym tygodniem, ostatni trening, gotowość, rekordy z 7 dni, kalendarz aktywności, kroki, waga i BMI. Treningi są na górze, bo to główna funkcja aplikacji; dane z HC niżej, bo bez zgód pokazują tylko „Połącz”.
+- „Szybki start” to stała karta pod powitaniem, a nie widżet: w A5.1 jest osobnym punktem, a ukrycie jedynego skrótu do treningu na Starcie nie ma sensu.
+- Układ w DataStore jako jeden tekst, np. `hero,last_workout,-steps` (minus = ukryty). Nieznane i powtórzone klucze są pomijane, a widżety dodane w nowszej wersji trafiają na koniec jako widoczne, więc nie trzeba migracji.
+- Każda zmiana w trybie edycji zapisuje się od razu (przeciągnięcie, przełącznik, „Przywróć domyślny”); „Gotowe” i gest wstecz tylko zamykają tryb. Ikona edycji pojawia się dopiero po wczytaniu zapisanego układu. Gdy wszystkie widżety są ukryte, Start pokazuje kartę z wejściem do edycji.
+- Alternatywa: zapis dopiero po „Gotowe” — odrzucona, bo wyjście z aplikacji w trakcie edycji gubiłoby zmiany.
+
+### D-068 Seria tygodni i statystyki tygodnia
+- Tydzień od poniedziałku (jak w Postępach, D-055), w strefie urządzenia. Seria to liczba kolejnych tygodni z co najmniej jednym treningiem.
+- Bieżący tydzień bez treningu nie przerywa serii: liczymy od poprzedniego tygodnia, a karta zachęca do treningu w tym tygodniu. Po treningu bieżący tydzień dolicza się od razu.
+- Statystyki „Ten tydzień”: liczba treningów, łączny czas, serie i objętość bez rozgrzewek, jak w historii.
+
+### D-069 Szybki start
+- Propozycja: rutyna następna po ostatnio wykonanej w kolejności listy rutyn (po ostatniej wraca pierwsza). Bez historii z rutyn — pierwsza z listy. Pasuje do programów z szablonów (PPL, Góra/Dół, FBW A/B), które robi się po kolei.
+- Bez rutyn: „Pusty trening” i „Utwórz rutynę”. Podczas trwającego treningu karta pokazuje „Wróć do treningu”, a start innego treningu najpierw pyta (jak w zakładce Trening).
+- Alternatywa: rutyna najczęściej robiona w danym dniu tygodnia — odrzucona jako mniej przewidywalna przy małej historii.
+
+### D-070 Rekordy z 7 dni i kalendarz
+- Rekordy z treningów rozpoczętych od północy 6 dni temu (razem z dzisiaj = 7 dni), porównane ze wszystkim wcześniej, tą samą logiką co podsumowanie treningu. Najwyżej 5 wpisów, reszta jako „i N więcej”.
+- Kalendarz pokazuje miesiąc z dniami treningów w aplikacji i obwódką dzisiejszego dnia; można cofać się do starszych miesięcy, ale nie dalej niż do bieżącego. Sesje zaimportowane z HC nie są zaznaczane (pomysł w `IDEAS.md`).
+
+### D-071 Pomiary ciała
+- Wartości wpisane ręcznie są w głównej bazie (schemat v5, tabela `body_measurements`: typ, czas UTC, wartość; migracja automatyczna 4 → 5). Dzięki temu są w kopii zapasowej i zostają po rozłączeniu HC (D-065 kasuje tylko `health.db`).
+- Profil łączy je z pomiarami z HC. Duplikat to wartość z innego źródła, tej samej metryki, najwyżej 30 min obok i różniąca się najwyżej o 1 %, np. ważenie wpisane tu i zsynchronizowane przez aplikację wagi. Zostaje wpis ręczny, a z dwóch aplikacji wcześniejszy. Źródło jest w dzienniku pomiarów; usunąć można tylko wpisy ręczne.
+- BMI z ostatniego wzrostu dla każdego ważenia (u dorosłych wzrost się nie zmienia), kategorie WHO (18,5 / 25 / 30) z dopiskiem, że BMI nie odróżnia mięśni od tłuszczu.
+- Masa tłuszczu i beztłuszczowa liczone z ostatniej wagi i ostatniej tkanki tłuszczowej. Mięśnie szkieletowe tylko ręcznie, bo HC nie ma takiego typu.
+- Wzrost wpisuje się w cm, a zapisuje w m. Zakresy: waga 20–400 kg, wzrost 100–250 cm, tkanka tłuszczowa 2–75 %, mięśnie 5–100 kg; wartość spoza zakresu nie zapisuje się, a podpowiedź zakresu robi się czerwona. Nowy pomiar dostaje bieżący czas i startuje od ostatniej wartości metryki; wpis z przeszłą datą jest w `IDEAS.md`.
+
+### D-072 Kroki i kalorie
+- Kroki z 7 dni i kalorie (aktywne i łączne) z dziennych sum zaimportowanych w Etapie 7 (Aggregate API, D-060). Bez zgody „Aktywność” i bez danych karta pokazuje „Połącz” z przejściem do ekranu Health Connect.
+- Kalorie: dziś oraz średnia z 7 poprzednich dni, które mają wartość. Dzisiejszy dzień nie wchodzi do średniej, bo jeszcze trwa, a dzień bez danych jej nie zaniża. Liczy to `domain/` (`calories`).
+
+### D-073 Dane osobowe, Ustawienia i ikony
+- Nie potrzeba dodatkowych danych: BMI nie zależy od płci, strefy tętna liczą się z wieku (Tanaka, D-063). Wiek w Profilu to ten sam rok urodzenia co w strefach tętna. Pytanie z promptu etapu („zapytaj, jeśli potrzebne są inne dane”) więc odpada.
+- Zębatka na Starcie i Profilu otwiera tymczasowy ekran Ustawienia z wejściami do Health Connect i diagnostyki powiadomień; pełne ustawienia w Etapie 9.
+- Nowe ikony (chodzenie, waga, ogień, kalendarz) z Material Symbols Rounded, jak dotąd; wykres słupkowy i sparkline narysowane na Canvas w design systemie. Bez nowych zależności.
 
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 

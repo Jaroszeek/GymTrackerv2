@@ -1,6 +1,5 @@
 package com.jaroszeek.gymtracker.feature.health
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,7 +44,6 @@ import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
 import kotlin.math.roundToInt
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -87,23 +85,14 @@ class ReadinessViewModel @Inject constructor(
     fun onRefresh() {
         today.value = today()
         viewModelScope.launch {
-            permitted.value = withContext(io) {
-                try {
-                    HealthFeature.Recovery.permissions.any { it in health.granted() }
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Log.e(TAG, "Reading permissions failed", e)
-                    false
-                }
-            }
+            val granted = withContext(io) { health.grantedOrNone() }
+            permitted.value = HealthFeature.Recovery.permissions.any { it in granted }
         }
     }
 
     private fun today(): LocalDate = LocalDate.now(clock.withZone(zone))
 
     private companion object {
-        const val TAG = "HealthConnect"
         const val STOP_TIMEOUT_MILLIS = 5_000L
     }
 }

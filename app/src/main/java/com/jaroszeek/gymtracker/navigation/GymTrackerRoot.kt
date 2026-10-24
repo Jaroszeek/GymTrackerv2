@@ -49,17 +49,17 @@ import com.jaroszeek.gymtracker.feature.exercises.ExerciseDetailViewModel
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseEditorRoute
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseEditorViewModel
 import com.jaroszeek.gymtracker.feature.exercises.ExercisesRoute
-import com.jaroszeek.gymtracker.feature.health.HealthConnectEntry
 import com.jaroszeek.gymtracker.feature.health.HealthConnectRoute
+import com.jaroszeek.gymtracker.feature.home.HomeRoute
 import com.jaroszeek.gymtracker.feature.health.ImportedSessionRoute
 import com.jaroszeek.gymtracker.feature.health.ImportedSessionViewModel
 import com.jaroszeek.gymtracker.feature.health.PrivacyPolicyScreen
-import com.jaroszeek.gymtracker.feature.health.ReadinessRoute
-import com.jaroszeek.gymtracker.feature.placeholder.PlaceholderScreen
+import com.jaroszeek.gymtracker.feature.profile.ProfileRoute
 import com.jaroszeek.gymtracker.feature.routines.RoutineEditorRoute
 import com.jaroszeek.gymtracker.feature.routines.RoutineEditorViewModel
 import com.jaroszeek.gymtracker.feature.routines.RoutinesRoute
 import com.jaroszeek.gymtracker.feature.routines.TemplatesRoute
+import com.jaroszeek.gymtracker.feature.settings.SettingsScreen
 import com.jaroszeek.gymtracker.feature.workout.NotificationPrompt
 import com.jaroszeek.gymtracker.feature.workout.WorkoutBarViewModel
 import com.jaroszeek.gymtracker.feature.workout.WorkoutMiniBar
@@ -244,20 +244,31 @@ private fun entryProvider(navigator: TabNavigator): (NavKey) -> NavEntry<NavKey>
             )
         }
         HomeKey -> NavEntry(key) {
-            PlaceholderScreen(TopLevelTab.Home) {
-                ReadinessRoute(onConnect = { navigator.open(TopLevelTab.Profile, HealthConnectKey) })
-            }
+            HomeRoute(
+                onSettings = { navigator.navigate(SettingsKey) },
+                onOpenWorkout = { navigator.open(TopLevelTab.Workout, ActiveWorkoutKey) },
+                onChooseRoutine = { navigator.select(TopLevelTab.Workout) },
+                onOpenWorkoutDetail = { navigator.navigate(WorkoutDetailKey(it)) },
+                onConnect = { navigator.open(TopLevelTab.Profile, HealthConnectKey) },
+                onProfile = { navigator.select(TopLevelTab.Profile) },
+                onProgress = { navigator.select(TopLevelTab.Progress) },
+            )
         }
         ProfileKey -> NavEntry(key) {
-            PlaceholderScreen(TopLevelTab.Profile) {
-                HealthConnectEntry(onClick = { navigator.navigate(HealthConnectKey) })
-            }
+            ProfileRoute(onSettings = { navigator.navigate(SettingsKey) }, onHealthConnect = { navigator.navigate(HealthConnectKey) })
+        }
+        SettingsKey -> NavEntry(key) {
+            SettingsScreen(
+                onBack = navigator::back,
+                onHealthConnect = { navigator.navigate(HealthConnectKey) },
+                onDiagnostics = { navigator.navigate(LiveUpdateDiagnosticsKey) },
+            )
         }
         HealthConnectKey -> NavEntry(key) {
             HealthConnectRoute(viewModel = hiltViewModel(), onBack = navigator::back, onPrivacy = { navigator.navigate(PrivacyPolicyKey) })
         }
         PrivacyPolicyKey -> NavEntry(key) { PrivacyPolicyScreen(onBack = navigator::back) }
-        else -> NavEntry(key) { PlaceholderScreen(TopLevelTab.entries.first { it.root == key }) }
+        else -> error("No screen for $key")
     }
 }
 

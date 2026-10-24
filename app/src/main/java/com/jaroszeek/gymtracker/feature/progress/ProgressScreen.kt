@@ -266,7 +266,7 @@ internal fun SummaryRow(summary: WorkoutSummary, modifier: Modifier = Modifier) 
 }
 
 @Composable
-private fun StatColumn(value: String, caption: String, modifier: Modifier = Modifier) {
+internal fun StatColumn(value: String, caption: String, modifier: Modifier = Modifier) {
     Column(modifier) {
         Text(value, style = GtTheme.typography.label, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text(caption, color = GtTheme.colors.textTertiary, style = GtTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)

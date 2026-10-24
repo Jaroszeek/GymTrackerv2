@@ -4,15 +4,18 @@ import androidx.room3.Room
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.sqlite.execSQL
+import com.jaroszeek.gymtracker.data.body.BodyRepository
 import com.jaroszeek.gymtracker.data.exercise.ExerciseRepository
 import com.jaroszeek.gymtracker.data.routine.RoutineRepository
 import com.jaroszeek.gymtracker.data.workout.WorkoutRepository
+import com.jaroszeek.gymtracker.domain.body.BodyMetric
 import com.jaroszeek.gymtracker.domain.routine.PerformedSet
 import com.jaroszeek.gymtracker.domain.routine.RoutineDraft
 import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
 import com.jaroszeek.gymtracker.domain.workout.ActiveWorkout
 import com.jaroszeek.gymtracker.domain.workout.HealthLink
 import com.jaroszeek.gymtracker.domain.workout.WorkoutVariant
+import com.jaroszeek.gymtracker.testing.inMemoryHealthDatabase
 import com.jaroszeek.gymtracker.testing.seeder
 import java.io.File
 import java.time.Clock
@@ -25,6 +28,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -134,6 +138,31 @@ class MigrationTest {
         workouts.dismissHealthMatch(1)
         assertEquals(HealthLink(1_000, 2_000, "hc-session", dismissed = true), workouts.observeHealthLink(1).first())
         assertEquals(listOf("hc-session"), workouts.observeHistory().first().map { it.healthSessionId })
+    }
+
+    @Test
+    fun version4MigratesKeepingLinkedWorkouts() = runTest {
+        createFromSchema(version = 4).run {
+            execSQL(
+                """INSERT INTO exercises (id, external_id, name, aliases_pl, category, instructions, images, source)
+                   VALUES (1, NULL, 'Landmine Press', '[]', 'strength', '[]', '[]', 'custom')""",
+            )
+            execSQL("INSERT INTO workouts (id, routine_id, name, started_at, ended_at, hc_session_id, hc_match_dismissed) VALUES (1, NULL, 'Shoulders', 1000, 2000, 'hc', 0)")
+            execSQL("INSERT INTO workout_exercises (id, workout_id, exercise_id, position, routine_variant_id) VALUES (1, 1, 1, 0, NULL)")
+            execSQL("INSERT INTO workout_sets (id, workout_exercise_id, position, type, weight_kg, reps) VALUES (1, 1, 0, 'working', 30.0, 8)")
+            close()
+        }
+
+        val current = Room.databaseBuilder<GtDatabase>(file.path).setDriver(BundledSQLiteDriver()).build().also { database = it }
+        val workouts = WorkoutRepository(current, Dispatchers.IO)
+        assertEquals(listOf("hc"), workouts.observeHistory().first().map { it.healthSessionId })
+
+        // The table added in version 5 works
+        val health = inMemoryHealthDatabase()
+        val body = BodyRepository(current, health, Clock.systemUTC(), Dispatchers.IO)
+        assertTrue(body.add(BodyMetric.Weight, 80.0))
+        assertEquals(listOf(80.0), body.observeMeasurements().first().map { it.value })
+        health.close()
     }
 
     private fun createFromSchema(version: Int): SQLiteConnection {

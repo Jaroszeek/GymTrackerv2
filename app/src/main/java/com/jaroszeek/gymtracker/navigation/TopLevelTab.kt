@@ -60,6 +60,10 @@ data object HealthConnectKey : NavKey
 @Serializable
 data object PrivacyPolicyKey : NavKey
 
+/** What settings exist so far, from Start and Profil; the full settings come with Etap 9. */
+@Serializable
+data object SettingsKey : NavKey
+
 /** A session another app wrote to Health Connect, from history. */
 @Serializable
 data class ImportedSessionKey(val id: String) : NavKey

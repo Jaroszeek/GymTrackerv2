@@ -105,6 +105,9 @@ interface HealthDao {
     @Query("DELETE FROM daily_activity WHERE day BETWEEN :from AND :to")
     suspend fun deleteDays(from: Long, to: Long)
 
+    @Query("SELECT * FROM daily_activity WHERE day BETWEEN :from AND :to ORDER BY day")
+    fun observeDays(from: Long, to: Long): Flow<List<DailyActivityEntity>>
+
     // Sync
 
     @Query("SELECT token FROM sync_tokens WHERE record_type = :recordType")

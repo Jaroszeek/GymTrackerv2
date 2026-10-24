@@ -13,6 +13,7 @@ import com.jaroszeek.gymtracker.domain.progress.PersonalBests
 import com.jaroszeek.gymtracker.domain.routine.PerformedSet
 import com.jaroszeek.gymtracker.domain.routine.SetType
 import com.jaroszeek.gymtracker.domain.workout.ActiveWorkout
+import com.jaroszeek.gymtracker.domain.workout.ExerciseRecords
 import com.jaroszeek.gymtracker.domain.workout.HealthLink
 import com.jaroszeek.gymtracker.domain.workout.LoggedExercise
 import com.jaroszeek.gymtracker.domain.workout.LoggedSet
@@ -22,10 +23,12 @@ import com.jaroszeek.gymtracker.domain.workout.WorkoutSummary
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -79,11 +82,32 @@ class WorkoutRepository @Inject constructor(
 
     fun observeHistory(): Flow<List<WorkoutListItem>> = dao.observeHistory()
         .map { rows ->
-            rows.map { WorkoutListItem(it.id, it.name, it.startedAt, WorkoutSummary(it.endedAt - it.startedAt, it.volumeKg, it.sets, it.exercises), it.hcSessionId) }
+            rows.map {
+                WorkoutListItem(it.id, it.name, it.startedAt, WorkoutSummary(it.endedAt - it.startedAt, it.volumeKg, it.sets, it.exercises), it.hcSessionId, it.routineId)
+            }
         }
         .flowOn(io)
 
     fun observeWorkout(id: Long): Flow<LoggedWorkout?> = dao.observeWorkout(id).map { it?.toDomain() }.flowOn(io)
+
+    /** Records set by the workouts started since [since], per workout (newest first) and exercise. */
+    // Names come from their own query, so renaming an exercise shows up too
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun observeRecordsSince(since: Long): Flow<List<ExerciseRecords>> = dao.observeWorkoutsSince(since)
+        .map { rows ->
+            rows.map { it.toDomain() }.flatMap { workout ->
+                workout.recordHits(bestsBefore(workout)).groupBy { it.exerciseId }.map { (exerciseId, hits) ->
+                    ExerciseRecords(workout.id, workout.startedAt, exerciseId, exerciseName = "", hits.mapTo(HashSet()) { it.type })
+                }
+            }
+        }
+        .flatMapLatest { records ->
+            dao.observeExerciseNames(records.mapTo(HashSet()) { it.exerciseId }).map { rows ->
+                val names = rows.associate { it.id to it.name }
+                records.mapNotNull { record -> names[record.exerciseId]?.let { record.copy(exerciseName = it) } }
+            }
+        }
+        .flowOn(io)
 
     /**
      * Replaces the workout's name, end and sets with the edited ones; false when none of its exercises
