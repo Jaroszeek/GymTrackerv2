@@ -12,6 +12,7 @@
     <string name="label_weight">Ciężar</string>
     <string name="label_reps">Powtórzenia</string>
     <string name="unit_kg">kg</string>
+    <string name="unit_lb">lb</string>
     <string name="number_decrease">Zmniejsz: %1$s</string>
     <string name="number_increase">Zwiększ: %1$s</string>
     <string name="number_empty">—</string>
@@ -187,7 +188,6 @@
     <string name="routine_drag">Przeciągnij, aby zmienić kolejność</string>
     <string name="routine_remove_variant">Usuń: %1$s</string>
     <string name="routine_target_sets_reps">%1$d × %2$s</string>
-    <string name="routine_target_weight">%1$s kg</string>
     <string name="routine_target_rest">przerwa %1$s</string>
     <string name="routine_target_rest_default">przerwa domyślna</string>
     <string name="routine_discard_title">Odrzucić zmiany?</string>
@@ -215,9 +215,9 @@
     <string name="workout_meta">%1$s • %2$s</string>
     <string name="workout_open">Otwórz trening</string>
     <string name="workout_target">Cel: %1$s</string>
-    <string name="workout_progression">Progresja: spróbuj %1$s kg</string>
+    <string name="workout_progression">Progresja: spróbuj %1$s</string>
     <string name="workout_previous">Poprzednio: %1$s</string>
-    <string name="workout_set_value">%1$s kg × %2$d</string>
+    <string name="workout_set_value">%1$s × %2$d</string>
     <string name="workout_set_value_bodyweight">%1$d powt.</string>
     <string name="workout_set_empty">Wpisz powtórzenia</string>
     <string name="workout_set_number">Seria %1$d</string>
@@ -261,7 +261,6 @@
     <string name="summary_volume">Objętość</string>
     <string name="summary_sets">Serie robocze</string>
     <string name="summary_exercises">Ćwiczenia</string>
-    <string name="summary_volume_value">%1$s kg</string>
     <string name="changes_title">Zmiany względem rutyny</string>
     <string name="changes_text">Na tym treningu cele wyszły inaczej niż w rutynie. Wybierz, co zapisać w rutynie.</string>
     <string name="changes_value">%1$s → %2$s</string>
@@ -344,6 +343,7 @@
     <string name="chart_metric_e1rm">e1RM</string>
     <string name="chart_metric_reps">Powtórzenia</string>
     <string name="value_kg">%1$s kg</string>
+    <string name="value_lb">%1$s lb</string>
 
     <!-- Progress tab -->
     <string name="progress_history">Historia</string>
@@ -361,7 +361,7 @@
         <item quantity="other">%1$d treningu</item>
     </plurals>
     <string name="progress_last">ostatnio %1$s</string>
-    <string name="progress_e1rm">e1RM %1$s kg</string>
+    <string name="progress_e1rm">e1RM %1$s</string>
     <string name="progress_exercises_empty">Ćwiczenia pojawią się tu po pierwszym zakończonym treningu.</string>
     <string name="progress_routines_empty">Rutyny pojawią się tu po pierwszym treningu z rutyny.</string>
     <string name="progress_week_previous">Poprzedni tydzień</string>
@@ -402,7 +402,7 @@
     <!-- Records -->
     <string name="record_weight">Najcięższy ciężar</string>
     <string name="record_e1rm">Najlepszy e1RM</string>
-    <string name="record_e1rm_from">%1$s • Brzycki %2$s kg</string>
+    <string name="record_e1rm_from">%1$s • Brzycki %2$s</string>
     <string name="record_set_volume">Największa objętość serii</string>
     <string name="record_session_volume">Największa objętość treningu</string>
     <string name="record_reps">Najwięcej powtórzeń</string>
@@ -733,6 +733,163 @@
     <string name="value_percent">%1$s %%</string>
     <string name="value_measurement">%1$s · %2$s</string>
 
-    <!-- Settings stub until Etap 9 -->
-    <string name="settings_soon">Motyw, jednostki, kopia zapasowa i aktualizacje dojdą w kolejnej wersji.</string>
+    <!-- Settings (A5.9) -->
+    <string name="settings_appearance">Wygląd</string>
+    <string name="settings_mode_system">Systemowy</string>
+    <string name="settings_mode_light">Jasny</string>
+    <string name="settings_mode_dark">Ciemny</string>
+    <string name="settings_mode_fixed">Ta paleta ma stałą jasność, więc tryb jasny i ciemny jej nie zmienia.</string>
+    <string name="settings_palette">Paleta: %1$s</string>
+    <string name="palette_volt">Limonka</string>
+    <string name="palette_ember">Żar</string>
+    <string name="palette_rose">Róż</string>
+    <string name="palette_aqua">Turkus</string>
+    <string name="palette_azure">Błękit</string>
+    <string name="palette_amber">Bursztyn</string>
+    <string name="palette_onyx">Onyks, czarno-biała</string>
+    <string name="palette_porcelain">Porcelana, biało-czarna</string>
+    <string name="settings_amoled">AMOLED</string>
+    <string name="settings_amoled_text">Czysta czerń w ciemnym motywie.</string>
+    <string name="settings_dynamic">Material You</string>
+    <string name="settings_dynamic_text">Akcent z kolorów tapety.</string>
+    <string name="settings_dynamic_mono">Niedostępne w palecie czarno-białej.</string>
+    <string name="settings_reduce_transparency">Ogranicz przezroczystość</string>
+    <string name="settings_reduce_transparency_text">Matowe tła zamiast szkła i mocniejszy kontrast.</string>
+    <string name="settings_training">Trening</string>
+    <string name="settings_unit">Jednostka masy</string>
+    <string name="settings_unit_text">Zapis zawsze w kg; funty zmieniają tylko widok i wpisywanie. Progresja dodaje 2,5 kg albo 5 lb.</string>
+    <string name="settings_rest">Domyślna przerwa</string>
+    <string name="settings_rest_text">Gdy ćwiczenie w rutynie nie ma własnej.</string>
+    <string name="settings_rest_sound">Dźwięk na koniec przerwy</string>
+    <string name="settings_rest_sound_text">Dźwięk powiadomień; tryb cichy i Nie przeszkadzać go wyciszają.</string>
+    <string name="settings_rest_vibration">Wibracja na koniec przerwy</string>
+    <string name="settings_data">Dane</string>
+    <string name="settings_export">Eksportuj kopię</string>
+    <string name="settings_import">Importuj kopię</string>
+    <string name="settings_data_text">Kopia to jeden plik z rutynami, treningami, pomiarami i własnymi ćwiczeniami. Ustawień i danych z Health Connect w niej nie ma; te wracają z synchronizacji. Import przyjmuje też kopię z GymTrackera v1.</string>
+    <string name="settings_exporting">Zapisuję kopię…</string>
+    <string name="settings_checking">Sprawdzam kopię…</string>
+    <string name="settings_exported">Kopia zapisana.</string>
+    <string name="settings_export_failed">Nie udało się zapisać kopii. Spróbuj ponownie albo wybierz inne miejsce.</string>
+    <string name="settings_import_blocked">Zakończ albo odrzuć trening w toku, żeby zaimportować kopię.</string>
+    <string name="settings_updates">Aktualizacje</string>
+    <string name="settings_updates_check">Sprawdź teraz</string>
+    <string name="settings_updates_auto">Sprawdzaj automatycznie</string>
+    <string name="settings_updates_soon">Sprawdzanie nowych wersji dojdzie w kolejnej wersji aplikacji.</string>
+    <string name="settings_about">O aplikacji</string>
+    <string name="settings_version">Wersja %1$s</string>
+    <string name="settings_licenses">Licencje i atrybucje</string>
+    <string name="settings_licenses_text">Biblioteki, fonty, ikony i baza ćwiczeń, z których korzysta aplikacja.</string>
+
+    <!-- Backup (A5.10) -->
+    <string name="backup_file_name" translatable="false">GymTracker-%1$s.db</string>
+    <string name="backup_rejected_not_backup">To nie jest kopia GymTrackera. Dane się nie zmieniły.</string>
+    <string name="backup_rejected_damaged">Plik jest uszkodzony albo niekompletny. Dane się nie zmieniły.</string>
+    <string name="backup_rejected_newer">Kopia pochodzi z nowszej wersji aplikacji. Zaktualizuj GymTrackera i spróbuj ponownie.</string>
+    <string name="backup_rejected_old_v1">Ta kopia GymTrackera v1 jest ze starszej wersji. Zaktualizuj v1, zrób nową kopię i zaimportuj ją.</string>
+    <string name="backup_confirm_title">Zastąpić dane kopią?</string>
+    <string name="backup_confirm_title_v1">Zastąpić dane kopią z v1?</string>
+    <string name="backup_confirm_range">Treningi od %1$s do %2$s.</string>
+    <string name="backup_confirm_text">Obecne dane zostaną zastąpione i aplikacja uruchomi się ponownie. Poprzednie dane zostaną w telefonie jako kopia.</string>
+    <string name="backup_confirm">Zastąp</string>
+    <string name="backup_skipped_title">Nie przeniesiono albo zmieniono</string>
+    <string name="backup_restarting">Uruchamiam ponownie…</string>
+    <string name="backup_v1_workout_name">Trening</string>
+    <plurals name="backup_routines">
+        <item quantity="one">%d rutyna</item>
+        <item quantity="few">%d rutyny</item>
+        <item quantity="many">%d rutyn</item>
+        <item quantity="other">%d rutyny</item>
+    </plurals>
+    <plurals name="backup_custom_exercises">
+        <item quantity="one">%d własne ćwiczenie</item>
+        <item quantity="few">%d własne ćwiczenia</item>
+        <item quantity="many">%d własnych ćwiczeń</item>
+        <item quantity="other">%d własnego ćwiczenia</item>
+    </plurals>
+    <plurals name="backup_skipped_unfinished">
+        <item quantity="one">%d niezakończony trening</item>
+        <item quantity="few">%d niezakończone treningi</item>
+        <item quantity="many">%d niezakończonych treningów</item>
+        <item quantity="other">%d niezakończonego treningu</item>
+    </plurals>
+    <plurals name="backup_skipped_empty">
+        <item quantity="one">%d trening bez serii</item>
+        <item quantity="few">%d treningi bez serii</item>
+        <item quantity="many">%d treningów bez serii</item>
+        <item quantity="other">%d treningu bez serii</item>
+    </plurals>
+    <plurals name="backup_skipped_health_sessions">
+        <item quantity="one">%d sesja z Health Connect (wróci z synchronizacją)</item>
+        <item quantity="few">%d sesje z Health Connect (wrócą z synchronizacją)</item>
+        <item quantity="many">%d sesji z Health Connect (wrócą z synchronizacją)</item>
+        <item quantity="other">%d sesji z Health Connect (wrócą z synchronizacją)</item>
+    </plurals>
+    <plurals name="backup_skipped_daily">
+        <item quantity="one">%d dzień kroków i kalorii (wróci z Health Connect)</item>
+        <item quantity="few">%d dni kroków i kalorii (wrócą z Health Connect)</item>
+        <item quantity="many">%d dni kroków i kalorii (wrócą z Health Connect)</item>
+        <item quantity="other">%d dnia kroków i kalorii (wrócą z Health Connect)</item>
+    </plurals>
+    <plurals name="backup_skipped_set_types">
+        <item quantity="one">%d seria myo-reps, negatywna, back-off lub częściowa zapisana jako robocza</item>
+        <item quantity="few">%d serie myo-reps, negatywne, back-off lub częściowe zapisane jako robocze</item>
+        <item quantity="many">%d serii myo-reps, negatywnych, back-off lub częściowych zapisanych jako robocze</item>
+        <item quantity="other">%d serii myo-reps, negatywnych, back-off lub częściowych zapisanych jako robocze</item>
+    </plurals>
+    <plurals name="backup_skipped_routine_warmups">
+        <item quantity="one">%d seria rozgrzewkowa w rutynach (cele liczą serie robocze)</item>
+        <item quantity="few">%d serie rozgrzewkowe w rutynach (cele liczą serie robocze)</item>
+        <item quantity="many">%d serii rozgrzewkowych w rutynach (cele liczą serie robocze)</item>
+        <item quantity="other">%d serii rozgrzewkowych w rutynach (cele liczą serie robocze)</item>
+    </plurals>
+    <plurals name="backup_skipped_supersets">
+        <item quantity="one">%d superseria rozbita na kolejne ćwiczenia</item>
+        <item quantity="few">%d superserie rozbite na kolejne ćwiczenia</item>
+        <item quantity="many">%d superserii rozbitych na kolejne ćwiczenia</item>
+        <item quantity="other">%d superserii rozbitych na kolejne ćwiczenia</item>
+    </plurals>
+    <plurals name="backup_skipped_notes">
+        <item quantity="one">%d notatka rutyny lub treningu</item>
+        <item quantity="few">%d notatki rutyn lub treningów</item>
+        <item quantity="many">%d notatek rutyn lub treningów</item>
+        <item quantity="other">%d notatki rutyn lub treningów</item>
+    </plurals>
+    <plurals name="backup_skipped_fat_mass">
+        <item quantity="one">%d pomiar masy tłuszczu (liczona z wagi i tkanki tłuszczowej)</item>
+        <item quantity="few">%d pomiary masy tłuszczu (liczona z wagi i tkanki tłuszczowej)</item>
+        <item quantity="many">%d pomiarów masy tłuszczu (liczona z wagi i tkanki tłuszczowej)</item>
+        <item quantity="other">%d pomiaru masy tłuszczu (liczona z wagi i tkanki tłuszczowej)</item>
+    </plurals>
+    <plurals name="backup_skipped_out_of_range">
+        <item quantity="one">%d pomiar poza dozwolonym zakresem</item>
+        <item quantity="few">%d pomiary poza dozwolonym zakresem</item>
+        <item quantity="many">%d pomiarów poza dozwolonym zakresem</item>
+        <item quantity="other">%d pomiaru poza dozwolonym zakresem</item>
+    </plurals>
+    <plurals name="backup_skipped_missing_exercises">
+        <item quantity="one">%d ćwiczenie usunięte wcześniej z bazy v1, a wciąż w rutynie</item>
+        <item quantity="few">%d ćwiczenia usunięte wcześniej z bazy v1, a wciąż w rutynach</item>
+        <item quantity="many">%d ćwiczeń usuniętych wcześniej z bazy v1, a wciąż w rutynach</item>
+        <item quantity="other">%d ćwiczenia usuniętego wcześniej z bazy v1, a wciąż w rutynach</item>
+    </plurals>
+    <plurals name="backup_skipped_media">
+        <item quantity="one">%d własne ćwiczenie bez zdjęcia i linku z v1</item>
+        <item quantity="few">%d własne ćwiczenia bez zdjęć i linków z v1</item>
+        <item quantity="many">%d własnych ćwiczeń bez zdjęć i linków z v1</item>
+        <item quantity="other">%d własnego ćwiczenia bez zdjęć i linków z v1</item>
+    </plurals>
+
+    <!-- Licenses -->
+    <string name="licenses_title">Licencje i atrybucje</string>
+    <string name="licenses_show">Pokaż tekst licencji</string>
+    <string name="licenses_hide">Ukryj tekst licencji</string>
+    <string name="licenses_exercises">Ćwiczenia i zdjęcia: free-exercise-db (yuhonas). Warianty z programów Jeffa Nipparda, bez zdjęć.</string>
+    <string name="license_apache" translatable="false">Apache License 2.0</string>
+    <string name="license_ofl" translatable="false">SIL Open Font License 1.1</string>
+    <string name="license_unlicense" translatable="false">The Unlicense</string>
+    <string name="license_apache_items" translatable="false">AndroidX (Compose, Material 3, Navigation 3, Lifecycle, Room, SQLite, DataStore, WorkManager, Health Connect), Kotlin, kotlinx.coroutines, kotlinx.serialization, Dagger Hilt, Coil, OkHttp, Backdrop i Shapes (Kyant), Reorderable (Calvin Liang), Material Symbols</string>
+    <string name="license_geist" translatable="false">Geist (Vercel)</string>
+    <string name="license_instrument_serif" translatable="false">Instrument Serif (Instrument)</string>
+    <string name="license_free_exercise_db" translatable="false">free-exercise-db (yuhonas)</string>
 </resources>

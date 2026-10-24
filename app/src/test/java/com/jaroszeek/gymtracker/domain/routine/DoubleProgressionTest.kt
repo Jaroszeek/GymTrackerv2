@@ -1,5 +1,6 @@
 package com.jaroszeek.gymtracker.domain.routine
 
+import com.jaroszeek.gymtracker.domain.settings.WeightUnit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -70,5 +71,14 @@ class DoubleProgressionTest {
     @Test
     fun customIncrementIsRounded() {
         assertEquals(61.25, DoubleProgression.nextWeight(targets, sets(12, 12, 12), incrementKg = 1.25)!!, 0.0)
+    }
+
+    @Test
+    fun poundsAddFivePoundsAndLandOnWhatTypingGives() {
+        val lb = WeightUnit.Lb
+        val next = DoubleProgression.nextWeight(targets.copy(weightKg = lb.toKg(135.0)), sets(12, 12, 12, weight = lb.toKg(135.0)), lb)!!
+        assertEquals(lb.toKg(140.0), next, 0.0)
+        // A target typed as 140 lb, reached with the suggested weight, progresses again
+        assertEquals(lb.toKg(145.0), DoubleProgression.nextWeight(targets.copy(weightKg = lb.toKg(140.0)), sets(12, 12, 12, weight = next), lb)!!, 0.0)
     }
 }

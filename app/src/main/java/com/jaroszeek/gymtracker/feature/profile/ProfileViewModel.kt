@@ -20,6 +20,7 @@ import com.jaroszeek.gymtracker.domain.body.bmiSeries
 import com.jaroszeek.gymtracker.domain.body.bodySummary
 import com.jaroszeek.gymtracker.domain.health.Calories
 import com.jaroszeek.gymtracker.domain.health.calories
+import com.jaroszeek.gymtracker.domain.settings.WeightUnit
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
 import java.time.LocalDate
@@ -43,7 +44,13 @@ import kotlinx.coroutines.withContext
 enum class BodyChart { Weight, Bmi, BodyFat }
 
 /** The sheet for a new value; [invalid] after saving a value outside the metric's range. */
-data class NewMeasurement(val metric: BodyMetric = BodyMetric.Weight, val value: Double? = null, val invalid: Boolean = false)
+/** [value] as entered: in [unit] for masses, centimetres for the height. */
+data class NewMeasurement(
+    val metric: BodyMetric = BodyMetric.Weight,
+    val value: Double? = null,
+    val invalid: Boolean = false,
+    val unit: WeightUnit = WeightUnit.Kg,
+)
 
 data class ProfileUiState(
     val loading: Boolean = true,
@@ -87,6 +94,7 @@ class ProfileViewModel @Inject constructor(
     private val today = MutableStateFlow(today())
     private val activityPermitted = MutableStateFlow(false)
     private val local = MutableStateFlow(Local())
+    private val unit = preferences.weightUnit.stateIn(viewModelScope, SharingStarted.Eagerly, WeightUnit.Kg)
 
     /** Null while Health Connect gives none: the card offers to connect. */
     private val todaysCalories = today.flatMapLatest { day ->
@@ -139,21 +147,21 @@ class ProfileViewModel @Inject constructor(
     fun onShowAll() = local.update { it.copy(showAll = true) }
 
     /** [metric] is preselected, e.g. from the tile tapped; the field starts at its latest value. */
-    fun onAdd(metric: BodyMetric = BodyMetric.Weight) = local.update { it.copy(adding = NewMeasurement(metric, latestInput(metric))) }
+    fun onAdd(metric: BodyMetric = BodyMetric.Weight) = local.update { it.copy(adding = NewMeasurement(metric, latestInput(metric, unit.value), unit = unit.value)) }
 
     fun onAddMetric(metric: BodyMetric) =
-        local.update { it.copy(adding = it.adding?.copy(metric = metric, value = latestInput(metric), invalid = false)) }
+        local.update { it.copy(adding = it.adding?.let { adding -> adding.copy(metric = metric, value = latestInput(metric, adding.unit), invalid = false) }) }
 
-    private fun latestInput(metric: BodyMetric): Double? = state.value.summary[metric]?.let { metric.toInput(it.value) }
+    private fun latestInput(metric: BodyMetric, unit: WeightUnit): Double? = state.value.summary[metric]?.let { metric.toInput(it.value, unit) }
 
-    /** [value] as entered: centimetres for the height. */
+    /** [value] as entered, see [NewMeasurement]. */
     fun onAddValue(value: Double?) = local.update { it.copy(adding = it.adding?.copy(value = value, invalid = false)) }
 
     fun onAddDismiss() = local.update { it.copy(adding = null) }
 
     fun onAddSave() {
         val adding = local.value.adding ?: return
-        val value = adding.value?.let { adding.metric.fromInput(it) } ?: return
+        val value = adding.value?.let { adding.metric.fromInput(it, adding.unit) } ?: return
         viewModelScope.launch {
             val saved = try {
                 body.add(adding.metric, value)

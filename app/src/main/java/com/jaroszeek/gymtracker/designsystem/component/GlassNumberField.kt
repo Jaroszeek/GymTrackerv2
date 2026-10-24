@@ -141,7 +141,7 @@ internal object NumberInput {
         round((value ?: 0.0) + delta, decimals).coerceIn(range)
 
     // Steps like 2.5 kg must not accumulate floating point noise
-    private fun round(value: Double, decimals: Int): Double {
+    fun round(value: Double, decimals: Int): Double {
         val factor = 10.0.pow(decimals)
         return (value * factor).roundToLong() / factor
     }

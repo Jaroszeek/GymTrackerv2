@@ -9,8 +9,8 @@ import androidx.compose.ui.res.stringResource
 import com.jaroszeek.gymtracker.R
 import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
 import com.jaroszeek.gymtracker.domain.routine.SetType
+import com.jaroszeek.gymtracker.feature.routines.massLabel
 import com.jaroszeek.gymtracker.feature.routines.repsLabel
-import com.jaroszeek.gymtracker.feature.routines.weightLabel
 import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.roundToLong
@@ -35,13 +35,13 @@ fun durationLabel(millis: Long): String {
 /** A countdown rounds up, so it reads 0:01 until the very end. */
 fun countdownLabel(millis: Long): String = durationLabel((millis + MILLIS_PER_SECOND - 1) / MILLIS_PER_SECOND * MILLIS_PER_SECOND)
 
-/** Whole kilograms with the locale's grouping: "8 450". */
+/** Whole numbers with the locale's grouping: "8 450". */
 fun volumeLabel(kg: Double): String = NumberFormat.getIntegerInstance(Locale.getDefault()).format(kg.roundToLong())
 
 @Composable
 @ReadOnlyComposable
 fun setValueLabel(weightKg: Double?, reps: Int): String =
-    if (weightKg == null) stringResource(R.string.workout_set_value_bodyweight, reps) else stringResource(R.string.workout_set_value, weightLabel(weightKg), reps)
+    if (weightKg == null) stringResource(R.string.workout_set_value_bodyweight, reps) else stringResource(R.string.workout_set_value, massLabel(weightKg), reps)
 
 @StringRes
 fun SetType.label(): Int = when (this) {
@@ -56,7 +56,7 @@ fun SetType.label(): Int = when (this) {
 @ReadOnlyComposable
 fun RoutineTargets.compact(): String = listOfNotNull(
     stringResource(R.string.routine_target_sets_reps, sets, repsLabel()),
-    weightKg?.let { stringResource(R.string.routine_target_weight, weightLabel(it)) },
+    weightKg?.let { massLabel(it) },
 ).joinToString(" • ")
 
 /** Wall-clock time refreshed on every [periodMillis] boundary, so all clocks on screen tick together. Read it in small composables. */

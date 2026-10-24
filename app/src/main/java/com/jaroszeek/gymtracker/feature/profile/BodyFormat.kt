@@ -8,6 +8,9 @@ import com.jaroszeek.gymtracker.R
 import com.jaroszeek.gymtracker.designsystem.component.NumberInput
 import com.jaroszeek.gymtracker.domain.body.BmiCategory
 import com.jaroszeek.gymtracker.domain.body.BodyMetric
+import com.jaroszeek.gymtracker.domain.settings.WeightUnit
+import com.jaroszeek.gymtracker.feature.routines.label
+import com.jaroszeek.gymtracker.feature.routines.massLabel
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 
@@ -15,23 +18,33 @@ import java.util.Locale
 fun decimalLabel(value: Double, decimals: Int = 1): String =
     NumberInput.format(value, decimals, DecimalFormatSymbols.getInstance(Locale.getDefault()).decimalSeparator)
 
-/** Heights are stored in metres and shown in centimetres. */
-fun BodyMetric.toInput(value: Double): Double = if (this == BodyMetric.Height) value * CM_PER_M else value
+val BodyMetric.isMass: Boolean get() = this == BodyMetric.Weight || this == BodyMetric.SkeletalMuscle
 
-fun BodyMetric.fromInput(value: Double): Double = if (this == BodyMetric.Height) value / CM_PER_M else value
+/** Heights are stored in metres and entered in centimetres, masses in kg and entered in [unit]. */
+fun BodyMetric.toInput(value: Double, unit: WeightUnit): Double = when {
+    this == BodyMetric.Height -> value * CM_PER_M
+    isMass -> unit.fromKg(value)
+    else -> value
+}
+
+fun BodyMetric.fromInput(value: Double, unit: WeightUnit): Double = when {
+    this == BodyMetric.Height -> value / CM_PER_M
+    isMass -> unit.toKg(value)
+    else -> value
+}
 
 /** "82,5 kg", "180 cm", "18,5 %". */
 @Composable
 @ReadOnlyComposable
 fun bodyValueLabel(metric: BodyMetric, value: Double): String = when (metric) {
-    BodyMetric.Weight, BodyMetric.SkeletalMuscle -> stringResource(R.string.value_kg, decimalLabel(value))
-    BodyMetric.Height -> stringResource(R.string.value_cm, decimalLabel(metric.toInput(value), decimals = 0))
+    BodyMetric.Weight, BodyMetric.SkeletalMuscle -> massLabel(value, decimals = 1)
+    BodyMetric.Height -> stringResource(R.string.value_cm, decimalLabel(value * CM_PER_M, decimals = 0))
     BodyMetric.BodyFat -> stringResource(R.string.value_percent, decimalLabel(value))
 }
 
 @StringRes
-fun BodyMetric.unit(): Int = when (this) {
-    BodyMetric.Weight, BodyMetric.SkeletalMuscle -> R.string.unit_kg
+fun BodyMetric.unit(unit: WeightUnit): Int = when (this) {
+    BodyMetric.Weight, BodyMetric.SkeletalMuscle -> unit.label()
     BodyMetric.Height -> R.string.unit_cm
     BodyMetric.BodyFat -> R.string.unit_percent
 }

@@ -35,7 +35,7 @@ data object TemplatesKey : NavKey
 @Serializable
 data object ActiveWorkoutKey : NavKey
 
-/** Live Update diagnostics (A7); opened from the workout, in Etap 9 from the settings too. */
+/** Live Update diagnostics (A7); opened from the workout and the settings. */
 @Serializable
 data object LiveUpdateDiagnosticsKey : NavKey
 
@@ -60,9 +60,12 @@ data object HealthConnectKey : NavKey
 @Serializable
 data object PrivacyPolicyKey : NavKey
 
-/** What settings exist so far, from Start and Profil; the full settings come with Etap 9. */
+/** Settings (A5.9), from Start and Profil. */
 @Serializable
 data object SettingsKey : NavKey
+
+@Serializable
+data object LicensesKey : NavKey
 
 /** A session another app wrote to Health Connect, from history. */
 @Serializable

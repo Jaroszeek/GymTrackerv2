@@ -41,9 +41,8 @@ import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
 import com.jaroszeek.gymtracker.domain.workout.RecordHit
 import com.jaroszeek.gymtracker.domain.workout.TargetChange
 import com.jaroszeek.gymtracker.domain.workout.WorkoutSummary
-import com.jaroszeek.gymtracker.feature.progress.e1rmLabel
 import com.jaroszeek.gymtracker.feature.progress.label
-import com.jaroszeek.gymtracker.feature.progress.rememberKgLabel
+import com.jaroszeek.gymtracker.feature.routines.massLabel
 
 /** After the workout: time, volume and sets, then the sheet with changes against the routine. */
 @Composable
@@ -81,7 +80,6 @@ fun WorkoutSummaryScreen(
 @Composable
 private fun RecordsSummary(records: List<RecordHit>, exercises: Map<Long, Exercise>) {
     val colors = GtTheme.colors
-    val kg = rememberKgLabel()
     GlassCard(Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
             Icon(painterResource(R.drawable.ic_trophy), contentDescription = null, tint = colors.accentText)
@@ -91,9 +89,9 @@ private fun RecordsSummary(records: List<RecordHit>, exercises: Map<Long, Exerci
             val values = hits.map { hit ->
                 val value = when (hit.type) {
                     RecordType.Reps -> setValueLabel(hit.set.weightKg, hit.set.reps)
-                    RecordType.Weight -> hit.valueKg?.let(kg).orEmpty()
-                    RecordType.E1rm -> hit.valueKg?.let { stringResource(R.string.value_kg, e1rmLabel(it)) }.orEmpty()
-                    RecordType.SetVolume, RecordType.SessionVolume -> hit.valueKg?.let { stringResource(R.string.summary_volume_value, volumeLabel(it)) }.orEmpty()
+                    RecordType.Weight -> hit.valueKg?.let { massLabel(it) }.orEmpty()
+                    RecordType.E1rm -> hit.valueKg?.let { massLabel(it, decimals = 1) }.orEmpty()
+                    RecordType.SetVolume, RecordType.SessionVolume -> hit.valueKg?.let { massLabel(it, decimals = 0) }.orEmpty()
                 }
                 stringResource(R.string.summary_record_value, stringResource(hit.type.label()), value)
             }
@@ -111,7 +109,7 @@ internal fun SummaryStats(summary: WorkoutSummary, modifier: Modifier = Modifier
     Column(modifier, verticalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
         Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
             Stat(stringResource(R.string.summary_duration), durationLabel(summary.durationMillis), Modifier.weight(1f))
-            Stat(stringResource(R.string.summary_volume), stringResource(R.string.summary_volume_value, volumeLabel(summary.volumeKg)), Modifier.weight(1f))
+            Stat(stringResource(R.string.summary_volume), massLabel(summary.volumeKg, decimals = 0), Modifier.weight(1f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
             Stat(stringResource(R.string.summary_sets), "${summary.sets}", Modifier.weight(1f))

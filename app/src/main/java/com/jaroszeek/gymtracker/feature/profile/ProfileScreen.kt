@@ -2,20 +2,20 @@ package com.jaroszeek.gymtracker.feature.profile
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,9 +27,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.jaroszeek.gymtracker.R
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.jaroszeek.gymtracker.designsystem.component.BadgeTone
 import com.jaroszeek.gymtracker.designsystem.component.ChartPoint
 import com.jaroszeek.gymtracker.designsystem.component.ChartRange
@@ -51,18 +50,22 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
 import com.jaroszeek.gymtracker.domain.body.BmiCategory
+import com.jaroszeek.gymtracker.domain.body.bmiCategory
 import com.jaroszeek.gymtracker.domain.body.BodyMeasurement
 import com.jaroszeek.gymtracker.domain.body.BodyMetric
-import com.jaroszeek.gymtracker.domain.body.BodySummary
-import com.jaroszeek.gymtracker.domain.body.bmiCategory
 import com.jaroszeek.gymtracker.domain.body.bodySummary
+import com.jaroszeek.gymtracker.domain.body.BodySummary
 import com.jaroszeek.gymtracker.domain.health.Calories
 import com.jaroszeek.gymtracker.feature.health.HealthConnectEntry
 import com.jaroszeek.gymtracker.feature.health.kcalLabel
 import com.jaroszeek.gymtracker.feature.health.sourceLabel
-import com.jaroszeek.gymtracker.feature.progress.StatColumn
 import com.jaroszeek.gymtracker.feature.progress.shortDate
+import com.jaroszeek.gymtracker.feature.progress.shownIn
+import com.jaroszeek.gymtracker.feature.progress.StatColumn
 import com.jaroszeek.gymtracker.feature.progress.timeLabel
+import com.jaroszeek.gymtracker.feature.routines.format
+import com.jaroszeek.gymtracker.feature.routines.LocalWeightUnit
+import com.jaroszeek.gymtracker.R
 import kotlin.math.roundToInt
 
 @Composable
@@ -264,6 +267,7 @@ private fun CompositionCard(summary: BodySummary, onAdd: (BodyMetric) -> Unit) {
 @Composable
 private fun ChartsCard(state: ProfileUiState, onChart: (BodyChart) -> Unit, onRange: (ChartRange) -> Unit) {
     val resources = LocalResources.current
+    val unit = LocalWeightUnit.current
     GlassCard(Modifier.fillMaxWidth()) {
         Text(stringResource(R.string.profile_charts_title), style = GtTheme.typography.title)
         GlassSegmentedControl(
@@ -272,10 +276,10 @@ private fun ChartsCard(state: ProfileUiState, onChart: (BodyChart) -> Unit, onRa
             onSelect = { onChart(BodyChart.entries[it]) },
         )
         GlassLineChart(
-            points = state.chartPoints,
+            points = if (state.chart == BodyChart.Weight) state.chartPoints.shownIn(unit) else state.chartPoints,
             valueLabel = { value ->
                 when (state.chart) {
-                    BodyChart.Weight -> resources.getString(R.string.value_kg, decimalLabel(value))
+                    BodyChart.Weight -> unit.format(resources, value, decimals = 1)
                     BodyChart.Bmi -> decimalLabel(value)
                     BodyChart.BodyFat -> resources.getString(R.string.value_percent, decimalLabel(value))
                 }
@@ -350,7 +354,7 @@ private fun MeasurementRow(measurement: BodyMeasurement, onDelete: () -> Unit) {
 private fun AddForm(adding: NewMeasurement, onMetric: (BodyMetric) -> Unit, onValue: (Double?) -> Unit, onSave: () -> Unit) {
     val colors = GtTheme.colors
     val metric = adding.metric
-    val unit = stringResource(metric.unit())
+    val unit = stringResource(metric.unit(adding.unit))
     Text(stringResource(R.string.profile_add_title), style = GtTheme.typography.headline)
     FlowRow(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s), verticalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
         BodyMetric.entries.forEach { GlassChip(stringResource(it.label()), selected = it == metric, onClick = { onMetric(it) }) }
@@ -364,14 +368,14 @@ private fun AddForm(adding: NewMeasurement, onMetric: (BodyMetric) -> Unit, onVa
         step = if (metric == BodyMetric.Height) 1.0 else 0.1,
         decimals = if (metric == BodyMetric.Height) 0 else 1,
         unit = unit,
-        range = 0.0..metric.toInput(metric.range.endInclusive),
+        range = 0.0..metric.toInput(metric.range.endInclusive, adding.unit),
         placeholder = stringResource(R.string.number_empty),
     )
     Text(
         stringResource(
             R.string.profile_add_range,
-            decimalLabel(metric.toInput(metric.range.start), decimals = 0),
-            decimalLabel(metric.toInput(metric.range.endInclusive), decimals = 0),
+            decimalLabel(metric.toInput(metric.range.start, adding.unit), decimals = 0),
+            decimalLabel(metric.toInput(metric.range.endInclusive, adding.unit), decimals = 0),
             unit,
         ),
         color = if (adding.invalid) colors.danger else colors.textSecondary,

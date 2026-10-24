@@ -4,16 +4,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -27,7 +27,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.jaroszeek.gymtracker.R
 import com.jaroszeek.gymtracker.designsystem.component.ChartPoint
 import com.jaroszeek.gymtracker.designsystem.component.ChartRange
 import com.jaroszeek.gymtracker.designsystem.component.ChartRangeSelector
@@ -42,8 +41,11 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtSpacing
 import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
 import com.jaroszeek.gymtracker.domain.progress.RoutineSession
+import com.jaroszeek.gymtracker.feature.routines.LocalWeightUnit
+import com.jaroszeek.gymtracker.feature.routines.massLabel
 import com.jaroszeek.gymtracker.feature.routines.weightLabel
 import com.jaroszeek.gymtracker.feature.workout.volumeLabel
+import com.jaroszeek.gymtracker.R
 import java.time.Instant
 import java.time.ZoneId
 
@@ -100,8 +102,9 @@ private fun RoutineCharts(state: RoutineProgressUiState, onRange: (ChartRange) -
         val from = state.range.start(Instant.now(), ZoneId.systemDefault())
         state.sessions.filter { from == null || it.time >= from }
     }
-    val kg = rememberKgLabel()
-    val volume = rememberVolumeLabel()
+    val unit = LocalWeightUnit.current
+    val kg = rememberMassLabel()
+    val volume = rememberMassLabel(decimals = 0)
     Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
         Text(state.name.orEmpty(), style = GtTheme.typography.displaySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Text(pluralStringResource(R.plurals.progress_sessions, state.sessions.size, state.sessions.size), color = colors.textSecondary, style = GtTheme.typography.label)
@@ -109,20 +112,20 @@ private fun RoutineCharts(state: RoutineProgressUiState, onRange: (ChartRange) -
     ChartRangeSelector(state.range, onSelect = onRange)
     ChartCard(
         title = stringResource(R.string.routine_progress_volume),
-        points = shown.map { ChartPoint(it.time, it.volumeKg) },
+        points = shown.map { ChartPoint(it.time, it.volumeKg) }.shownIn(unit),
         valueLabel = volume,
         axisLabel = ::volumeLabel,
     )
     ChartCard(
         title = stringResource(R.string.routine_progress_max_weight),
-        points = shown.mapNotNull { session -> session.maxWeightKg?.let { ChartPoint(session.time, it) } },
+        points = shown.mapNotNull { session -> session.maxWeightKg?.let { ChartPoint(session.time, it) } }.shownIn(unit),
         valueLabel = kg,
         axisLabel = ::weightLabel,
     )
     if (shown.isNotEmpty()) {
         GlassCard(Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.routine_progress_sessions), style = GtTheme.typography.title)
-            shown.asReversed().forEach { session -> SessionRow(session, volume, onClick = { onOpenWorkout(session.workoutId) }) }
+            shown.asReversed().forEach { session -> SessionRow(session, onClick = { onOpenWorkout(session.workoutId) }) }
         }
     }
 }
@@ -142,7 +145,7 @@ private fun ChartCard(title: String, points: List<ChartPoint>, valueLabel: (Doub
 }
 
 @Composable
-private fun SessionRow(session: RoutineSession, volume: (Double) -> String, onClick: () -> Unit) {
+private fun SessionRow(session: RoutineSession, onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -151,7 +154,7 @@ private fun SessionRow(session: RoutineSession, volume: (Double) -> String, onCl
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(dayLabel(session.time), style = GtTheme.typography.label, modifier = Modifier.weight(1f))
-        Text(volume(session.volumeKg), color = GtTheme.colors.textSecondary, style = GtTheme.typography.label)
+        Text(massLabel(session.volumeKg, decimals = 0), color = GtTheme.colors.textSecondary, style = GtTheme.typography.label)
     }
 }
 

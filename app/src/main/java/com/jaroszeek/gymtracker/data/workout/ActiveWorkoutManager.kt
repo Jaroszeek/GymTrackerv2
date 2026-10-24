@@ -1,9 +1,11 @@
 package com.jaroszeek.gymtracker.data.workout
 
 import android.util.Log
+import com.jaroszeek.gymtracker.core.datastore.AppPreferences
 import com.jaroszeek.gymtracker.core.di.ApplicationScope
 import com.jaroszeek.gymtracker.core.di.IoDispatcher
 import com.jaroszeek.gymtracker.domain.routine.Routine
+import com.jaroszeek.gymtracker.domain.settings.RestDefaults
 import com.jaroszeek.gymtracker.domain.workout.ActiveWorkout
 import com.jaroszeek.gymtracker.domain.workout.WorkoutSet
 import com.jaroszeek.gymtracker.domain.workout.WorkoutVariant
@@ -17,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -26,6 +29,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onSubscription
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -43,6 +47,7 @@ data class FinishedWorkout(val workout: ActiveWorkout, val endedAt: Long)
 class ActiveWorkoutManager @Inject constructor(
     private val store: ActiveWorkoutStore,
     private val workouts: WorkoutRepository,
+    private val preferences: AppPreferences,
     private val clock: Clock,
     @ApplicationScope private val scope: CoroutineScope,
     @IoDispatcher private val io: CoroutineDispatcher,
@@ -56,6 +61,9 @@ class ActiveWorkoutManager @Inject constructor(
     val ready: StateFlow<Boolean> = _ready.asStateFlow()
 
     private val storeLock = Mutex()
+
+    /** The rest after a set whose routine sets none (A5.9). */
+    private val defaultRest = preferences.defaultRestSeconds.stateIn(scope, SharingStarted.Eagerly, RestDefaults.SECONDS)
 
     init {
         scope.launch {
@@ -79,20 +87,26 @@ class ActiveWorkoutManager @Inject constructor(
     }
 
     /** Starts a workout with the blocks of [routine]; false when a workout is already running. */
-    suspend fun start(routine: Routine): Boolean = start(
-        routineId = routine.id,
-        name = routine.name,
-        blocks = routine.blocks.map { block ->
-            block.variants.map { WorkoutVariant(it.exercise.id, it.id, it.targets, workouts.lastSession(it.exercise.id), workouts.personalBests(it.exercise.id)) }
-        },
-    )
+    suspend fun start(routine: Routine): Boolean {
+        val unit = preferences.weightUnit.first()
+        return start(
+            routineId = routine.id,
+            name = routine.name,
+            blocks = routine.blocks.map { block ->
+                block.variants.map {
+                    WorkoutVariant(it.exercise.id, it.id, it.targets, workouts.lastSession(it.exercise.id), workouts.personalBests(it.exercise.id), unit)
+                }
+            },
+        )
+    }
 
     suspend fun startEmpty(name: String): Boolean = start(routineId = null, name = name, blocks = emptyList())
 
     suspend fun addExercise(exerciseId: Long) {
         val previous = workouts.lastSession(exerciseId)
         val bests = workouts.personalBests(exerciseId)
-        mutate { it.addExercise(listOf(WorkoutVariant(exerciseId, previous = previous, bests = bests))) }
+        val unit = preferences.weightUnit.first()
+        mutate { it.addExercise(listOf(WorkoutVariant(exerciseId, previous = previous, bests = bests, unit = unit))) }
     }
 
     fun selectVariant(exerciseId: Long, index: Int) = mutate { it.selectVariant(exerciseId, index) }
@@ -106,7 +120,7 @@ class ActiveWorkoutManager @Inject constructor(
     fun removeSet(exerciseId: Long, setId: Long) = mutate { it.removeSet(exerciseId, setId) }
 
     fun completeSet(exerciseId: Long, setId: Long) =
-        mutate { it.complete(exerciseId, setId, clock.millis(), ActiveWorkout.DEFAULT_REST_SECONDS) }
+        mutate { it.complete(exerciseId, setId, clock.millis(), defaultRest.value) }
 
     fun uncompleteSet(exerciseId: Long, setId: Long) = mutate { it.uncomplete(exerciseId, setId) }
 

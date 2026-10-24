@@ -573,6 +573,38 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 - Zębatka na Starcie i Profilu otwiera tymczasowy ekran Ustawienia z wejściami do Health Connect i diagnostyki powiadomień; pełne ustawienia w Etapie 9.
 - Nowe ikony (chodzenie, waga, ogień, kalendarz) z Material Symbols Rounded, jak dotąd; wykres słupkowy i sparkline narysowane na Canvas w design systemie. Bez nowych zależności.
 
+### D-074 Ustawienia (Etap 9)
+- Wygląd: tryb Systemowy / Jasny / Ciemny, paleta z próbek koloru (nowy komponent `GlassSwatch`, w galerii), AMOLED, Material You (wyłączone dla palet czarno-białych Onyks i Porcelana), „Ogranicz przezroczystość”. Motyw jest w DataStore i wczytuje się przed pierwszą klatką (splash czeka), więc po restarcie nie miga domyślny.
+- Jednostka masy kg / lb dotyczy tylko mas (ciężary, objętość, e1RM, cele rutyn, waga ciała, masy składu ciała). Zapis zawsze w kg; konwersja w UI (`LocalWeightUnit`). Pola pokazują wartość zaokrągloną do 2 miejsc, więc wpisywanie nie jest nadpisywane. Krok pól i progresji to 2,5 kg albo 5 lb. Propozycja progresji jest zaokrąglana w jednostce wyświetlania (135 lb + 5 lb = dokładnie 140 lb, tyle samo co wpisane ręcznie), żeby nie wychodziło „139,99 lb” i żeby cel wpisany w funtach nie blokował kolejnej progresji. Wzrost zostaje w cm, a tkanka tłuszczowa w %.
+- Domyślna przerwa 15–600 s, krok 15 s (przyciski −/+, bez wpisywania), dla ćwiczeń bez własnej przerwy w rutynie. Na koniec przerwy wibracja (domyślnie włączona) i dźwięk powiadomień (domyślnie wyłączony; tryb cichy i Nie przeszkadzać go wyciszają).
+- Health Connect w ustawieniach to wejście z datą ostatniej synchronizacji; połączenie, rozłączenie, synchronizacja w tle, „Synchronizuj teraz” i stan zgód są na ekranie Health Connect z Etapu 7, żeby nie dublować ich w dwóch miejscach.
+- Ekran ustawień pokazuje się dopiero po wczytaniu ustawień, żeby zmiana motywu nie zapisała wartości domyślnych zamiast bieżących.
+- Aktualizacje: wyłączone „Sprawdź teraz” i „Sprawdzaj automatycznie” z dopiskiem, do Etapu 11.
+- O aplikacji: wersja z `BuildConfig.VERSION_NAME` (0.1.0) i ekran licencji: Apache 2.0 (biblioteki AndroidX, Kotlin, Hilt, Coil, OkHttp, Backdrop, Reorderable, Material Symbols), OFL 1.1 (Geist, Instrument Serif), Unlicense (free-exercise-db) z pełnymi tekstami z `assets/licenses` (dodany tekst Apache 2.0 z apache.org).
+- Zależność: DataStore 1.3.0 (stabilna od 2026-10-21, bez zmian łamiących; lint zgłaszał nowszą wersję). Zastępuje 1.2.1 z D-048.
+
+### D-075 Kopia zapasowa i import (A5.10)
+- Kopia to cała baza `gymtracker.db` w jednym pliku `GymTracker-rrrr-mm-dd-ggmm.db`, zapisana przez systemowe „Zapisz jako” (SAF). Spójną migawkę robi `VACUUM INTO` do pliku roboczego: łączy WAL i nie blokuje zapisu dłużej niż kopiowanie. Zamiast osobnego `wal_checkpoint` przed kopiowaniem pliku, bo checkpoint nie gwarantuje spójności, gdy coś pisze w trakcie.
+- W kopii nie ma ustawień (DataStore) ani danych z Health Connect (`health.db`, D-060); te wracają z synchronizacji.
+- Import: plik trafia do `noBackupFilesDir/backup` (limit 256 MB), potem kolejno: nagłówek SQLite, `PRAGMA integrity_check`, `foreign_key_check`, zestaw tabel (v2, v1 albo obcy plik) i `user_version`. Nowsza wersja schematu jest odrzucana. Kopia v2 z triggerem albo widokiem też (schemat aplikacji ich nie ma, a trigger wykonywałby obcy kod na danych); plik v1 jest tylko czytany, więc jego triggery się nie uruchamiają. Kopia v2 otwierana jest przez Room na kopii roboczej, więc migracje i sprawdzenie schematu przechodzą przed jakąkolwiek zmianą (dry run). Potem liczniki do dialogu (rutyny, treningi, pomiary, własne ćwiczenia, zakres dat) i `VACUUM INTO ready.db`.
+- Po potwierdzeniu `ready.db` zmienia nazwę na `pending.db`, a aplikacja od razu uruchamia się ponownie (`makeRestartActivityTask` + zakończenie procesu). Restart robi ViewModel poza anulowaniem (`NonCancellable`), a stan „Uruchamiam ponownie…” ustawia się przed zapisem, więc ani drugie tapnięcie, ani Wstecz w tej chwili nie zostawią przygotowanej kopii, która podmieniłaby dane dopiero po dniach.
+- Przy starcie procesu, przed otwarciem bazy (`GymTrackerApp.onCreate`), obecna baza z WAL przechodzi do `previous/gymtracker-<data UTC>.db`, a `pending.db` staje się bazą. Data w nazwie pochodzi z pliku kopii, więc ponowiona po przerwaniu podmiana nadaje tę samą nazwę. Gdy któregoś pliku nie da się przenieść, wszystkie wracają na miejsce, a podmiana czeka na następny start: stary WAL obok nowej bazy zostałby na niej odtworzony i by ją uszkodził. Zostają 3 ostatnie poprzednie bazy. Ten sam start usuwa pliki robocze przerwanego importu albo eksportu. Odrzucenie albo anulowanie niczego nie zmienia.
+- Import jest zablokowany w trakcie treningu (zastąpiłby dane pod nim). Rok urodzenia z kopii v1 trafia do Profilu tylko, gdy nie był wpisany.
+- Błędy po polsku: „To nie jest kopia GymTrackera”, „Plik jest uszkodzony albo niekompletny”, „Kopia pochodzi z nowszej wersji aplikacji”, „Ta kopia v1 jest ze starszej wersji”; zawsze z „Dane się nie zmieniły” tam, gdzie to prawda.
+
+### D-076 Mapowanie kopii GymTracker v1 → v2
+- Z v1 wzięty tylko format pliku kopii: baza Room w wersji 7 (każda kopia z v1 ma tę wersję). Starsza wersja v1 jest odrzucana z prośbą o nową kopię z aktualnej v1. Import tworzy nową bazę z wbudowanymi ćwiczeniami i zastępuje dane v2 (D-052).
+- **Ćwiczenia:** wbudowane z v1 dopasowane do bazy v2 po id z adresu zdjęcia free-exercise-db (wszystkie 873 mają takie zdjęcie), potem po nazwie bez wielkości liter, potem po 3 aliasach (Nordic Hamstring Curl, Reverse Nordic Curl, Pec Deck). Własne z v1 zawsze stają się własnymi w v2: opis → instrukcje (po liniach), sprzęt (maszyna, wyciąg, kettlebell, guma, masa ciała, inne; „wolny ciężar” bez sprzętu), partie → mięśnie główne (plecy → najszersze, nogi → czworogłowe, „całe ciało” pominięte), kardio i rozciąganie → kategoria. Niedopasowane wbudowane stają się własnymi, tylko gdy coś ich używa. Serie z id ćwiczenia, którego v1 już nie ma, dopasowane po zapisanej nazwie albo tworzą własne ćwiczenie.
+- **Rutyny:** nazwa i data utworzenia; bloki ze struktury JSON, a gdy jej nie ma, z `routine_exercises`. Blok „flex” → jeden blok z wariantami; „single” → blok; superseria → kolejne bloki. Cele: liczba serii roboczych (bez rozgrzewkowych), powtórzenia od–do z zaplanowanych serii (domyślnie 8–12), pierwszy podany ciężar, przerwa domyślna.
+- **Treningi:** tylko zakończone, z seriami i zapisane w v1 (nie z HC). Nazwa z v1 albo „Trening”, powiązanie z rutyną, serie po kolejności wykonania, zgrupowane po ćwiczeniu. Typy: normalna → robocza, rozgrzewkowa, drop set, do upadku; myo-reps, negatywne, back-off i częściowe → robocza. Ciężar 0 → masa ciała. Wartości zaokrąglone do 0,01 (v1 trzymał je jako float).
+- **Pomiary:** waga, wzrost (cm → m), tkanka tłuszczowa i mięśnie szkieletowe, w zakresach z D-071. Rok urodzenia z ostatniego wieku.
+- **Nie przechodzi** (pokazane w dialogu z liczbą): niezakończone i puste treningi, sesje z HC i dni kroków oraz kalorii (wrócą z HC), notatki rutyn i treningów, masa tłuszczu (liczona z wagi), pomiary spoza zakresu, ćwiczenia usunięte z bazy v1, a wciąż w rutynie, zdjęcia i linki własnych ćwiczeń, oraz z liczbą „zmienione”: rozgrzewki w rutynach, superserie i nietypowe serie.
+- Testy na syntetycznej kopii (`V1Fixture`) pokrywają każdą regułę; prawdziwa kopia właściciela nie trafia do repo.
+
+### D-077 Android Auto Backup
+- Do kopii Google i przenoszenia na nowy telefon idą baza i ustawienia. Wyłączone: `health.db` (D-060), plik trwającego treningu `active_workout.json` (tymczasowy) i `gymtracker.db-shm` (indeks pamięci współdzielonej SQLite, odtwarzany). Pamięć podręczna i `noBackupFilesDir` (pliki importu i poprzednie bazy) są poza kopią z definicji Androida.
+- Po przywróceniu na nowym telefonie tokeny HC (w `health.db`) nie istnieją, więc import z HC zaczyna się od nowa.
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |
@@ -584,7 +616,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 | navigation3 + lifecycle-viewmodel-navigation3 | 1.2.0 / 2.11.0 | Apache-2.0 | 1 | nawigacja (D-003) |
 | Hilt / androidx.hilt | 2.60.1 / 1.4.0 | Apache-2.0 | 1 | DI |
 | kotlinx-serialization-json | 1.11.0 | Apache-2.0 | 1 | klucze nawigacji, JSON |
-| datastore-preferences | 1.2.1 | Apache-2.0 | 5 | flagi aplikacji, w Etapie 9 ustawienia (D-048) |
+| datastore-preferences | 1.3.0 | Apache-2.0 | 5, 9 | flagi aplikacji i ustawienia (D-048, D-074) |
 | backdrop / shapes | 2.0.1 / 1.2.1 | Apache-2.0 | 1 | szkło (D-006) |
 | room3 / sqlite-framework | 3.0.3 / 2.7.1 | Apache-2.0 | 2 | baza (D-004) |
 | sqlite-bundled-jvm | 2.7.1 | Apache-2.0 | 2 | tylko testy: Room na JVM (D-028) |

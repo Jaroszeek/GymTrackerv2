@@ -23,7 +23,7 @@ import kotlinx.serialization.json.Json
         WorkoutSetEntity::class,
         BodyMeasurementEntity::class,
     ],
-    version = 5,
+    version = GtDatabase.VERSION,
     autoMigrations = [
         // 1 -> 2: routine tables (Etap 3)
         AutoMigration(from = 1, to = 2),
@@ -47,6 +47,7 @@ abstract class GtDatabase : RoomDatabase() {
 
     companion object {
         const val NAME = "gymtracker.db"
+        const val VERSION = 5
     }
 }
 

@@ -3,31 +3,30 @@ package com.jaroszeek.gymtracker.feature.history
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.jaroszeek.gymtracker.R
 import com.jaroszeek.gymtracker.designsystem.component.GlassBottomSheet
 import com.jaroszeek.gymtracker.designsystem.component.GlassButton
 import com.jaroszeek.gymtracker.designsystem.component.GlassButtonStyle
@@ -51,13 +50,17 @@ import com.jaroszeek.gymtracker.domain.workout.LoggedWorkout
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseImage
 import com.jaroszeek.gymtracker.feature.exercises.ExercisePicker
 import com.jaroszeek.gymtracker.feature.exercises.ExercisesViewModel
+import com.jaroszeek.gymtracker.feature.routines.input
+import com.jaroszeek.gymtracker.feature.routines.label
+import com.jaroszeek.gymtracker.feature.routines.LocalWeightUnit
+import com.jaroszeek.gymtracker.feature.routines.MASS_DECIMALS
+import com.jaroszeek.gymtracker.feature.workout.label
 import com.jaroszeek.gymtracker.feature.workout.SetActions
 import com.jaroszeek.gymtracker.feature.workout.SetBadge
 import com.jaroszeek.gymtracker.feature.workout.SetRef
-import com.jaroszeek.gymtracker.feature.workout.label
 import com.jaroszeek.gymtracker.feature.workout.setValueLabel
+import com.jaroszeek.gymtracker.R
 
-private const val WEIGHT_STEP_KG = 2.5
 private const val MAX_REPS = 100.0
 private const val MAX_MINUTES = 600.0
 private const val DURATION_STEP_MINUTES = 5.0
@@ -276,14 +279,15 @@ private fun SetEditor(
         }
         if (expanded) {
             Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
+                val unit = LocalWeightUnit.current
                 GlassNumberField(
-                    value = set.weightKg,
-                    onValueChange = onWeightChange,
+                    value = unit.input(set.weightKg),
+                    onValueChange = { onWeightChange(it?.let(unit::toKg)) },
                     label = stringResource(R.string.workout_label_weight),
                     modifier = Modifier.weight(1f),
-                    step = WEIGHT_STEP_KG,
-                    decimals = 2,
-                    unit = stringResource(R.string.unit_kg),
+                    step = unit.step,
+                    decimals = MASS_DECIMALS,
+                    unit = stringResource(unit.label()),
                     placeholder = stringResource(R.string.number_empty),
                 )
                 GlassNumberField(

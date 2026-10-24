@@ -15,11 +15,13 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.room3.Room
 import androidx.sqlite.driver.AndroidSQLiteDriver
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.jaroszeek.gymtracker.core.database.GtDatabase
+import com.jaroszeek.gymtracker.core.datastore.AppPreferences
 import com.jaroszeek.gymtracker.core.notifications.LiveUpdateChecks
 import com.jaroszeek.gymtracker.core.notifications.WorkoutNotifications
 import com.jaroszeek.gymtracker.data.exercise.ExerciseRepository
@@ -80,7 +82,8 @@ class WorkoutFlowTest {
         exercises = ExerciseRepository(database, ExerciseSeeder(database, Dispatchers.IO, context), Dispatchers.IO)
         routines = RoutineRepository(database, exercises, Clock.systemUTC(), Dispatchers.IO)
         workouts = WorkoutRepository(database, Dispatchers.IO)
-        manager = ActiveWorkoutManager(ActiveWorkoutStore(file), workouts, Clock.systemUTC(), scope, Dispatchers.IO)
+        val preferences = AppPreferences(PreferenceDataStoreFactory.create(scope = scope) { File(context.cacheDir, "workout-flow-test.preferences_pb").apply { delete() } })
+        manager = ActiveWorkoutManager(ActiveWorkoutStore(file), workouts, preferences, Clock.systemUTC(), scope, Dispatchers.IO)
         routineId = runBlocking {
             val bench = exercises.observeAll().first().single { it.name == BENCH }
             var draft = RoutineDraft(name = "Push").addBlock(bench)

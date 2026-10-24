@@ -7,11 +7,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import com.jaroszeek.gymtracker.R
+import com.jaroszeek.gymtracker.designsystem.component.ChartPoint
 import com.jaroszeek.gymtracker.designsystem.component.NumberInput
 import com.jaroszeek.gymtracker.domain.progress.RecordType
 import com.jaroszeek.gymtracker.domain.progress.Week
-import com.jaroszeek.gymtracker.feature.routines.weightLabel
-import com.jaroszeek.gymtracker.feature.workout.volumeLabel
+import com.jaroszeek.gymtracker.domain.settings.WeightUnit
+import com.jaroszeek.gymtracker.feature.routines.LocalWeightUnit
+import com.jaroszeek.gymtracker.feature.routines.MASS_DECIMALS
+import com.jaroszeek.gymtracker.feature.routines.format
 import java.text.DecimalFormatSymbols
 import java.text.NumberFormat
 import java.time.DayOfWeek
@@ -77,21 +80,16 @@ fun weekLabel(week: Week, zone: ZoneId = ZoneId.systemDefault()): String {
 /** Estimates get one decimal: "116,7". */
 fun e1rmLabel(kg: Double): String = NumberInput.format(kg, decimals = 1, DecimalFormatSymbols.getInstance(Locale.getDefault()).decimalSeparator)
 
-/** "102,5 kg" for chart headers and records, which run outside composition. */
+/** "102,5 kg" for a chart value already in the shown unit ([shownIn]); charts call it outside composition. 0 [decimals] for volumes. */
 @Composable
-fun rememberKgLabel(decimals: Int = 2): (Double) -> String {
+fun rememberMassLabel(decimals: Int = MASS_DECIMALS): (Double) -> String {
     val resources = LocalResources.current
-    return remember(resources, decimals) {
-        { kg -> resources.getString(R.string.value_kg, if (decimals == 1) e1rmLabel(kg) else weightLabel(kg)) }
-    }
+    val unit = LocalWeightUnit.current
+    return remember(resources, unit, decimals) { { value -> unit.format(resources, value, decimals) } }
 }
 
-/** "12 500 kg": volumes are whole and grouped. */
-@Composable
-fun rememberVolumeLabel(): (Double) -> String {
-    val resources = LocalResources.current
-    return remember(resources) { { kg -> resources.getString(R.string.summary_volume_value, volumeLabel(kg)) } }
-}
+/** Masses in kg to the shown unit, so a chart's round ticks are round in that unit. */
+fun List<ChartPoint>.shownIn(unit: WeightUnit): List<ChartPoint> = if (unit == WeightUnit.Kg) this else map { it.copy(value = unit.fromKg(it.value)) }
 
 @StringRes
 fun RecordType.label(): Int = when (this) {

@@ -56,9 +56,8 @@ import com.jaroszeek.gymtracker.feature.exercises.label
 import com.jaroszeek.gymtracker.feature.health.kcalLabel
 import com.jaroszeek.gymtracker.feature.health.label
 import com.jaroszeek.gymtracker.feature.health.sourceLabel
-import com.jaroszeek.gymtracker.feature.routines.weightLabel
+import com.jaroszeek.gymtracker.feature.routines.massLabel
 import com.jaroszeek.gymtracker.feature.workout.durationLabel
-import com.jaroszeek.gymtracker.feature.workout.volumeLabel
 import java.time.Instant
 import java.time.YearMonth
 import java.time.ZoneId
@@ -179,8 +178,8 @@ private fun LazyListScope.exercises(exercises: List<ExerciseHistory>, onOpen: (L
         return
     }
     items(exercises, key = { "exercise-${it.exerciseId}" }) { exercise ->
-        val best = exercise.e1rmKg?.let { stringResource(R.string.progress_e1rm, e1rmLabel(it)) }
-            ?: exercise.maxWeightKg?.let { stringResource(R.string.value_kg, weightLabel(it)) }
+        val best = exercise.e1rmKg?.let { stringResource(R.string.progress_e1rm, massLabel(it, decimals = 1)) }
+            ?: exercise.maxWeightKg?.let { massLabel(it) }
             ?: stringResource(R.string.workout_set_value_bodyweight, exercise.maxReps)
         HistoryCard(
             title = exercise.name,
@@ -261,7 +260,7 @@ internal fun SummaryRow(summary: WorkoutSummary, modifier: Modifier = Modifier) 
         StatColumn(durationLabel(summary.durationMillis), stringResource(R.string.summary_duration), Modifier.weight(1f))
         StatColumn("${summary.exercises}", stringResource(R.string.summary_exercises), Modifier.weight(1f))
         StatColumn("${summary.sets}", stringResource(R.string.progress_sets), Modifier.weight(1f))
-        StatColumn(stringResource(R.string.summary_volume_value, volumeLabel(summary.volumeKg)), stringResource(R.string.summary_volume), Modifier.weight(1.3f))
+        StatColumn(massLabel(summary.volumeKg, decimals = 0), stringResource(R.string.summary_volume), Modifier.weight(1.3f))
     }
 }
 
