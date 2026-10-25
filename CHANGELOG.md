@@ -2,6 +2,12 @@
 
 Najnowsza wersja na górze. Workflow wydania bierze do opisu Release sekcję `## X.Y.Z` zgodną z tagiem `vX.Y.Z`.
 
+## 1.3.0
+
+- GymTracker jest też po angielsku. Na telefonie po polsku zostaje po polsku, na każdym innym jest po angielsku.
+- Język wybierzesz w Ustawienia → Język: systemowy, polski albo angielski.
+- W angielskiej wersji instrukcje ćwiczeń są w oryginale, w polskiej po polsku.
+
 ## 1.2.0
 
 - Instrukcje wszystkich wbudowanych ćwiczeń są po polsku (tłumaczenie maszynowe). Nazwy ćwiczeń zostają po angielsku.

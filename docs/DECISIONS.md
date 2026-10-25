@@ -608,6 +608,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 ## 2026-10-24 — Etap 10 (szlif, wydajność, QA)
 
 ### D-078 Język aplikacji na stałe polski
+- **Zastąpione przez D-105 (2026-10-25):** aplikacja ma też angielską wersję.
 - Przy pierwszym starcie (i gdy ktoś wybierze w systemie „Domyślny język”) aplikacja ustawia sobie język pl-PL przez `LocaleManager.setApplicationLocales` (API 33+, bez AppCompat). Teksty są tylko po polsku, a Android wybiera formy liczby mnogiej według języka aplikacji, nie tekstów: na angielskim systemie wychodziło „0 treningu” zamiast „0 treningów”. Daty i nazwy dni są teraz też po polsku.
 - Zamyka pytanie z Etapu 9 i pomysł z IDEAS (2026-10-19). Właściciel nie odpowiedział na pytanie, więc wybrana jest rekomendacja.
 - **Alternatywy:** `createConfigurationContext` w aktywności (nie obejmuje powiadomień, serwisu i workerów); angielskie teksty jako domyślne i polskie w `values-pl` (tłumaczenie całej aplikacji poza zakresem).
@@ -772,6 +773,19 @@ Właściciel zatwierdził wszystkie (2026-10-24):
 ### D-104 Kalendarz bez spacerów (zmienia D-100)
 - Sesje typu „spacer” (`EXERCISE_TYPE_WALKING`) nie dają kropki w kalendarzu na Starcie: Samsung Health sam wykrywa spacery i zapisuje je do HC, więc kropka byłaby prawie codziennie. W historii (Postępy) spacery zostają.
 - Alternatywy: lista typów do wyboru w ustawieniach (więcej UI dla jednej potrzeby; do `IDEAS.md`, jeśli wróci), filtr po `metadata.recordingMethod` = automatyczne (wymaga nowej kolumny w `health.db` i migracji, a nie wiadomo, czy Samsung je ustawia).
+
+### D-105 Angielska wersja aplikacji (Etap 14, zmienia D-078)
+- Na prośbę właściciela (2026-10-25). Angielskie teksty są domyślne (`values/strings.xml`), polskie w `values-pl/strings.xml`: polski system dostaje polski, każdy inny angielski. Zasady w CLAUDE.md i PROMPT.md (A2, A5.9) zmienione za zgodą właściciela.
+- Koniec wymuszania polskiego (kod z D-078 usunięty). Język zapisany przez D-078 zostaje, więc dotychczasowe instalacje są dalej po polsku.
+- Ustawienia → Język: Systemowy / Polski / English, przez `LocaleManager.setApplicationLocales` (Android pamięta wybór i od razu tworzy ekrany w nowym języku). Nazwy języków są zawsze w swoim języku.
+- Tłumaczenie maszynowe ok. 730 tekstów (agenci, 4 części równolegle) według wspólnego słownika i stylu (US English, sentence case, „workout”, „set”, „rest”, „PR”); skrypt sprawdzał nazwy, placeholdery, formy liczby mnogiej i znaki. Przejrzane w całości.
+- Daty dalej z tych samych wzorców (`d MMMM`, 24 h), więc po angielsku wychodzi kolejność brytyjska („Sunday, 25 October”, „18:30”). Notatki do aktualizacji (changelog) zostają po polsku.
+- Testy UI mają teksty po polsku, więc `PolishRule` przełącza na czas testu język aplikacji na polski; benchmarki szukają tekstów w obu językach.
+- **Alternatywy:** wybór języka tylko w ustawieniach systemu (`localeConfig`; mniej odkrywalne, do `IDEAS.md`); testy szukające tekstów przez `R.string` (dłuższe, mniej czytelne); amerykańskie formaty dat i 12 h (więcej zmian w formatowaniu, do `IDEAS.md`).
+
+### D-106 Instrukcje ćwiczeń według języka (zmienia D-102)
+- Polskie instrukcje tylko w polskiej wersji; angielska pokazuje oryginał z free-exercise-db. `ExerciseTranslations.polish` to przepływ języka aplikacji (z `ComponentCallbacks`), połączony z ćwiczeniem w `ExerciseRepository.observe`: otwarty ekran ćwiczenia przełącza instrukcje razem z językiem, choć jego ViewModel przeżywa zmianę.
+- **Alternatywy:** sprawdzanie języka tylko przy odczycie (otwarty ekran zostawał w starym języku — sprawdzone na emulatorze, odrzucone).
 
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 

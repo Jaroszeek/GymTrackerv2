@@ -18,9 +18,19 @@
 | 11 | Wydanie i aktualizator | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-11`, **v1.0.0** i testowe v1.0.1; czeka na test aktualizacji na telefonie |
 | 12 | Szlif 1.1 (pomysły z `IDEAS.md`) | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-12` i **v1.1.0**; czeka na test na telefonie |
 | 13 | Wersja 1.2: polskie instrukcje, poprawki, zależności | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-13` i **v1.2.0**; czeka na test na telefonie |
+| 14 | Wersja 1.3: angielska wersja aplikacji | 🔄 PR i wydanie `preview-stage-14`; changelog 1.3.0 do akceptacji |
 
 ## Bieżący stan
 
+- **Etap 14** (branch `feat/stage-14-english`, 2026-10-25): angielska wersja aplikacji na prośbę właściciela.
+  - Zrobione:
+    - angielskie teksty domyślne, polskie w `values-pl`; koniec wymuszania polskiego, dotychczasowe instalacje zostają po polsku (D-105);
+    - Ustawienia → Język: Systemowy / Polski / English;
+    - instrukcje ćwiczeń po polsku tylko w polskiej wersji, także na otwartym ekranie przy zmianie języka (D-106);
+    - zasady w CLAUDE.md i PROMPT.md (A2, A5.9, Etap 14) zmienione za zgodą właściciela.
+  - Sprawdzone na emulatorze (API 36, system EN): pierwszy start po angielsku; wybór „Polski” przełącza od razu i przeżywa restart; zmiana języka przy otwartym ćwiczeniu przełącza instrukcje; wydana 1.2.0 ma zapisany polski.
+  - Testy: JVM 324/324, UI 6/6 (API 36, także gdy aplikacja startuje po angielsku), lint 0 błędów.
+  - Środowisko: build padał na braku pamięci (plik stronicowania), gdy działał emulator innego projektu; po zwolnieniu pamięci wszystko przeszło. Świeżo uruchomiony emulator ma zablokowany ekran i wtedy testy Compose padają („No compose hierarchies”); trzeba go odblokować.
 - **Etap 13** zaakceptowany i zmergowany (PR #15, zależności PR #16, 2026-10-25): zakres wybrany przez właściciela po wydaniu 1.1.0.
   - **v1.2.0** wydane z tagu: workflow „Release” zielony. Na emulatorze wydana 1.1.0 znalazła ją w Ustawienia → Aktualizacje → „Sprawdź teraz” i zaktualizowała się; po aktualizacji instrukcje są po polsku.
   - Zrobione:
@@ -134,6 +144,14 @@
   - Test UI: `.\gradlew.bat :app:connectedDebugAndroidTest` (D-042).
   - Gdy emulator przestaje rysować (czarny ekran, tapnięcia bez reakcji, w logu `lowmemorykiller … device is not responding` i ANR „no focused window”), pomaga zimny start: `adb emu kill`, potem `emulator -avd gt-api36 -no-snapshot-load`.
 - **vynox:** sklonowany do `%TEMP%\vynox-ref`, tylko do odczytu.
+
+## Etap 14 — test na telefonie
+
+1. Instalacja: APK z wydania `preview-stage-14` albo `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Dane zostają.
+2. Po instalacji aplikacja zostaje po polsku (telefon po polsku albo język zapisany wcześniej).
+3. Ustawienia → Język → English: wszystko po angielsku od razu, bez restartu; „Polski” wraca.
+4. Na angielskim: Ćwiczenia → dowolne wbudowane → „Instructions” w oryginale; powiadomienie treningu i przerwy po angielsku.
+5. Do raportu: teksty, które brzmią źle po angielsku albo się nie mieszczą.
 
 ## Etap 13 — test na telefonie
 
@@ -254,7 +272,7 @@ Klucz, sekrety i wydania v1.0.0 oraz v1.0.1 są gotowe. Kopia zapasowa klucza i 
 
 ## Następny krok
 
-- Właściciel: decyzja o angielskiej wersji aplikacji (`IDEAS.md`).
-- Właściciel: test Etapów 12–13 na telefonie (wyżej) i aktualizacja z aplikacji do v1.2.0.
+- Właściciel: akceptacja Etapu 14 (PR) i changelogu 1.3.0; potem tag `v1.3.0`.
+- Właściciel: test Etapów 12–14 na telefonie (wyżej) i aktualizacja z aplikacji do v1.2.0.
 - Właściciel: kopia zapasowa klucza i hasła, test aktualizacji 1.0.0 → 1.0.1 na telefonie (wyżej).
 - Wyniki testów Etapów 9–10 na telefonie, gdy właściciel je przekaże.
