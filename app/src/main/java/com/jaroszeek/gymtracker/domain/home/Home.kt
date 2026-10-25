@@ -62,10 +62,12 @@ fun weeklyStreak(workoutDays: Collection<LocalDate>, today: LocalDate): Int {
 /**
  * Days of the calendar with a session imported from Health Connect, e.g. a run recorded by a watch, and no
  * workout here: a day with both shows the workout. A linked session is its workout and adds no day.
+ * Sessions of [hiddenTypes] add no day, e.g. walks a phone detects by itself nearly every day (D-104).
  */
-fun sessionDays(workouts: List<WorkoutListItem>, sessions: List<HealthSession>, zone: ZoneId): Set<LocalDate> {
+fun sessionDays(workouts: List<WorkoutListItem>, sessions: List<HealthSession>, zone: ZoneId, hiddenTypes: Set<Int> = emptySet()): Set<LocalDate> {
     fun day(millis: Long) = Instant.ofEpochMilli(millis).atZone(zone).toLocalDate()
-    return sessions.notLinkedTo(workouts).mapTo(HashSet()) { day(it.startTime) } - workouts.mapTo(HashSet()) { day(it.startedAt) }
+    val shown = sessions.notLinkedTo(workouts).filterNot { it.exerciseType in hiddenTypes }
+    return shown.mapTo(HashSet()) { day(it.startTime) } - workouts.mapTo(HashSet()) { day(it.startedAt) }
 }
 
 /** Totals of a week's workouts; volume and sets leave warm-ups out, as everywhere. */

@@ -104,6 +104,10 @@ class HomeTest {
         // A linked session alone is still its workout's
         assertEquals(emptySet<LocalDate>(), sessionDays(workouts.take(1), sessions.take(1), zone))
         assertEquals(emptySet<LocalDate>(), sessionDays(workouts, emptyList(), zone))
+        // Hidden types add no day, so the walk is gone
+        val walking = 79
+        val withWalk = sessions + HealthSession("walk2", "com.phone", walking, null, at(today.minusDays(4), 9), at(today.minusDays(4), 10))
+        assertEquals(setOf(today.minusDays(3), today.minusDays(5)), sessionDays(workouts, withWalk, zone, hiddenTypes = setOf(walking)))
     }
 
     @Test
