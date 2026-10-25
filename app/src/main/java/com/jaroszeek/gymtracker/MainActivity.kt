@@ -1,11 +1,7 @@
 package com.jaroszeek.gymtracker
 
-import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
-import android.os.LocaleList
 import android.view.View
 import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
@@ -33,7 +29,6 @@ import com.jaroszeek.gymtracker.feature.health.PrivacyPolicyScreen
 import com.jaroszeek.gymtracker.feature.routines.LocalWeightUnit
 import com.jaroszeek.gymtracker.navigation.GymTrackerRoot
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.Locale
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -60,17 +55,6 @@ class MainActivity : ComponentActivity() {
 
     /** Bumped by every tap on the workout notification; the root then opens the workout. */
     private var openWorkoutRequests by mutableIntStateOf(0)
-
-    // The app's locale set on the very first start applies from the next process on; until then this one gets it here (D-078).
-    // The Polish texts are the default resources, so no language split of a bundle can leave them out.
-    @SuppressLint("AppBundleLocaleChanges")
-    override fun attachBaseContext(newBase: Context) {
-        val config = newBase.resources.configuration
-        val polish = config.locales[0].language == Locale.forLanguageTag(APP_LOCALE).language
-        super.attachBaseContext(
-            if (polish) newBase else newBase.createConfigurationContext(Configuration(config).apply { setLocales(LocaleList.forLanguageTags(APP_LOCALE)) }),
-        )
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
