@@ -62,6 +62,7 @@ import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
 import com.jaroszeek.gymtracker.designsystem.theme.ThemeMode
 import com.jaroszeek.gymtracker.designsystem.theme.ThemeSettings
 import com.jaroszeek.gymtracker.designsystem.theme.gtColors
+import com.jaroszeek.gymtracker.domain.settings.AppLanguage
 import com.jaroszeek.gymtracker.domain.settings.RestDefaults
 import com.jaroszeek.gymtracker.domain.settings.WeightUnit
 import com.jaroszeek.gymtracker.feature.progress.shortDate
@@ -96,6 +97,7 @@ fun SettingsRoute(
         actions = SettingsActions(
             onBack = onBack,
             onTheme = viewModel::onTheme,
+            onLanguage = viewModel::onLanguage,
             onUnit = viewModel::onUnit,
             onRestSeconds = viewModel::onRestSeconds,
             onRestSound = viewModel::onRestSound,
@@ -118,6 +120,7 @@ fun SettingsRoute(
 class SettingsActions(
     val onBack: () -> Unit = {},
     val onTheme: (ThemeSettings) -> Unit = {},
+    val onLanguage: (AppLanguage) -> Unit = {},
     val onUnit: (WeightUnit) -> Unit = {},
     val onRestSeconds: (Int) -> Unit = {},
     val onRestSound: (Boolean) -> Unit = {},
@@ -158,6 +161,15 @@ fun SettingsScreen(
 
         SectionTitle(R.string.settings_appearance)
         AppearanceCard(state.theme, actions.onTheme)
+
+        SectionTitle(R.string.settings_language)
+        GlassCard(Modifier.fillMaxWidth()) {
+            GlassSegmentedControl(
+                options = AppLanguage.entries.map { stringResource(it.label()) },
+                selectedIndex = state.language.ordinal,
+                onSelect = { actions.onLanguage(AppLanguage.entries[it]) },
+            )
+        }
 
         SectionTitle(R.string.settings_training)
         TrainingCard(state, actions)
@@ -357,6 +369,13 @@ private fun Rejection.message(): Int = when (this) {
     Rejection.Damaged -> R.string.backup_rejected_damaged
     Rejection.Newer -> R.string.backup_rejected_newer
     Rejection.UnsupportedV1 -> R.string.backup_rejected_old_v1
+}
+
+@StringRes
+private fun AppLanguage.label(): Int = when (this) {
+    AppLanguage.System -> R.string.settings_mode_system
+    AppLanguage.Polish -> R.string.language_polish
+    AppLanguage.English -> R.string.language_english
 }
 
 @StringRes

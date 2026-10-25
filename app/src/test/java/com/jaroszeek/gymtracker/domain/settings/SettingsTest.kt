@@ -27,6 +27,14 @@ class SettingsTest {
     }
 
     @Test
+    fun aLanguageWithoutTextsFollowsTheSystem() {
+        assertEquals(AppLanguage.Polish, AppLanguage.fromTag("pl"))
+        assertEquals(AppLanguage.English, AppLanguage.fromTag("en"))
+        assertEquals(AppLanguage.System, AppLanguage.fromTag(null))
+        assertEquals(AppLanguage.System, AppLanguage.fromTag("de"))
+    }
+
+    @Test
     fun restStaysWithinItsRange() {
         assertEquals(RestDefaults.MIN_SECONDS, RestDefaults.coerce(0))
         assertEquals(120, RestDefaults.coerce(120))
