@@ -3,12 +3,14 @@ package com.jaroszeek.gymtracker.data.exercise
 import com.jaroszeek.gymtracker.domain.exercise.Equipment
 import com.jaroszeek.gymtracker.domain.exercise.ExerciseDraft
 import com.jaroszeek.gymtracker.domain.exercise.Muscle
+import com.jaroszeek.gymtracker.testing.asset
 import com.jaroszeek.gymtracker.testing.bundledSeed
 import com.jaroszeek.gymtracker.testing.inMemoryDatabase
 import com.jaroszeek.gymtracker.testing.seeder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -75,5 +77,31 @@ class ExerciseRepositoryTest {
         val bench = repository.observeAll().first().first { !it.isCustom }
         repository.deleteCustom(bench.id)
         assertEquals(bench, repository.observe(bench.id).first())
+    }
+
+    @Test
+    fun builtInExercisesShowTheirPolishInstructions() = runTest {
+        val translations = ExerciseTranslations { mapOf("Barbell_Deadlift" to listOf("Podejdź do sztangi.")) }
+        val repository = ExerciseRepository(database, seeder(), Dispatchers.IO, translations)
+        val all = repository.observeAll().first()
+        val deadlift = all.single { it.name == "Barbell Deadlift" }
+        assertEquals(listOf("Podejdź do sztangi."), repository.observe(deadlift.id).first()!!.instructions)
+        // Without a translation the source text stays
+        val other = all.first { !it.isCustom && it.name != "Barbell Deadlift" }
+        assertEquals(other.instructions, repository.observe(other.id).first()!!.instructions)
+        val custom = repository.saveCustom(null, ExerciseDraft(name = "Landmine Press", notes = "Stand tall"))
+        assertEquals(listOf("Stand tall"), repository.observe(custom).first()!!.instructions)
+    }
+
+    @Test
+    fun polishInstructionsMatchTheBundledSeed() {
+        val polish = Json.decodeFromString<Map<String, List<String>>>(asset("exercises/instructions_pl.json"))
+        val seeded = bundledSeed.associate { it.entity.externalId to it.entity }
+        polish.forEach { (id, steps) ->
+            val source = checkNotNull(seeded[id]) { "unknown id $id" }
+            assertEquals(id, source.instructions.size, steps.size)
+            assertTrue(id, steps.none { it.isBlank() })
+        }
+        assertEquals(seeded.values.count { it.instructions.isNotEmpty() }, polish.size)
     }
 }

@@ -2,6 +2,7 @@ package com.jaroszeek.gymtracker.feature.home
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.lifecycle.viewModelScope
 import com.jaroszeek.gymtracker.core.datastore.AppPreferences
 import com.jaroszeek.gymtracker.core.di.IoDispatcher
@@ -151,7 +152,7 @@ class HomeViewModel @Inject constructor(
                 week = weekStats(training.history, Week.of(today), zone),
                 lastWorkout = training.history.firstOrNull(),
                 workoutDays = days,
-                sessionDays = sessionDays(training.history, training.sessions, zone),
+                sessionDays = sessionDays(training.history, training.sessions, zone, CALENDAR_HIDDEN_TYPES),
                 records = headlineRecords(records),
                 steps = if (permitted || activity.any { it.steps != null }) {
                     (STEP_DAYS - 1 downTo 0).map { back -> activity.firstOrNull { it.day == today.minusDays(back) }?.steps ?: 0 }
@@ -253,5 +254,8 @@ class HomeViewModel @Inject constructor(
 
         /** "Dzień dobry" from 5:00, "Dobry wieczór" from 18:00. */
         val DAY_HOURS = 5..17
+
+        /** Walks stay in the history but mark no day: Samsung Health records them by itself (D-104). */
+        val CALENDAR_HIDDEN_TYPES = setOf(ExerciseSessionRecord.EXERCISE_TYPE_WALKING)
     }
 }
