@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -110,6 +112,7 @@ private val NavItems = listOf(
 )
 
 private const val FILLER_CARDS = 12
+private const val SHEET_ITEMS = 30
 private const val SAMPLE_SESSIONS = 120
 private const val SAMPLE_GAP_MILLIS = 3 * 86_400_000L
 private const val SPARKLINE_POINTS = 30
@@ -158,6 +161,15 @@ fun GalleryScreen(settings: ThemeSettings, onSettingsChange: (ThemeSettings) -> 
             GlassBottomSheet(visible = sheet, onDismissRequest = { sheet = false }) {
                 Text(stringResource(R.string.gallery_sheet_title), style = GtTheme.typography.headline)
                 Text(stringResource(R.string.gallery_sheet_text), color = GtTheme.colors.textSecondary)
+                // Taller than the screen, so it scrolls; dragged down at its top it moves the sheet
+                Column(
+                    Modifier
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(GtSpacing.m),
+                ) {
+                    repeat(SHEET_ITEMS) { Text(stringResource(R.string.gallery_filler_title, it + 1)) }
+                }
                 GlassButton(stringResource(R.string.action_close), onClick = { sheet = false }, modifier = Modifier.fillMaxWidth())
             }
             GlassFullScreenOverlay(visible = fullScreen, onDismissRequest = { fullScreen = false }) {

@@ -7,6 +7,7 @@ import com.jaroszeek.gymtracker.data.health.HealthRepository
 import com.jaroszeek.gymtracker.data.progress.ProgressRepository
 import com.jaroszeek.gymtracker.data.workout.WorkoutRepository
 import com.jaroszeek.gymtracker.domain.health.HealthSession
+import com.jaroszeek.gymtracker.domain.health.notLinkedTo
 import com.jaroszeek.gymtracker.domain.progress.ExerciseHistory
 import com.jaroszeek.gymtracker.domain.progress.RoutineHistory
 import com.jaroszeek.gymtracker.domain.progress.Week
@@ -80,9 +81,8 @@ class ProgressViewModel @Inject constructor(
     // imported (deleted in its app, or after disconnecting) counts as none, as in the workout's details
     private val history = combine(workouts.observeHistory(), health.observeSessions()) { workouts, sessions ->
         val imported = sessions.mapTo(HashSet()) { it.id }
-        val linked = workouts.mapNotNullTo(HashSet()) { it.healthSessionId }
         val rows = workouts.map { HistoryEntry.Workout(it.copy(healthSessionId = it.healthSessionId?.takeIf(imported::contains))) }
-        (rows + sessions.filter { it.id !in linked }.map(HistoryEntry::Session)).sortedByDescending { it.startedAt }
+        (rows + sessions.notLinkedTo(workouts).map(HistoryEntry::Session)).sortedByDescending { it.startedAt }
     }
 
     val state: StateFlow<ProgressUiState> =

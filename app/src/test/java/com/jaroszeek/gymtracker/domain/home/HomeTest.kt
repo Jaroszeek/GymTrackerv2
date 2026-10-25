@@ -1,5 +1,6 @@
 package com.jaroszeek.gymtracker.domain.home
 
+import com.jaroszeek.gymtracker.domain.health.HealthSession
 import com.jaroszeek.gymtracker.domain.progress.Week
 import com.jaroszeek.gymtracker.domain.workout.WorkoutListItem
 import com.jaroszeek.gymtracker.domain.workout.WorkoutSummary
@@ -80,6 +81,29 @@ class HomeTest {
             workout(LocalDateTime.of(2026, 10, 26, 0, 0)),
         )
         assertEquals(2, weekStats(workouts, week, zone).workouts)
+    }
+
+    @Test
+    fun sessionDaysAreTheDaysWithAnUnlinkedSessionAndNoWorkout() {
+        val zone = ZoneId.of("Europe/Warsaw")
+        fun at(day: LocalDate, hour: Int) = day.atTime(hour, 0).atZone(zone).toInstant().toEpochMilli()
+        fun session(id: String, start: Long) = HealthSession(id, "com.watch", exerciseType = 56, title = null, startTime = start, endTime = start + 3_600_000)
+        val workouts = listOf(
+            WorkoutListItem(1, "Push", at(today, 18), WorkoutSummary(3_600_000, 5_000.0, 15, 5), healthSessionId = "linked"),
+            WorkoutListItem(2, "Pull", at(today.minusDays(2), 18), WorkoutSummary(3_600_000, 5_000.0, 15, 5)),
+        )
+        val sessions = listOf(
+            session("linked", at(today, 18)),
+            // A run on a day with a workout: the workout shows
+            session("run", at(today.minusDays(2), 7)),
+            session("walk", at(today.minusDays(3), 12)),
+            // 23:30 UTC is already the next day in Warsaw
+            session("late", today.minusDays(6).atTime(23, 30).toInstant(ZoneOffset.UTC).toEpochMilli()),
+        )
+        assertEquals(setOf(today.minusDays(3), today.minusDays(5)), sessionDays(workouts, sessions, zone))
+        // A linked session alone is still its workout's
+        assertEquals(emptySet<LocalDate>(), sessionDays(workouts.take(1), sessions.take(1), zone))
+        assertEquals(emptySet<LocalDate>(), sessionDays(workouts, emptyList(), zone))
     }
 
     @Test

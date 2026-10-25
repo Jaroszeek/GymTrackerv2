@@ -222,7 +222,7 @@ fun HomeScreen(
                 HomeWidget.LastWorkout -> LastWorkoutCard(state.lastWorkout, onOpen = onOpenWorkoutDetail, onStart = onChooseRoutine)
                 HomeWidget.Readiness -> readiness()
                 HomeWidget.Records -> RecordsCard(state.records, onOpen = onOpenWorkoutDetail)
-                HomeWidget.Calendar -> ActivityCalendarCard(state.workoutDays, state.today)
+                HomeWidget.Calendar -> ActivityCalendarCard(state.workoutDays, state.sessionDays, state.today)
                 HomeWidget.Steps -> StepsCard(state.steps, state.today, onConnect = onConnect)
                 HomeWidget.Body -> BodyCard(state.body, state.weights, onOpen = onProfile)
             }

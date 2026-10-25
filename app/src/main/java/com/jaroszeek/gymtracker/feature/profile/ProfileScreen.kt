@@ -282,15 +282,30 @@ private fun CompositionCard(summary: BodySummary, onAdd: (BodyMetric) -> Unit) {
             StatColumn(summary.bodyFat?.let { bodyValueLabel(BodyMetric.BodyFat, it.value) } ?: empty, stringResource(R.string.profile_body_fat), Modifier.weight(1f))
             StatColumn(summary.fatMassKg?.let { bodyValueLabel(BodyMetric.Weight, it) } ?: empty, stringResource(R.string.profile_fat_mass), Modifier.weight(1f))
         }
+        val leanMass = summary.leanMass
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
-            StatColumn(summary.leanMassKg?.let { bodyValueLabel(BodyMetric.Weight, it) } ?: empty, stringResource(R.string.profile_lean_mass), Modifier.weight(1f))
+            Column(Modifier.weight(1f)) {
+                StatColumn(summary.leanMassKg?.let { bodyValueLabel(BodyMetric.Weight, it) } ?: empty, stringResource(R.string.profile_lean_mass))
+                // From Health Connect: when and from where, like the values of the log
+                if (leanMass != null) {
+                    Text(
+                        stringResource(R.string.profile_measurement_meta, shortDate(leanMass.time), timeLabel(leanMass.time), sourceLabel(leanMass.origin)),
+                        color = colors.textTertiary,
+                        style = GtTheme.typography.labelSmall,
+                    )
+                }
+            }
             StatColumn(
                 summary.skeletalMuscle?.let { bodyValueLabel(BodyMetric.SkeletalMuscle, it.value) } ?: empty,
                 stringResource(R.string.profile_skeletal_muscle),
                 Modifier.weight(1f),
             )
         }
-        Text(stringResource(R.string.profile_composition_text), color = colors.textTertiary, style = GtTheme.typography.labelSmall)
+        Text(
+            stringResource(if (leanMass != null) R.string.profile_composition_lean_text else R.string.profile_composition_text),
+            color = colors.textTertiary,
+            style = GtTheme.typography.labelSmall,
+        )
         FlowRow(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s), verticalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
             GlassButton(stringResource(R.string.profile_body_fat), onClick = { onAdd(BodyMetric.BodyFat) }, style = GlassButtonStyle.Secondary, icon = R.drawable.ic_add)
             GlassButton(stringResource(R.string.profile_skeletal_muscle), onClick = { onAdd(BodyMetric.SkeletalMuscle) }, style = GlassButtonStyle.Secondary, icon = R.drawable.ic_add)

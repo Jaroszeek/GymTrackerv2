@@ -71,18 +71,31 @@ private const val BMI_NORMAL = 18.5
 private const val BMI_OVERWEIGHT = 25.0
 private const val BMI_OBESE = 30.0
 
-/** The latest value of each metric; fat and lean mass come from the latest weight and body fat. */
+/** Lean body mass in kg read from Health Connect, written by the app [origin]; it has no manual entry. */
+data class LeanMass(val time: Long, val valueKg: Double, val origin: String)
+
+/**
+ * The latest value of each metric; fat and lean mass come from the latest weight and body fat. Without
+ * them [leanMass] is Health Connect's latest lean mass, and fat mass is what [leanWeight], the weighing
+ * taken with it, adds.
+ */
 data class BodySummary(
     val weight: BodyMeasurement? = null,
     val height: BodyMeasurement? = null,
     val bodyFat: BodyMeasurement? = null,
     val skeletalMuscle: BodyMeasurement? = null,
+    val leanMass: LeanMass? = null,
+    val leanWeight: BodyMeasurement? = null,
 ) {
     val bmi: Double? get() = if (weight != null && height != null) bmi(weight.value, height.value) else null
 
-    val fatMassKg: Double? get() = if (weight != null && bodyFat != null) weight.value * bodyFat.value / PERCENT else null
+    val fatMassKg: Double? get() = when {
+        leanMass != null -> leanWeight?.let { it.value - leanMass.valueKg }?.takeIf { it > 0 }
+        weight != null && bodyFat != null -> weight.value * bodyFat.value / PERCENT
+        else -> null
+    }
 
-    val leanMassKg: Double? get() = fatMassKg?.let { fat -> weight?.let { it.value - fat } }
+    val leanMassKg: Double? get() = leanMass?.valueKg ?: fatMassKg?.let { fat -> weight?.let { it.value - fat } }
 
     operator fun get(metric: BodyMetric): BodyMeasurement? = when (metric) {
         BodyMetric.Weight -> weight
@@ -92,9 +105,20 @@ data class BodySummary(
     }
 }
 
-fun bodySummary(measurements: List<BodyMeasurement>): BodySummary {
+/**
+ * [leanMass] counts only without a weight and body fat. Its weighing is the closest one at most
+ * [DUPLICATE_WINDOW_MILLIS] away, i.e. the same one: a weighing hours apart would add the day's swing of
+ * water and food to the fat mass.
+ */
+fun bodySummary(measurements: List<BodyMeasurement>, leanMass: LeanMass? = null): BodySummary {
     fun latest(metric: BodyMetric) = measurements.filter { it.metric == metric }.maxByOrNull { it.time }
-    return BodySummary(latest(BodyMetric.Weight), latest(BodyMetric.Height), latest(BodyMetric.BodyFat), latest(BodyMetric.SkeletalMuscle))
+    val weight = latest(BodyMetric.Weight)
+    val bodyFat = latest(BodyMetric.BodyFat)
+    val lean = leanMass?.takeIf { weight == null || bodyFat == null }
+    val leanWeight = lean?.let { mass ->
+        measurements.filter { it.metric == BodyMetric.Weight && abs(it.time - mass.time) <= DUPLICATE_WINDOW_MILLIS }.minByOrNull { abs(it.time - mass.time) }
+    }
+    return BodySummary(weight, latest(BodyMetric.Height), bodyFat, latest(BodyMetric.SkeletalMuscle), lean, leanWeight)
 }
 
 private const val PERCENT = 100.0

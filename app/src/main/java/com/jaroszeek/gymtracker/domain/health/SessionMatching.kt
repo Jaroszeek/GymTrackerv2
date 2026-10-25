@@ -1,5 +1,6 @@
 package com.jaroszeek.gymtracker.domain.health
 
+import com.jaroszeek.gymtracker.domain.workout.WorkoutListItem
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -42,6 +43,12 @@ fun linkCandidates(start: Long, sessions: List<HealthSession>): List<HealthSessi
     .sortedBy { abs(it.startTime - start) }
 
 const val MATCH_WINDOW_MILLIS = 12 * 3_600_000L
+
+/** Sessions no workout is linked to: a linked one is that workout, not an activity of its own (D-062). */
+fun List<HealthSession>.notLinkedTo(workouts: List<WorkoutListItem>): List<HealthSession> {
+    val linked = workouts.mapNotNullTo(HashSet()) { it.healthSessionId }
+    return filter { it.id !in linked }
+}
 
 /**
  * The same activity written by two apps (e.g. a watch app and an app it shares with): of sessions of
