@@ -733,7 +733,8 @@
     <string name="profile_composition_text">Masy liczone z ostatniej wagi i tkanki tłuszczowej. Mięśnie szkieletowe wpisujesz ręcznie, bo Health Connect ich nie zapisuje.</string>
     <string name="profile_add">Dodaj pomiar</string>
     <string name="profile_add_title">Nowy pomiar</string>
-    <string name="profile_add_now">Zapisany z bieżącą datą i godziną.</string>
+    <string name="profile_add_time_now">Teraz</string>
+    <string name="profile_add_time_title">Kiedy zmierzono?</string>
     <string name="profile_add_range">Dozwolone %1$s–%2$s %3$s</string>
     <string name="profile_charts_title">Wykresy</string>
     <string name="profile_chart_empty">Brak pomiarów w tym okresie.</string>

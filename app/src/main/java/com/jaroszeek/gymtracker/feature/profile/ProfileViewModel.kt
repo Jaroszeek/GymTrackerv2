@@ -44,13 +44,19 @@ import kotlinx.coroutines.withContext
 
 enum class BodyChart { Weight, Bmi, BodyFat }
 
-/** The sheet for a new value; [invalid] after saving a value outside the metric's range. */
-/** [value] as entered: in [unit] for masses, centimetres for the height. */
+/**
+ * The sheet for a new value, [value] as entered: in [unit] for masses, centimetres for the height;
+ * [invalid] after saving a value outside the metric's range.
+ */
 data class NewMeasurement(
     val metric: BodyMetric = BodyMetric.Weight,
     val value: Double? = null,
     val invalid: Boolean = false,
     val unit: WeightUnit = WeightUnit.Kg,
+    /** When it was measured, epoch millis UTC; null = now, when it is saved. */
+    val time: Long? = null,
+    /** While the time picker is open: the latest time it allows, the time it opened. */
+    val timeMax: Long? = null,
 )
 
 /** The age sheet with the age as entered; saving it empty clears the age. */
@@ -100,6 +106,7 @@ class ProfileViewModel @Inject constructor(
     private val today = MutableStateFlow(today())
     private val activityPermitted = MutableStateFlow(false)
     private val local = MutableStateFlow(Local())
+
     private val unit = preferences.weightUnit.stateIn(viewModelScope, SharingStarted.Eagerly, WeightUnit.Kg)
 
     /** Null while Health Connect gives none: the card offers to connect. */
@@ -176,13 +183,20 @@ class ProfileViewModel @Inject constructor(
 
     fun onAddDismiss() = local.update { it.copy(adding = null) }
 
+    fun onAddTimePick() = local.update { it.copy(adding = it.adding?.copy(timeMax = clock.millis())) }
+
+    fun onAddTimeDismiss() = local.update { it.copy(adding = it.adding?.copy(timeMax = null)) }
+
+    /** The repository keeps it from being in the future. */
+    fun onAddTime(time: Long) = local.update { it.copy(adding = it.adding?.copy(time = time, timeMax = null)) }
+
     fun onAddSave() {
         if (saving?.isActive == true) return
         val adding = local.value.adding ?: return
         val value = adding.value?.let { adding.metric.fromInput(it, adding.unit) } ?: return
         saving = viewModelScope.launch {
             val saved = try {
-                body.add(adding.metric, value)
+                body.add(adding.metric, value, adding.time)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

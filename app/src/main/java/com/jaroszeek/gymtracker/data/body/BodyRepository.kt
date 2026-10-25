@@ -41,10 +41,14 @@ class BodyRepository @Inject constructor(
             (entered + synced).withoutDuplicates()
         }.flowOn(io)
 
-    /** Saved as measured now; false, and nothing saved, when [value] is outside the metric's range. */
-    suspend fun add(metric: BodyMetric, value: Double): Boolean {
+    /**
+     * Saved as measured at [time], now when null and at most now; false, and nothing saved, when [value] is
+     * outside the metric's range.
+     */
+    suspend fun add(metric: BodyMetric, value: Double, time: Long? = null): Boolean {
         if (value !in metric.range) return false
-        withContext(io) { dao.insert(BodyMeasurementEntity(type = metric.key, time = clock.millis(), value = value)) }
+        val now = clock.millis()
+        withContext(io) { dao.insert(BodyMeasurementEntity(type = metric.key, time = time?.coerceAtMost(now) ?: now, value = value)) }
         return true
     }
 

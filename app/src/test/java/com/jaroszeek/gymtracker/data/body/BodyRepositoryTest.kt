@@ -65,6 +65,14 @@ class BodyRepositoryTest {
     }
 
     @Test
+    fun aValueCanBeSavedAsMeasuredEarlierButNotLater() = runTest {
+        assertTrue(repository.add(BodyMetric.Weight, 80.0, time = NOW - DAY))
+        assertTrue(repository.add(BodyMetric.Weight, 81.0, time = NOW + DAY))
+
+        assertEquals(listOf(NOW - DAY, NOW), repository.observeMeasurements().first().map { it.time })
+    }
+
+    @Test
     fun deletingRemovesOnlyThatValue() = runTest {
         repository.add(BodyMetric.Weight, 80.0)
         repository.add(BodyMetric.SkeletalMuscle, 35.0)
