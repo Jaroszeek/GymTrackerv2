@@ -59,6 +59,7 @@ object GtSizes {
 
     /** A bottom sheet released lower than this closes. */
     val SheetDismissDrag = 96.dp
+
     val TopBarHeight = 56.dp
     val ButtonHeight = 52.dp
     val ChipHeight = 36.dp
@@ -84,8 +85,8 @@ object GtSizes {
     val BarHeight = 8.dp
     val MiniChartHeight = 64.dp
     val MiniBarMin = 4.dp
-    val TodayOutline = 1.5.dp
     val CalendarDot = 4.dp
+    val TodayOutline = 1.5.dp
 }
 
 object GtAlpha {
