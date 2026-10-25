@@ -89,6 +89,16 @@ data class LoggedWorkout(
 
     fun withDuration(minutes: Int): LoggedWorkout = copy(endedAt = startedAt + minutes.coerceAtLeast(1) * MILLIS_PER_MINUTE)
 
+    /** Moves the whole workout to [startedAt]: the duration stays, so the end and the sets' tick-off times move with it. */
+    fun withStart(startedAt: Long): LoggedWorkout {
+        val shift = startedAt - this.startedAt
+        return copy(
+            startedAt = startedAt,
+            endedAt = endedAt + shift,
+            exercises = exercises.map { exercise -> exercise.copy(sets = exercise.sets.map { it.copy(doneAt = it.doneAt?.plus(shift)) }) },
+        )
+    }
+
     private fun updateExercise(exerciseId: Long, change: (LoggedExercise) -> LoggedExercise) =
         copy(exercises = exercises.map { if (it.id == exerciseId) change(it) else it })
 

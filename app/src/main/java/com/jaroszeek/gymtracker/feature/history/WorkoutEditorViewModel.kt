@@ -13,6 +13,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.Clock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,6 +36,8 @@ data class WorkoutEditorUiState(
     val expanded: SetRef? = null,
     val setActions: SetRef? = null,
     val picker: Boolean = false,
+    /** While the start picker is open: the latest start it allows, the time it opened. */
+    val startMax: Long? = null,
     val confirmDiscard: Boolean = false,
     val saving: Boolean = false,
     val saveFailed: Boolean = false,
@@ -42,12 +45,13 @@ data class WorkoutEditorUiState(
     val finished: Boolean = false,
 )
 
-/** Edits a finished workout: sets, exercises, name and duration (A5.6); saving replaces its sets. */
+/** Edits a finished workout: sets, exercises, name, start and duration (A5.6); saving replaces its sets. */
 @HiltViewModel(assistedFactory = WorkoutEditorViewModel.Factory::class)
 class WorkoutEditorViewModel @AssistedInject constructor(
     @Assisted private val id: Long,
     private val workouts: WorkoutRepository,
     exercises: ExerciseRepository,
+    private val clock: Clock,
 ) : ViewModel() {
 
     private var saved: LoggedWorkout? = null
@@ -81,6 +85,16 @@ class WorkoutEditorViewModel @AssistedInject constructor(
 
     fun onDurationChange(minutes: Double?) {
         if (minutes != null) edit { it.withDuration(minutes.toInt()) }
+    }
+
+    fun onStartPick() = local.update { it.copy(startMax = clock.millis()) }
+
+    fun onStartPickDismiss() = local.update { it.copy(startMax = null) }
+
+    /** The duration stays, so the end moves with the start; the start cannot be in the future. */
+    fun onStartChange(startedAt: Long) {
+        local.update { it.copy(startMax = null) }
+        edit { it.withStart(startedAt.coerceAtMost(clock.millis())) }
     }
 
     fun onWeightChange(exerciseId: Long, setId: Long, weightKg: Double?) = edit { it.updateSet(exerciseId, setId) { set -> set.copy(weightKg = weightKg) } }

@@ -35,6 +35,8 @@ import com.jaroszeek.gymtracker.designsystem.component.GlassBottomSheet
 import com.jaroszeek.gymtracker.designsystem.component.GlassButton
 import com.jaroszeek.gymtracker.designsystem.component.GlassButtonStyle
 import com.jaroszeek.gymtracker.designsystem.component.GlassCard
+import com.jaroszeek.gymtracker.designsystem.component.GlassDateTimeField
+import com.jaroszeek.gymtracker.designsystem.component.GlassDateTimeSheet
 import com.jaroszeek.gymtracker.designsystem.component.GlassDialog
 import com.jaroszeek.gymtracker.designsystem.component.GlassIconButton
 import com.jaroszeek.gymtracker.designsystem.component.GlassNumberField
@@ -54,6 +56,8 @@ import com.jaroszeek.gymtracker.domain.workout.LoggedWorkout
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseImage
 import com.jaroszeek.gymtracker.feature.exercises.ExercisePicker
 import com.jaroszeek.gymtracker.feature.exercises.ExercisesViewModel
+import com.jaroszeek.gymtracker.feature.progress.dayLabel
+import com.jaroszeek.gymtracker.feature.progress.timeLabel
 import com.jaroszeek.gymtracker.feature.routines.LocalWeightUnit
 import com.jaroszeek.gymtracker.feature.routines.MASS_DECIMALS
 import com.jaroszeek.gymtracker.feature.routines.input
@@ -78,6 +82,7 @@ fun WorkoutEditorRoute(viewModel: WorkoutEditorViewModel, pickerViewModel: Exerc
         state = state,
         onBack = viewModel::onBack,
         onNameChange = viewModel::onNameChange,
+        onStartPick = viewModel::onStartPick,
         onDurationChange = viewModel::onDurationChange,
         onExpand = viewModel::onExpand,
         onWeightChange = viewModel::onWeightChange,
@@ -111,6 +116,14 @@ fun WorkoutEditorRoute(viewModel: WorkoutEditorViewModel, pickerViewModel: Exerc
         confirmButton = { GlassButton(stringResource(R.string.action_discard), onClick = viewModel::onDiscardConfirm) },
         dismissButton = { GlassButton(stringResource(R.string.action_keep_editing), onClick = viewModel::onDiscardDismiss, style = GlassButtonStyle.Ghost) },
     )
+    GlassDateTimeSheet(
+        visible = state.startMax != null,
+        value = draft?.startedAt ?: 0L,
+        title = stringResource(R.string.workout_editor_start_title),
+        onConfirm = viewModel::onStartChange,
+        onDismissRequest = viewModel::onStartPickDismiss,
+        max = state.startMax,
+    )
     // Last, so back closes the picker before anything else
     if (state.picker) ExercisePicker(pickerViewModel, onPick = viewModel::onPicked, onDismiss = viewModel::onPickerDismiss)
 }
@@ -120,6 +133,7 @@ fun WorkoutEditorScreen(
     state: WorkoutEditorUiState,
     onBack: () -> Unit,
     onNameChange: (String) -> Unit,
+    onStartPick: () -> Unit,
     onDurationChange: (Double?) -> Unit,
     onExpand: (exerciseId: Long, setId: Long) -> Unit,
     onWeightChange: (exerciseId: Long, setId: Long, Double?) -> Unit,
@@ -171,6 +185,11 @@ fun WorkoutEditorScreen(
                     label = stringResource(R.string.label_name),
                     placeholder = stringResource(R.string.routine_name_placeholder),
                     error = stringResource(R.string.workout_editor_name_error).takeIf { draft.name.isBlank() },
+                )
+                GlassDateTimeField(
+                    value = stringResource(R.string.date_time_value, dayLabel(draft.startedAt), timeLabel(draft.startedAt)),
+                    label = stringResource(R.string.workout_editor_start),
+                    onClick = onStartPick,
                 )
                 GlassNumberField(
                     value = (draft.durationMillis / MILLIS_PER_MINUTE).toDouble(),
@@ -321,7 +340,7 @@ private fun WorkoutEditorScreenPreview() {
         GlassScaffold {
             WorkoutEditorScreen(
                 state = WorkoutEditorUiState(loading = false, draft = draft, expanded = SetRef(1, 3)),
-                onBack = {}, onNameChange = {}, onDurationChange = {}, onExpand = { _, _ -> }, onWeightChange = { _, _, _ -> },
+                onBack = {}, onNameChange = {}, onStartPick = {}, onDurationChange = {}, onExpand = { _, _ -> }, onWeightChange = { _, _, _ -> },
                 onRepsChange = { _, _, _ -> }, onSetActions = { _, _ -> }, onAddSet = {}, onRemoveExercise = {}, onAddExercise = {}, onSave = {},
             )
         }

@@ -61,6 +61,17 @@ class LoggedWorkoutTest {
     }
 
     @Test
+    fun movingTheStartKeepsTheDurationAndMovesTheSetTimes() {
+        val timed = workout.updateSet(10, 12) { it.copy(doneAt = 600_000) }
+        val moved = timed.withStart(1_000 - 86_400_000)
+        assertEquals(listOf(1_000L - 86_400_000, 3_601_000L - 86_400_000), listOf(moved.startedAt, moved.endedAt))
+        assertEquals(timed.durationMillis, moved.durationMillis)
+        // A set without a time stays without one
+        assertEquals(listOf(null, 600_000L - 86_400_000, null), moved.exercises[0].sets.map { it.doneAt })
+        assertEquals(timed, moved.withStart(1_000))
+    }
+
+    @Test
     fun recordsAreMatchedToSetIdsWithEachExercisesBests() {
         val bests = mapOf(100L to PersonalBests(weightKg = 60.0, e1rmKg = 80.0, setVolumeKg = 600.0, sessionVolumeKg = 2_000.0, reps = listOf(RepBest(60.0, 10))))
         // 62.5 kg is a weight record; exercise 200 has no bests, so no records

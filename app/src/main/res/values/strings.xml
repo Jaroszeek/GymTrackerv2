@@ -404,6 +404,8 @@
     <string name="workout_editor_title">Edytuj trening</string>
     <string name="workout_editor_name_error">Podaj nazwę treningu</string>
     <string name="workout_editor_duration">Czas trwania</string>
+    <string name="workout_editor_start">Początek</string>
+    <string name="workout_editor_start_title">Początek treningu</string>
     <string name="unit_min">min</string>
     <string name="workout_editor_remove_exercise">Usuń ćwiczenie</string>
     <string name="workout_editor_reps_missing">Uzupełnij powtórzenia w każdej serii albo usuń pustą serię.</string>
