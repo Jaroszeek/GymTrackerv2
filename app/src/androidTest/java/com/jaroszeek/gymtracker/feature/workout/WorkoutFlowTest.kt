@@ -126,7 +126,8 @@ class WorkoutFlowTest {
         // Start from the routine card
         compose.waitUntil(TIMEOUT) { compose.onAllNodesWithText("Start").fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText("Start").performClick()
-        compose.waitUntil(TIMEOUT) { compose.onAllNodesWithText(BENCH).fetchSemanticsNodes().isNotEmpty() }
+        // The exercise name can show a frame before its set rows
+        compose.waitUntil(TIMEOUT) { compose.onAllNodesWithContentDescription("Zwiększ: Ciężar").fetchSemanticsNodes().isNotEmpty() }
 
         // 60 → 62.5 kg on the first set; the second follows
         compose.onAllNodesWithContentDescription("Zwiększ: Ciężar").onFirst().performClick()
