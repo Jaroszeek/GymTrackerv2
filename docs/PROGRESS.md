@@ -17,11 +17,12 @@
 | 10 | Szlif, wydajność, QA | ✅ zaakceptowany (2026-10-24), wydania `preview-stage-10`, `10.1`, `10.2`; czeka na test na telefonie |
 | 11 | Wydanie i aktualizator | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-11`, **v1.0.0** i testowe v1.0.1; czeka na test aktualizacji na telefonie |
 | 12 | Szlif 1.1 (pomysły z `IDEAS.md`) | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-12` i **v1.1.0**; czeka na test na telefonie |
-| 13 | Wersja 1.2: polskie instrukcje, poprawki, zależności | 🔄 PR i wydanie `preview-stage-13`; zależności w osobnym PR; changelog 1.2.0 po obu |
+| 13 | Wersja 1.2: polskie instrukcje, poprawki, zależności | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-13` i **v1.2.0**; czeka na test na telefonie |
 
 ## Bieżący stan
 
-- **Etap 13** (branch `feat/stage-13-polish-instructions`, 2026-10-25): zakres wybrany przez właściciela po wydaniu 1.1.0.
+- **Etap 13** zaakceptowany i zmergowany (PR #15, zależności PR #16, 2026-10-25): zakres wybrany przez właściciela po wydaniu 1.1.0.
+  - **v1.2.0** wydane z tagu: workflow „Release” zielony. Na emulatorze wydana 1.1.0 znalazła ją w Ustawienia → Aktualizacje → „Sprawdź teraz” i zaktualizowała się; po aktualizacji instrukcje są po polsku.
   - Zrobione:
     - instrukcje 897 wbudowanych ćwiczeń po polsku, podmieniane przy odczycie, bez migracji (D-102); w licencjach dopisek o tłumaczeniu maszynowym;
     - minuty z zerem wiodącym w wyborze daty i godziny (D-103);
@@ -253,7 +254,7 @@ Klucz, sekrety i wydania v1.0.0 oraz v1.0.1 są gotowe. Kopia zapasowa klucza i 
 
 ## Następny krok
 
-- Właściciel: akceptacja Etapu 13 (PR) i PR zależności; potem changelog 1.2.0 i tag `v1.2.0`.
-- Właściciel: test Etapów 12–13 na telefonie (wyżej) i aktualizacja z aplikacji do v1.1.0.
+- Właściciel: decyzja o angielskiej wersji aplikacji (`IDEAS.md`).
+- Właściciel: test Etapów 12–13 na telefonie (wyżej) i aktualizacja z aplikacji do v1.2.0.
 - Właściciel: kopia zapasowa klucza i hasła, test aktualizacji 1.0.0 → 1.0.1 na telefonie (wyżej).
 - Wyniki testów Etapów 9–10 na telefonie, gdy właściciel je przekaże.
