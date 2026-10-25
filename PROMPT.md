@@ -81,7 +81,7 @@ Aplikacja ma wyglądać jak produkt premium, a nie jak szablon Material. Dark-fi
 - Widżety, które w trybie edycji można przestawiać (drag & drop) i ukrywać. Układ zapisany w DataStore.
   - hero ze streakiem tygodniowym (ile tygodni z rzędu z co najmniej jednym treningiem) i statystykami tygodnia
   - ostatni trening
-  - kalendarz aktywności (dni treningowe wyróżnione, dzisiaj zaznaczony)
+  - kalendarz aktywności (dni treningowe wyróżnione, dzisiaj zaznaczony); NOWE (2026-10-25): także dni z sesjami z zegarka (HC), oznaczone inaczej niż treningi z aplikacji
   - kroki dziś z wykresem
   - mini-wykres wagi i BMI
   - NOWE: karta gotowości (sen, tętno spoczynkowe, HRV)
@@ -95,6 +95,7 @@ Aplikacja ma wyglądać jak produkt premium, a nie jak szablon Material. Dark-fi
 - Cele dla każdego ćwiczenia: liczba serii, powtórzenia (liczba lub zakres), ciężar, czas przerwy.
 - NOWE: biblioteka gotowych szablonów (Push/Pull/Legs, Upper/Lower, FBW) do skopiowania i edycji.
 - NOWE: opcjonalna podpowiedź progresji (double progression). Gdy wszystkie serie osiągnęły górę zakresu powtórzeń, aplikacja proponuje większy ciężar następnym razem.
+- NOWE (2026-10-25): niezapisany szkic edytora rutyny przetrwa ubicie procesu w tle.
 
 ### A5.3 Aktywny trening
 - Start z rutyny albo pusty trening. Licznik czasu sesji.
@@ -134,7 +135,7 @@ Aplikacja ma wyglądać jak produkt premium, a nie jak szablon Material. Dark-fi
   - licencja sprawdzona, atrybucja w „O aplikacji”.
 - Dodatkowy zestaw ćwiczeń używanych w programach Jeffa Nipparda (warianty, których brakuje w bazie).
 - Nazwy ćwiczeń zostają po angielsku. Popularne ćwiczenia dostają polskie aliasy do wyszukiwania.
-- Wyszukiwarka i filtry (chipsy): partia ciała, sprzęt. Badge sprzętu na liście i oznaczenie ćwiczeń własnych.
+- Wyszukiwarka i filtry (chipsy): partia ciała, sprzęt, NOWE (2026-10-25): kategoria (np. siłowe, rozciąganie, cardio). Badge sprzętu na liście i oznaczenie ćwiczeń własnych.
 - Własne ćwiczenia: dodawanie, edycja, usuwanie (z ochroną, jeśli ćwiczenie jest w historii).
 - Szczegóły ćwiczenia:
   - zdjęcia, instrukcje, partie mięśni;
@@ -145,6 +146,7 @@ Aplikacja ma wyglądać jak produkt premium, a nie jak szablon Material. Dark-fi
 ### A5.6 Historia
 - Lista treningów: data, czas trwania, liczba ćwiczeń i serii, objętość.
 - Szczegóły sesji ze wszystkimi seriami. Edycja i usuwanie zakończonego treningu.
+- NOWE (2026-10-25): edycja zmienia też datę i godzinę startu; tap w ćwiczenie w szczegółach otwiera szczegóły ćwiczenia; niezapisany szkic edycji przetrwa ubicie procesu.
 - Sesje zaimportowane z Health Connect (np. spacer czy bieg z zegarka) są widoczne w historii z polską nazwą typu i oznaczeniem źródła.
 - Łączenie zapisanego treningu z sesją z zegarka (ExerciseSession w HC):
   - automatyczne połączenie, gdy czasy się nakładają (zmiana 2026-10-24: wcześniej propozycja do potwierdzenia, D-084);
@@ -169,8 +171,8 @@ Aplikacja ma wyglądać jak produkt premium, a nie jak szablon Material. Dark-fi
 
 ### A5.8 Profil i ciało
 - Waga, wzrost i wiek; BMI liczone automatycznie.
-- Skład ciała: % tkanki tłuszczowej, masa tłuszczu, masa beztłuszczowa. Masa mięśni szkieletowych to wpis ręczny, bo Health Connect nie ma tego typu danych.
-- Wykresy wagi, BMI i % tłuszczu. Ręczne dodawanie pomiaru.
+- Skład ciała: % tkanki tłuszczowej, masa tłuszczu, masa beztłuszczowa (NOWE 2026-10-25: bez % tłuszczu z masy beztłuszczowej z HC). Masa mięśni szkieletowych to wpis ręczny, bo Health Connect nie ma tego typu danych.
+- Wykresy wagi, BMI i % tłuszczu. Ręczne dodawanie pomiaru; NOWE (2026-10-25): z wybraną datą i godziną, a niezapisany pomiar przetrwa ubicie procesu.
 - Dane z HC scalane z wpisami ręcznymi, ze źródłem i bez duplikatów.
 - Kalorie aktywne i całkowite z HC.
 
@@ -304,6 +306,7 @@ POST_NOTIFICATIONS: prośba przy pierwszym starcie (z wyjaśnieniem) i baner na 
 | 9 | Ustawienia i kopia zapasowa | A5.9, A5.10 | ustawienia, eksport i import |
 | 10 | Szlif, wydajność, QA | A4, A9 | gotowość do wydania |
 | 11 | Wydanie i aktualizator | A8, A5.11 | v1.0.0 na GitHub Releases |
+| 12 | Szlif 1.1 (pomysły z `IDEAS.md`) | A4, A5.1, A5.2, A5.5, A5.6, A5.8 | wersja 1.1.0 |
 
 ## Etap 0 — Start i plan
 **Kryteria akceptacji**
@@ -692,6 +695,36 @@ Zakres:
 6. Po mojej akceptacji:
    - tag v1.0.0 i pierwszy Release;
    - potem testowy v1.0.1, żeby sprawdzić aktualizację z poziomu aplikacji na moim telefonie.
+```
+
+## Etap 12 — Szlif 1.1
+Dodany 2026-10-25 na prośbę właściciela: pomysły z `docs/IDEAS.md` wybrane po Etapie 11. Bez migracji bazy i bez nowych uprawnień.
+
+**Kryteria akceptacji**
+- [ ] Bottom sheet zamyka się przeciągnięciem w dół
+- [ ] Tap w ćwiczenie w szczegółach treningu otwiera szczegóły ćwiczenia
+- [ ] Edycja treningu zmienia datę i godzinę startu
+- [ ] Pomiar ciała można dodać z wybraną datą i godziną
+- [ ] Filtr kategorii na liście ćwiczeń
+- [ ] Szkice edytora rutyny, edycji treningu i pomiaru wracają po ubiciu procesu
+- [ ] Kalendarz na Starcie pokazuje dni z sesjami z zegarka
+- [ ] Masa beztłuszczowa z HC, gdy nie ma % tkanki tłuszczowej
+- [ ] Wersja 1.1.0 wydana i zaktualizowana z aplikacji z 1.0.x
+
+**Prompt**
+```
+Realizujemy Etap 12 — Szlif 1.1. Pomysły z docs/IDEAS.md wybrane po Etapie 11. Branch: feat/stage-12-polish.
+
+Zakres:
+1. Bottom sheet: zamykanie przeciągnięciem w dół.
+2. Szczegóły treningu: tap w ćwiczenie otwiera szczegóły ćwiczenia.
+3. Edycja treningu: zmiana daty i godziny startu.
+4. Pomiar ciała z wybraną datą i godziną.
+5. Filtr kategorii na liście ćwiczeń.
+6. Szkice edytorów (rutyna, edycja treningu, pomiar) w SavedStateHandle.
+7. Kalendarz na Starcie: dni z sesjami z zegarka.
+8. Masa beztłuszczowa z HC (LeanBodyMassRecord), gdy nie ma tkanki tłuszczowej.
+Na koniec: changelog 1.1.0 do akceptacji, potem tag v1.1.0.
 ```
 
 ---
