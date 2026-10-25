@@ -760,6 +760,19 @@ Właściciel zatwierdził wszystkie (2026-10-24):
 - **Pominięte:** OkHttp 5.5.1 (blokuje skompromitowane certyfikaty pośrednie eMudhra) przychodzi tylko przez Coil; przypięcie wymagałoby nowej bezpośredniej zależności, a według notatek wydania telefony z Google Play Services dostały tę poprawkę automatycznie. Wejdzie z następnym Coilem. compileSdk zostaje 37: platformy 37.1 i 37.2 są w SDK, ale oficjalna tabela AGP podaje dla AGP 9.4 maksymalnie API 37.0; przejście wymaga też pobrania nowej platformy SDK.
 - Bez zmian w kodzie.
 
+### D-102 Polskie instrukcje ćwiczeń (Etap 13)
+- Instrukcje wbudowanych ćwiczeń (free-exercise-db i Nippard, 897 ćwiczeń z krokami) są po polsku w `assets/exercises/instructions_pl.json`: `{id źródła: [kroki]}`, krok w krok jak oryginał. Nazwy ćwiczeń zostają po angielsku (wyszukiwarka i tak zna polskie aliasy, D-013).
+- Tłumaczenie podmieniane przy odczycie (`ExerciseTranslations` w `ExerciseRepository.observe`), a nie w bazie: instalacje już zaseedowane angielskim tekstem dostają polski bez migracji, a seed i kopia zapasowa się nie zmieniają. Plik czytany raz, leniwie, poza wątkiem głównym (ok. 550 KB, w APK skompresowany). Własne ćwiczenia i brakujące id zostają bez zmian.
+- Przekład maszynowy (agenci, 8 części równolegle) według wspólnego słownika i stylu (tryb rozkazujący, 2. os. lp., nachwyt/podchwyt, hantle, wyciąg itd.); skrypt sprawdzał id, liczbę kroków i resztki angielskiego. Test pilnuje, że plik pasuje do seedu: każde id istnieje, liczba kroków się zgadza, żaden krok nie jest pusty, a każde ćwiczenie z krokami ma tłumaczenie.
+- Alternatywy: kolumna `instructions_pl` w bazie (migracja i ponowny seed — odrzucone), tłumaczenie w locie (wymaga sieci i usługi zewnętrznej — sprzeczne z „dane tylko lokalne”), ręczne tłumaczenie ok. 104 tys. słów (zbyt drogie).
+
+### D-103 Minuty z zerem wiodącym
+- `GlassNumberField` dostał `minDigits`; pole minut w wyborze daty i godziny (D-094) pokazuje „07”, nie „7”. Wpisywanie bez zmian („7” zostaje do następnej zmiany wartości).
+
+### D-104 Kalendarz bez spacerów (zmienia D-100)
+- Sesje typu „spacer” (`EXERCISE_TYPE_WALKING`) nie dają kropki w kalendarzu na Starcie: Samsung Health sam wykrywa spacery i zapisuje je do HC, więc kropka byłaby prawie codziennie. W historii (Postępy) spacery zostają.
+- Alternatywy: lista typów do wyboru w ustawieniach (więcej UI dla jednej potrzeby; do `IDEAS.md`, jeśli wróci), filtr po `metadata.recordingMethod` = automatyczne (wymaga nowej kolumny w `health.db` i migracji, a nie wiadomo, czy Samsung je ustawia).
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |

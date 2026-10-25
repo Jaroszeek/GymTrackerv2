@@ -138,7 +138,7 @@ Aplikacja ma wyglądać jak produkt premium, a nie jak szablon Material. Dark-fi
 - Wyszukiwarka i filtry (chipsy): partia ciała, sprzęt, NOWE (2026-10-25): kategoria (np. siłowe, rozciąganie, cardio). Badge sprzętu na liście i oznaczenie ćwiczeń własnych.
 - Własne ćwiczenia: dodawanie, edycja, usuwanie (z ochroną, jeśli ćwiczenie jest w historii).
 - Szczegóły ćwiczenia:
-  - zdjęcia, instrukcje, partie mięśni;
+  - zdjęcia, instrukcje (NOWE 2026-10-25: po polsku), partie mięśni;
   - wykres maksymalnego ciężaru i e1RM w czasie;
   - rekordy;
   - przycisk „Wideo”, który otwiera wyszukiwanie na YouTube.
@@ -307,6 +307,7 @@ POST_NOTIFICATIONS: prośba przy pierwszym starcie (z wyjaśnieniem) i baner na 
 | 10 | Szlif, wydajność, QA | A4, A9 | gotowość do wydania |
 | 11 | Wydanie i aktualizator | A8, A5.11 | v1.0.0 na GitHub Releases |
 | 12 | Szlif 1.1 (pomysły z `IDEAS.md`) | A4, A5.1, A5.2, A5.5, A5.6, A5.8 | wersja 1.1.0 |
+| 13 | Wersja 1.2: polskie instrukcje, poprawki, zależności | A5.1, A5.5, C8 | wersja 1.2.0 |
 
 ## Etap 0 — Start i plan
 **Kryteria akceptacji**
@@ -725,6 +726,28 @@ Zakres:
 7. Kalendarz na Starcie: dni z sesjami z zegarka.
 8. Masa beztłuszczowa z HC (LeanBodyMassRecord), gdy nie ma tkanki tłuszczowej.
 Na koniec: changelog 1.1.0 do akceptacji, potem tag v1.1.0.
+```
+
+## Etap 13 — Wersja 1.2
+Dodany 2026-10-25 na prośbę właściciela: zakres wybrany po wydaniu 1.1.0. Bez migracji bazy i bez nowych uprawnień.
+
+**Kryteria akceptacji**
+- [ ] Szczegóły wbudowanego ćwiczenia pokazują instrukcje po polsku (także na instalacji zaseedowanej wcześniej po angielsku)
+- [ ] Minuty w wyborze daty i godziny z zerem wiodącym („07”)
+- [ ] Kalendarz na Starcie bez kropek za spacery
+- [ ] Zależności zaktualizowane według C8, osobny PR, pełne testy zielone
+- [ ] Wersja 1.2.0 wydana i zaktualizowana z aplikacji z 1.1.0
+
+**Prompt**
+```
+Realizujemy Etap 13 — Wersja 1.2. Branch: feat/stage-13-polish-instructions, zależności osobno w chore/deps-2026-10 (C8).
+
+Zakres:
+1. Polskie instrukcje wbudowanych ćwiczeń (tłumaczenie w assets, podmiana przy odczycie, bez migracji).
+2. Minuty z zerem wiodącym w wyborze daty i godziny.
+3. Kalendarz na Starcie: bez kropek za spacery wykrywane automatycznie.
+4. Aktualizacja zależności według C8.
+Na koniec: changelog 1.2.0 do akceptacji, potem tag v1.2.0.
 ```
 
 ---

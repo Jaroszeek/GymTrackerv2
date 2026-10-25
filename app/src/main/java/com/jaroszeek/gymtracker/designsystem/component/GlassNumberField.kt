@@ -51,13 +51,15 @@ fun GlassNumberField(
     range: ClosedFloatingPointRange<Double> = 0.0..9999.0,
     /** Shown dimmed while the field is empty, e.g. "—" for no weight. */
     placeholder: String? = null,
+    /** Whole numbers are padded with zeros to this many digits, e.g. 2 for minutes ("07"). */
+    minDigits: Int = 1,
 ) {
     val colors = GtTheme.colors
     val separator = remember { DecimalFormatSymbols.getInstance(Locale.getDefault()).decimalSeparator }
-    var text by remember { mutableStateOf(NumberInput.format(value, decimals, separator)) }
+    var text by remember { mutableStateOf(NumberInput.format(value, decimals, separator, minDigits)) }
     // Follow external changes (steppers, state restore) without fighting the user's typing
     LaunchedEffect(value) {
-        if (NumberInput.parse(text, decimals) != value) text = NumberInput.format(value, decimals, separator)
+        if (NumberInput.parse(text, decimals) != value) text = NumberInput.format(value, decimals, separator, minDigits)
     }
     Column(
         modifier
@@ -133,10 +135,10 @@ internal object NumberInput {
     fun parse(input: String, decimals: Int): Double? =
         input.replace(',', '.').toDoubleOrNull()?.let { round(it, decimals) }
 
-    fun format(value: Double?, decimals: Int, separator: Char): String {
+    fun format(value: Double?, decimals: Int, separator: Char, minDigits: Int = 1): String {
         if (value == null) return ""
         val rounded = round(value, decimals)
-        if (rounded == rounded.roundToLong().toDouble()) return rounded.roundToLong().toString()
+        if (rounded == rounded.roundToLong().toDouble()) return rounded.roundToLong().toString().padStart(minDigits, '0')
         return "%.${decimals}f".format(Locale.ROOT, rounded).trimEnd('0').replace('.', separator)
     }
 

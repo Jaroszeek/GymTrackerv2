@@ -168,6 +168,7 @@ private fun ColumnScope.DateTimePicker(value: Long, title: String, onConfirm: (L
                 modifier = Modifier.weight(1f),
                 step = MINUTE_STEP,
                 range = 0.0..MAX_MINUTE,
+                minDigits = 2,
             )
         }
     }
