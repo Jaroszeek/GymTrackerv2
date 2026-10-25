@@ -2,6 +2,10 @@
 
 Najnowsza wersja na górze. Workflow wydania bierze do opisu Release sekcję `## X.Y.Z` zgodną z tagiem `vX.Y.Z`.
 
+## 1.0.1
+
+- Wydanie testowe: sprawdza aktualizację z poziomu aplikacji (Ustawienia → Aktualizacje). Aplikacja działa tak samo jak w 1.0.0.
+
 ## 1.0.0
 
 Pierwsze wydanie GymTrackera v2, napisanego od nowa.

@@ -277,7 +277,7 @@ POST_NOTIFICATIONS: prośba przy pierwszym starcie (z wyjaśnieniem) i baner na 
 - `release.yml`: na tag `v*` buduje podpisany assembleRelease (R8) i tworzy GitHub Release z APK oraz changelogiem.
 - versionCode i versionName wynikają z tagu.
 - Keystore i hasła są wyłącznie w sekretach GitHub (`gh secret set`) i w lokalnym `keystore.properties` (poza repo).
-- Keystore generuję sam i trzymam jego kopię zapasową. Bez niego nie da się zaktualizować zainstalowanej aplikacji.
+- Keystore generuję sam i trzymam jego kopię zapasową. Bez niego nie da się zaktualizować zainstalowanej aplikacji. (2026-10-25: na moją prośbę keystore wygenerował Claude; kopię zapasową trzymam ja, D-086.)
 
 ## A9. Definicja ukończenia projektu
 - Wszystkie funkcje z części A działają.
