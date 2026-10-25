@@ -15,11 +15,14 @@
 | 8 | Start i Profil | ✅ zaakceptowany (2026-10-24), wydanie `preview-stage-8`, sprawdzony na telefonie (2026-10-23) |
 | 9 | Ustawienia i kopia zapasowa | ✅ zaakceptowany (2026-10-24), wydanie `preview-stage-9`; czeka na test na telefonie |
 | 10 | Szlif, wydajność, QA | ✅ zaakceptowany (2026-10-24), wydania `preview-stage-10`, `10.1`, `10.2`; czeka na test na telefonie |
-| 11 | Wydanie i aktualizator | ✅ zaakceptowany (2026-10-25), wydanie `preview-stage-11`; czeka na klucz i sekrety od właściciela, potem v1.0.0 i test v1.0.1 na telefonie |
+| 11 | Wydanie i aktualizator | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-11`, **v1.0.0** i testowe v1.0.1; czeka na test aktualizacji na telefonie |
 
 ## Bieżący stan
 
-- **Etap 11** zaakceptowany (2026-10-25): changelog 1.0.0 zatwierdzony, aktualizacja bez okna systemu dodana (D-089), repo zostaje publiczne, kod bez licencji (D-091). Wydanie testowe `preview-stage-11`.
+- **Etap 11** zaakceptowany i zmergowany (PR #11, 2026-10-25): changelog 1.0.0 zatwierdzony, aktualizacja bez okna systemu dodana (D-089), repo zostaje publiczne, kod bez licencji (D-091). Wydanie testowe `preview-stage-11`.
+  - Klucz wydania wygenerowany na prośbę właściciela, sekrety ustawione (D-086). **Właściciel: kopia zapasowa `%USERPROFILE%\keys\gymtracker-release.jks` i `gymtracker-release-password.txt`.**
+  - **v1.0.0** wydane z tagu: workflow „Release” zielony, `GymTracker-1.0.0.apk` podpisany kluczem wydania, `releases/latest` wskazuje v1.0.0. Na emulatorze: instalacja z Releases, „Sprawdź teraz” → „Masz najnowszą wersję” (prawdziwe API GitHuba).
+  - Testowe v1.0.1 (bez zmian w działaniu) do sprawdzenia aktualizacji na telefonie.
   - Zrobione:
     - wersja z tagu (`-PappVersion`, D-085), podpis release z `keystore.properties` albo sekretów CI (D-086);
     - `.github/workflows/release.yml` na tag `vX.Y.Z` z opisem z `CHANGELOG.md` (D-087); `CHANGELOG.md` z sekcją 1.0.0;
@@ -110,13 +113,13 @@
 
 ## Etap 11 — test na telefonie
 
-Najpierw jednorazowo (README, „Wydawanie wersji”): keystore, `keystore.properties`, kopia zapasowa klucza i hasła, cztery sekrety `gh secret set`.
+Klucz, sekrety i wydania v1.0.0 oraz v1.0.1 są gotowe. Kopia zapasowa klucza i hasła — po stronie właściciela.
 
-1. Po akceptacji etapu: merge, tag `v1.0.0`, workflow „Release” zielony, w wydaniu plik `GymTracker-1.0.0.apk`.
-2. Na telefonie pobierz `GymTracker-1.0.0.apk` z Releases i zainstaluj. Aplikacja „GymTracker” instaluje się obok „GymTracker Debug”.
+1. Na telefonie otwórz https://github.com/Jaroszeek/GymTrackerv2/releases/tag/v1.0.0, pobierz `GymTracker-1.0.0.apk` i zainstaluj. Aplikacja „GymTracker” instaluje się obok „GymTracker Debug”.
+2. Przy pierwszym otwarciu (po pytaniu o powiadomienia) aplikacja sama znajdzie v1.0.1; możesz najpierw wybrać „Później”, przenieść dane i wrócić do aktualizacji w Ustawieniach.
 3. Przeniesienie danych: w „GymTracker Debug” Ustawienia → Dane → „Eksportuj kopię”, w „GymTracker” → „Importuj kopię” z tym plikiem. Wygląd i Health Connect ustaw ponownie.
-4. Ustawienia → Aktualizacje → „Sprawdź teraz”: „Masz najnowszą wersję…”. O aplikacji: „Wersja 1.0.0”.
-5. Potem testowe v1.0.1 (sekcja w `CHANGELOG.md`, tag). Na telefonie „Sprawdź teraz” (automatycznie najwcześniej 24 h po poprzednim sprawdzeniu): dialog „Nowa wersja 1.0.1” z notatkami → „Aktualizuj” → „Otwórz ustawienia” → „Zezwalaj z tego źródła” → wstecz → pobieranie → instalacja bez dodatkowego okna systemu (jeśli One UI jednak zapyta „Zaktualizować?”, zanotuj to). Aplikacja się zamyka; po otwarciu „Wersja 1.0.1” i te same dane.
+4. O aplikacji: „Wersja 1.0.0”.
+5. Aktualizacja do v1.0.1 (dialog przy starcie albo Ustawienia → Aktualizacje): dialog „Nowa wersja 1.0.1” z notatkami → „Aktualizuj” → „Otwórz ustawienia” → „Zezwalaj z tego źródła” → wstecz → pobieranie → instalacja bez dodatkowego okna systemu (jeśli One UI jednak zapyta „Zaktualizować?”, zanotuj to). Aplikacja się zamyka; po otwarciu „Wersja 1.0.1” i te same dane.
 6. One UI: jeśli Samsung pokaże ostrzeżenie Auto Blocker albo ochrony przed nieznanymi aplikacjami, zanotuj jego treść (może blokować instalację spoza sklepu).
 7. Do raportu: zrzut dialogu nowej wersji i wszystko, co odbiega od kroków 4–5.
 
@@ -206,6 +209,5 @@ Najpierw jednorazowo (README, „Wydawanie wersji”): keystore, `keystore.prope
 
 ## Następny krok
 
-- Właściciel: keystore, `keystore.properties`, kopia zapasowa, sekrety (README, „Wydawanie wersji”).
-- Potem tag `v1.0.0` (pierwszy Release) i testowe `v1.0.1` do sprawdzenia aktualizacji na telefonie (wyżej).
+- Właściciel: kopia zapasowa klucza i hasła, test aktualizacji 1.0.0 → 1.0.1 na telefonie (wyżej).
 - Wyniki testów Etapów 9–10 na telefonie, gdy właściciel je przekaże.

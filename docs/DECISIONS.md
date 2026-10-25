@@ -672,6 +672,7 @@ Właściciel zatwierdził wszystkie (2026-10-24):
 - Bez danych `assembleRelease` buduje niepodpisany APK, więc A9 („`assembleRelease` przechodzi lokalnie”) działa też bez klucza. Workflow wydania kończy się błędem, gdy APK wyszedł niepodpisany.
 - W CI keystore jest w sekrecie `KEYSTORE_BASE64` i trafia do `$RUNNER_TEMP`. Keystore generuje i przechowuje właściciel (A8); komendy i kopia zapasowa w README („Wydawanie wersji”).
 - Sprawdzone lokalnie z jednorazowym kluczem testowym (poza repo): podpis z `keystore.properties` i ze zmiennych, `apksigner verify --print-certs`.
+- **Klucz wydania (2026-10-25):** na prośbę właściciela (odstępstwo od A8 „generuję sam”) wygenerował go Claude: `%USERPROFILE%\keys\gymtracker-release.jks` (PKCS12, RSA 4096, 10 000 dni, alias `gymtracker`, `CN=Jaroszeek, O=GymTracker`), losowe hasło (32 znaki) w `gymtracker-release-password.txt` obok i w `keystore.properties`. Cztery sekrety ustawione `gh secret set`. SHA-256 certyfikatu: `926a2e24a782ba4ba74e0985dcb471db37294dbd0c72f15b5cf18f5561807a18`. Kopię zapasową pliku i hasła robi właściciel.
 
 ### D-087 Workflow wydania
 - `.github/workflows/release.yml` na tag `v*`: sprawdza format `vX.Y.Z`, bierze opis z sekcji `## X.Y.Z` w `CHANGELOG.md` (brak sekcji = błąd), uruchamia `lintRelease testDebugUnitTest assembleRelease`, sprawdza podpis i tworzy Release przez preinstalowane `gh release create` z plikiem `GymTracker-X.Y.Z.apk`. Akcje i JDK jak w `ci.yml`, uprawnienie tylko `contents: write`.
