@@ -1,11 +1,14 @@
 package com.jaroszeek.gymtracker.domain.routine
 
 import com.jaroszeek.gymtracker.domain.exercise.Exercise
+import kotlinx.serialization.Serializable
 
 /**
  * Editable copy of a routine. Saved blocks and variants keep their database id (> 0); new ones get
  * a negative temporary id, unique within the draft, which also serves as a stable list key.
+ * Serializable, so the editor can keep an unsaved draft in saved state across process death.
  */
+@Serializable
 data class RoutineDraft(val name: String = "", val blocks: List<RoutineBlock> = emptyList()) {
 
     val isValid: Boolean get() = name.isNotBlank() && blocks.isNotEmpty()
