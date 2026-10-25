@@ -18,11 +18,13 @@
 | 11 | Wydanie i aktualizator | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-11`, **v1.0.0** i testowe v1.0.1; czeka na test aktualizacji na telefonie |
 | 12 | Szlif 1.1 (pomysły z `IDEAS.md`) | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-12` i **v1.1.0**; czeka na test na telefonie |
 | 13 | Wersja 1.2: polskie instrukcje, poprawki, zależności | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-13` i **v1.2.0**; czeka na test na telefonie |
-| 14 | Wersja 1.3: angielska wersja aplikacji | 🔄 PR i wydanie `preview-stage-14`; changelog 1.3.0 do akceptacji |
+| 14 | Wersja 1.3: angielska wersja aplikacji | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-14` i **v1.3.0**; czeka na test na telefonie |
 
 ## Bieżący stan
 
-- **Etap 14** (branch `feat/stage-14-english`, 2026-10-25): angielska wersja aplikacji na prośbę właściciela.
+- **Etap 14** zaakceptowany i zmergowany (PR #18, 2026-10-25): angielska wersja aplikacji na prośbę właściciela.
+  - **v1.3.0** wydane z tagu: workflow „Release” zielony. Na emulatorze wydana 1.2.0 zaktualizowała się z aplikacji do 1.3.0 i została po polsku (zapisany język `pl-PL`).
+  - Porządki w GitHub Releases na prośbę właściciela: zostały v1.0.0, v1.1.0, v1.2.0, v1.3.0 i jedno wydanie testowe `preview-stage-14` („GymTracker 1.3.0 — wersja testowa (debug)”). Usunięte: wydania testowe Etapów 5–13 razem z tagami i wydanie testowe v1.0.1 (tag został).
   - Zrobione:
     - angielskie teksty domyślne, polskie w `values-pl`; koniec wymuszania polskiego, dotychczasowe instalacje zostają po polsku (D-105);
     - Ustawienia → Język: Systemowy / Polski / English;
@@ -155,7 +157,7 @@
 
 ## Etap 13 — test na telefonie
 
-1. Instalacja: APK z wydania `preview-stage-13` albo `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Dane zostają.
+1. Instalacja: APK z najnowszego wydania testowego albo `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Dane zostają.
 2. Ćwiczenia → dowolne wbudowane (np. Barbell Deadlift) → „Wykonanie”: kroki po polsku. Własne ćwiczenia bez zmian.
 3. Profil → Dodaj pomiar → „Data i godzina” → minus przy minutach do wartości poniżej 10: „05”, nie „5”.
 4. Start → kalendarz: dni z samym spacerem z Samsung Health bez kropki; spacery nadal w Postępy → Historia.
@@ -163,7 +165,7 @@
 
 ## Etap 12 — test na telefonie
 
-1. Instalacja: APK z wydania `preview-stage-12` albo `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Dane zostają.
+1. Instalacja: APK z najnowszego wydania testowego albo `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Dane zostają.
 2. Dowolny arkusz (np. Profil → Dodaj pomiar, akcje rutyny): przeciągnięcie w dół zamyka, krótkie wraca na miejsce; długa lista w arkuszu (zmiany celów po treningu) przewija się normalnie.
 3. Postępy → Historia → trening → tap w nazwę ćwiczenia: szczegóły ćwiczenia.
 4. Ołówek w treningu → „Początek” → inny dzień i godzina → Zapisz: trening przenosi się w historii i w kalendarzu, czas trwania bez zmian.
@@ -178,6 +180,8 @@
 
 Klucz, sekrety i wydania v1.0.0 oraz v1.0.1 są gotowe. Kopia zapasowa klucza i hasła — po stronie właściciela.
 
+**Zmiana 2026-10-25:** wydanie testowe v1.0.1 jest usunięte z Releases, więc v1.0.0 zaktualizuje się od razu do najnowszej wersji (teraz 1.3.0). Kroki bez zmian, tylko z tym numerem wersji.
+
 1. Na telefonie otwórz https://github.com/Jaroszeek/GymTrackerv2/releases/tag/v1.0.0, pobierz `GymTracker-1.0.0.apk` i zainstaluj. Aplikacja „GymTracker” instaluje się obok „GymTracker Debug”.
 2. Przy pierwszym otwarciu (po pytaniu o powiadomienia) aplikacja sama znajdzie v1.0.1; możesz najpierw wybrać „Później”, przenieść dane i wrócić do aktualizacji w Ustawieniach.
 3. Przeniesienie danych: w „GymTracker Debug” Ustawienia → Dane → „Eksportuj kopię”, w „GymTracker” → „Importuj kopię” z tym plikiem. Wygląd i Health Connect ustaw ponownie.
@@ -188,7 +192,7 @@ Klucz, sekrety i wydania v1.0.0 oraz v1.0.1 są gotowe. Kopia zapasowa klucza i 
 
 ## Etap 10 — test na telefonie
 
-1. Instalacja: APK z wydania `preview-stage-10` albo `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Dane zostają.
+1. Instalacja: APK z najnowszego wydania testowego albo `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Dane zostają.
 2. Ikona: nowa ikona w launcherze; z ikonami tematycznymi (Tapeta i styl → Ikony tematyczne) jest jednobarwna i czytelna. Przy zimnym starcie splash z domykającym się pierścieniem.
 3. System po angielsku: aplikacja dalej po polsku, „0 treningów” zamiast „0 treningu”.
 4. Czcionka 200% (Ustawienia → Wyświetlacz → Rozmiar czcionki): navbar, przełączniki segmentowe, Start, Postępy i Profil bez uciętych słów i liczb.
@@ -201,7 +205,7 @@ Klucz, sekrety i wydania v1.0.0 oraz v1.0.1 są gotowe. Kopia zapasowa klucza i 
 
 ## Etap 9 — test na telefonie
 
-1. Instalacja: APK z wydania `preview-stage-9` albo `.\gradlew.bat assembleDebug`, potem `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Dane z poprzedniej wersji testowej zostają.
+1. Instalacja: APK z najnowszego wydania testowego albo `.\gradlew.bat assembleDebug`, potem `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Dane z poprzedniej wersji testowej zostają.
 2. Ustawienia (zębatka na Starcie albo w Profilu) → Wygląd: zmień tryb, paletę (próbki), AMOLED, Material You, „Ogranicz przezroczystość”. Zamknij aplikację (usuń z ostatnich) i otwórz: wszystko zostało, bez mignięcia domyślnego motywu.
 3. Trening → Jednostka masy „lb”: Start, Postępy (historia i szczegóły treningu), Profil i aktywny trening pokazują funty; pola serii i +/− idą co 5 lb, a podpowiedź progresji to pełne funty (np. 140 lb, nie 139,99). Wróć na „kg”.
 4. Domyślna przerwa, np. 2:00: ćwiczenie dodane w treningu ręcznie (bez rutyny) ma przerwę 2:00. Wibracja i dźwięk na koniec przerwy przy wygaszonym ekranie zgodnie z przełącznikami (dźwięk milknie w trybie cichym).
@@ -215,7 +219,7 @@ Klucz, sekrety i wydania v1.0.0 oraz v1.0.1 są gotowe. Kopia zapasowa klucza i 
 
 ## Etap 8 — test na telefonie
 
-1. Instalacja: APK z wydania `preview-stage-8` albo `.\gradlew.bat assembleDebug`, potem `adb install -r app\build\outputs\apk\debug\app-debug.apk`.
+1. Instalacja: APK z najnowszego wydania testowego albo `.\gradlew.bat assembleDebug`, potem `adb install -r app\build\outputs\apk\debug\app-debug.apk`.
 2. Start bez danych: powitanie z dzisiejszą datą, „Szybki start” z „Pusty trening” i „Utwórz rutynę”, widżety z pustymi stanami. Czy wyglądają dobrze?
 3. Utwórz dwie rutyny i zrób krótki trening z pierwszej. Start: „Szybki start” proponuje drugą, seria tygodni = 1, „Ostatni trening” i dzień w kalendarzu.
 4. Rozpocznij trening i wróć na Start: „Szybki start” pokazuje „Wróć do treningu”.
@@ -229,7 +233,7 @@ Klucz, sekrety i wydania v1.0.0 oraz v1.0.1 są gotowe. Kopia zapasowa klucza i 
 ## Etap 7 — test na telefonie (Samsung Health)
 
 1. Przygotowanie: Samsung Health ma zgodę na zapis do Health Connect i jest na górze listy priorytetów źródeł (README, sekcja „Health Connect”).
-2. Instalacja: APK z wydania `preview-stage-7` albo `.\gradlew.bat assembleDebug`, potem `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Log w osobnym oknie: `adb logcat -c; adb logcat -s HealthSync HealthConnect HealthWriter`.
+2. Instalacja: APK z najnowszego wydania testowego albo `.\gradlew.bat assembleDebug`, potem `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Log w osobnym oknie: `adb logcat -c; adb logcat -s HealthSync HealthConnect HealthWriter`.
 3. Bez zgód: Start pokazuje kartę „Gotowość do treningu” z „Połącz”. Profil → Health Connect: każda funkcja z „Połącz”. Trening i historia działają jak dotąd.
 4. „Treningi z zegarka” → Połącz → zgody. Status zmienia się na „Połączono”, a „Synchronizacja” na „Zaimportowano: …”. Postępy → Historia: sesje z zegarka jako „Zaimportowane”, z polską nazwą typu i źródłem „Samsung Health”. Tap otwiera tętno sesji.
 5. Trening nagrany też na zegarku (nowy albo z ostatnich 30 dni): szczegóły treningu → „Sesja z zegarka … To ten trening?” → Połącz. Sprawdź tętno średnie i maksymalne, wykres i kalorie. Strefy pojawią się po wpisaniu wieku w Profil → Health Connect → Strefy tętna. Potem „Odłącz sesję z zegarka” → „Połącz z sesją z zegarka” → wybór z listy.
@@ -246,7 +250,7 @@ Klucz, sekrety i wydania v1.0.0 oraz v1.0.1 są gotowe. Kopia zapasowa klucza i 
 
 ## Etap 6 — test na telefonie
 
-1. Instalacja: APK z wydania `preview-stage-6` na GitHubie albo `.\gradlew.bat assembleDebug`, potem `adb install -r app\build\outputs\apk\debug\app-debug.apk`.
+1. Instalacja: APK z najnowszego wydania testowego albo `.\gradlew.bat assembleDebug`, potem `adb install -r app\build\outputs\apk\debug\app-debug.apk`.
 2. Dane testowe (opcjonalnie, tylko dodaje treningi): `adb shell am start -n com.jaroszeek.gymtracker.debug/com.jaroszeek.gymtracker.designsystem.gallery.GalleryActivity --ei seedWorkouts 300`; w logu `adb logcat -s DebugData` pojawi się „Added 300 workouts”.
 3. Postępy → Historia: przewiń szybko całą listę. Czy przewijanie jest płynne?
 4. Tap w trening → szczegóły → ołówek: zmień ciężar jednej serii na wyższy niż kiedykolwiek → Zapisz. Czy seria dostała odznakę rekordu? Usuń ten trening (kosz): czy rekordy w szczegółach ćwiczenia wróciły do poprzednich?
@@ -258,7 +262,7 @@ Klucz, sekrety i wydania v1.0.0 oraz v1.0.1 są gotowe. Kopia zapasowa klucza i 
 
 ## Etap 5 — test na telefonie (Samsung, One UI 8.5)
 
-1. Instalacja: APK z wydania `preview-stage-5` na GitHubie albo `.\gradlew.bat assembleDebug`, potem `adb install -r app\build\outputs\apk\debug\app-debug.apk`.
+1. Instalacja: APK z najnowszego wydania testowego albo `.\gradlew.bat assembleDebug`, potem `adb install -r app\build\outputs\apk\debug\app-debug.apk`.
 2. Log w osobnym oknie: `adb logcat -c; adb logcat -s LiveUpdate WorkoutService RestAlarm Workout`.
 3. Pierwszy start: dialog „Powiadomienie treningu” → „Zezwól” → systemowe „Zezwól”.
 4. Trening → rutyna (np. z szablonu) → Start. W obszarze powiadomień: nazwa rutyny, „ćwiczenie • seria 1”, pasek postępu, czas, akcja „Ukończ serię”.
@@ -272,7 +276,6 @@ Klucz, sekrety i wydania v1.0.0 oraz v1.0.1 są gotowe. Kopia zapasowa klucza i 
 
 ## Następny krok
 
-- Właściciel: akceptacja Etapu 14 (PR) i changelogu 1.3.0; potem tag `v1.3.0`.
-- Właściciel: test Etapów 12–14 na telefonie (wyżej) i aktualizacja z aplikacji do v1.2.0.
-- Właściciel: kopia zapasowa klucza i hasła, test aktualizacji 1.0.0 → 1.0.1 na telefonie (wyżej).
+- Właściciel: test Etapów 12–14 na telefonie (wyżej) i aktualizacja z aplikacji do v1.3.0.
+- Właściciel: kopia zapasowa klucza i hasła, test aktualizacji z v1.0.0 do najnowszej na telefonie (wyżej).
 - Wyniki testów Etapów 9–10 na telefonie, gdy właściciel je przekaże.
