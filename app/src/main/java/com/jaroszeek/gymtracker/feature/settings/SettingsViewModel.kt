@@ -1,7 +1,9 @@
 package com.jaroszeek.gymtracker.feature.settings
 
+import android.app.LocaleManager
 import android.content.Context
 import android.net.Uri
+import android.os.LocaleList
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,6 +15,7 @@ import com.jaroszeek.gymtracker.data.backup.Inspection
 import com.jaroszeek.gymtracker.data.backup.Rejection
 import com.jaroszeek.gymtracker.data.workout.ActiveWorkoutManager
 import com.jaroszeek.gymtracker.designsystem.theme.ThemeSettings
+import com.jaroszeek.gymtracker.domain.settings.AppLanguage
 import com.jaroszeek.gymtracker.domain.settings.RestAlert
 import com.jaroszeek.gymtracker.domain.settings.RestDefaults
 import com.jaroszeek.gymtracker.domain.settings.WeightUnit
@@ -62,6 +65,7 @@ data class SettingsUiState(
     /** An import would replace the data under the workout in progress, so it waits until the end. */
     val workoutActive: Boolean = false,
     val backup: BackupState = BackupState.Idle,
+    val language: AppLanguage = AppLanguage.System,
 )
 
 @HiltViewModel
@@ -75,16 +79,27 @@ class SettingsViewModel @Inject constructor(
 
     private val backupState = MutableStateFlow<BackupState>(BackupState.Idle)
 
+    // Android keeps the app's language (D-105)
+    private val locales = context.getSystemService(LocaleManager::class.java)
+    private val language = MutableStateFlow(AppLanguage.fromTag(locales.applicationLocales[0]?.language))
+
     private val training = combine(preferences.weightUnit, preferences.defaultRestSeconds, preferences.restAlert, ::Triple)
 
     /** Null until the settings are read, so nothing is changed from the defaults. */
     val state: StateFlow<SettingsUiState?> =
-        combine(preferences.theme, training, preferences.healthLastSync, workout.workout, backupState) { theme, (unit, rest, alert), lastSync, active, backup ->
-            SettingsUiState(theme, unit, rest, alert, lastSync, workoutActive = active != null, backup = backup)
+        combine(preferences.theme, training, preferences.healthLastSync, workout.workout, combine(backupState, language, ::Pair)) {
+                theme, (unit, rest, alert), lastSync, active, (backup, language) ->
+            SettingsUiState(theme, unit, rest, alert, lastSync, workoutActive = active != null, backup = backup, language = language)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), null)
 
     fun onTheme(theme: ThemeSettings) {
         viewModelScope.launch { preferences.setTheme(theme) }
+    }
+
+    /** The screens are created again in the new language. */
+    fun onLanguage(language: AppLanguage) {
+        this.language.value = language
+        locales.applicationLocales = language.tag?.let(LocaleList::forLanguageTags) ?: LocaleList.getEmptyLocaleList()
     }
 
     fun onUnit(unit: WeightUnit) {

@@ -8,7 +8,9 @@ import com.jaroszeek.gymtracker.testing.bundledSeed
 import com.jaroszeek.gymtracker.testing.inMemoryDatabase
 import com.jaroszeek.gymtracker.testing.seeder
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.junit.After
@@ -91,6 +93,20 @@ class ExerciseRepositoryTest {
         assertEquals(other.instructions, repository.observe(other.id).first()!!.instructions)
         val custom = repository.saveCustom(null, ExerciseDraft(name = "Landmine Press", notes = "Stand tall"))
         assertEquals(listOf("Stand tall"), repository.observe(custom).first()!!.instructions)
+    }
+
+    @Test
+    fun instructionsFollowTheAppLanguage() = runTest {
+        val polish = MutableStateFlow(true)
+        val translations = ExerciseTranslations(polish) { mapOf("Barbell_Deadlift" to listOf("Podejdź do sztangi.")) }
+        val repository = ExerciseRepository(database, seeder(), Dispatchers.IO, translations)
+        val deadlift = repository.observeAll().first().single { it.name == "Barbell Deadlift" }
+        val shown = repository.observe(deadlift.id).map { it!!.instructions }
+        assertEquals(listOf("Podejdź do sztangi."), shown.first())
+        // The English app keeps the source text, also on a screen open while the language changes
+        polish.value = false
+        assertEquals(deadlift.instructions, shown.first())
+        assertTrue(deadlift.instructions.isNotEmpty())
     }
 
     @Test

@@ -31,6 +31,19 @@ enum class WeightUnit(val key: String) {
     }
 }
 
+/** The app's language (A5.9, D-105): the system's, or one the texts come in. [tag] is the language Android keeps for the app. */
+enum class AppLanguage(val tag: String?) {
+    System(null),
+    Polish("pl"),
+    English("en"),
+    ;
+
+    companion object {
+        /** A language the app has no texts in follows the system. */
+        fun fromTag(tag: String?): AppLanguage = entries.firstOrNull { it.tag == tag } ?: System
+    }
+}
+
 /** What happens when a rest ends; the screen and the notification change either way. */
 data class RestAlert(val sound: Boolean = false, val vibration: Boolean = true)
 

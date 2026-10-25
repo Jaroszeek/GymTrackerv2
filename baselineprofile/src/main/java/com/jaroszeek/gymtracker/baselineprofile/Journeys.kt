@@ -6,6 +6,7 @@ import androidx.test.uiautomator.By
 import androidx.test.uiautomator.Direction
 import androidx.test.uiautomator.StaleObjectException
 import androidx.test.uiautomator.Until
+import java.util.regex.Pattern
 
 /** The app variant under test; `baselineprofile/build.gradle.kts` passes it (D-079). */
 val targetAppId: String
@@ -14,15 +15,19 @@ val targetAppId: String
 private const val TIMEOUT_MILLIS = 5_000L
 private const val ATTEMPTS = 3
 
+/** A text in either of the app's languages (D-105). */
+private fun text(polish: String, english: String) = By.text(Pattern.compile("${Pattern.quote(polish)}|${Pattern.quote(english)}"))
+
 /** First start: the notification prompt (D-047) goes away without granting anything. */
 fun MacrobenchmarkScope.dismissFirstRunPrompt() {
-    device.wait(Until.findObject(By.text("Nie teraz")), TIMEOUT_MILLIS)?.click()
+    device.wait(Until.findObject(text("Nie teraz", "Not now")), TIMEOUT_MILLIS)?.click()
 }
 
 /** The everyday path: every tab and the lists people scroll most. */
 fun MacrobenchmarkScope.visitTabs() {
-    for (tab in listOf("Ćwiczenia", "Trening", "Postępy", "Profil", "Start")) {
-        device.wait(Until.findObject(By.text(tab)), TIMEOUT_MILLIS)?.click() ?: continue
+    val tabs = listOf("Ćwiczenia" to "Exercises", "Trening" to "Workout", "Postępy" to "Progress", "Profil" to "Profile", "Start" to "Home")
+    for ((polish, english) in tabs) {
+        device.wait(Until.findObject(text(polish, english)), TIMEOUT_MILLIS)?.click() ?: continue
         device.waitForIdle()
         flingList(Direction.DOWN)
         flingList(Direction.UP)

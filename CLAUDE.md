@@ -15,7 +15,7 @@ Gdy polecenie w sesji jest sprzeczne z tym plikiem albo z PROMPT.md, wskaż konf
 ## Komunikacja
 - Odpowiadaj po polsku.
 - Kod, identyfikatory, komentarze w kodzie, commity i nazwy branchy piszesz po angielsku.
-- Teksty UI są po polsku, w `strings.xml`.
+- Teksty UI są po polsku i po angielsku: angielskie domyślne w `values/strings.xml`, polskie w `values-pl/strings.xml`. Każdy nowy tekst dodajesz w obu plikach.
 - Pisz zwięźle i konkretnie. Nie powtarzaj tego, co już wiem.
 - Nigdy nie twierdź, że coś działa, jeśli tego nie sprawdziłeś. Rozróżniaj:
   - „kompiluje się”
@@ -92,7 +92,7 @@ Gdy polecenie w sesji jest sprzeczne z tym plikiem albo z PROMPT.md, wskaż konf
 - Błędy: nie połykasz wyjątków, logujesz z tagiem modułu. UI ma stany ładowania, pusty i błędu.
 - Czas: używasz `java.time`. Zapisujesz w UTC (epoch millis albo Instant), wyświetlasz w strefie urządzenia.
 - Masę zapisujesz w kg; konwersja na lb jest tylko w UI.
-- Wszystkie teksty są w `strings.xml`. Liczby mnogie robisz przez `<plurals>` z polskimi formami (one, few, many, other).
+- Wszystkie teksty są w `strings.xml`. Liczby mnogie robisz przez `<plurals>`: po polsku z formami one, few, many, other, po angielsku z one i other.
 - Stosujesz oficjalny Kotlin coding style. Jeśli w projekcie jest spotless albo ktlint, uruchamiasz go przed commitem.
 
 ## Design system

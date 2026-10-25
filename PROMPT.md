@@ -29,7 +29,7 @@ Zasady pracy, konwencje kodu i ustalenia techniczne opisuje `CLAUDE.md`.
 - Hilt (KSP).
 - Nawigacja: Navigation 3, jeśli jest stabilne i pasuje do navbara; w przeciwnym razie Navigation Compose z type-safe routes.
 - Room (KSP), DataStore, WorkManager, Coil 3, kotlinx.serialization, Health Connect `connect-client`.
-- UI po polsku (`strings.xml`, gotowe na EN). Jednostki: kg, z przełącznikiem kg/lb.
+- UI po polsku i po angielsku (NOWE 2026-10-25): język systemu albo wybrany w ustawieniach. Jednostki: kg, z przełącznikiem kg/lb.
 
 ## A3. Navbar z repo vynox
 Repo https://github.com/Jaroszeek/vynox (prywatne) to mój poprzedni projekt. Bierzemy z niego wyłącznie pasek nawigacji.
@@ -178,6 +178,7 @@ Aplikacja ma wyglądać jak produkt premium, a nie jak szablon Material. Dark-fi
 
 ### A5.9 Ustawienia
 - Motyw: System / Jasny / Ciemny, paleta i akcent, AMOLED, Material You, „Ogranicz przezroczystość”.
+- Język: systemowy, polski albo angielski (NOWE 2026-10-25).
 - Jednostki, domyślny czas przerwy, dźwięk i wibracja końca przerwy.
 - Health Connect: połącz / rozłącz, auto-sync, „Synchronizuj teraz”, data ostatniej synchronizacji, stan uprawnień.
 - Dane: eksport i import (A5.10).
@@ -308,6 +309,7 @@ POST_NOTIFICATIONS: prośba przy pierwszym starcie (z wyjaśnieniem) i baner na 
 | 11 | Wydanie i aktualizator | A8, A5.11 | v1.0.0 na GitHub Releases |
 | 12 | Szlif 1.1 (pomysły z `IDEAS.md`) | A4, A5.1, A5.2, A5.5, A5.6, A5.8 | wersja 1.1.0 |
 | 13 | Wersja 1.2: polskie instrukcje, poprawki, zależności | A5.1, A5.5, C8 | wersja 1.2.0 |
+| 14 | Wersja 1.3: angielska wersja aplikacji | A2, A5.9 | wersja 1.3.0 |
 
 ## Etap 0 — Start i plan
 **Kryteria akceptacji**
@@ -748,6 +750,27 @@ Zakres:
 3. Kalendarz na Starcie: bez kropek za spacery wykrywane automatycznie.
 4. Aktualizacja zależności według C8.
 Na koniec: changelog 1.2.0 do akceptacji, potem tag v1.2.0.
+```
+
+## Etap 14 — Wersja 1.3
+Dodany 2026-10-25 na prośbę właściciela: angielska wersja aplikacji. Bez migracji bazy i bez nowych uprawnień.
+
+**Kryteria akceptacji**
+- [ ] Wszystkie teksty po angielsku i po polsku; angielski dla systemów w innych językach niż polski
+- [ ] Język w ustawieniach: systemowy, polski, angielski; wybór działa od razu i przeżywa restart
+- [ ] Instrukcje ćwiczeń po polsku tylko w polskiej wersji, w angielskiej z oryginału
+- [ ] Dotychczasowe instalacje zostają po polsku
+- [ ] Testy UI i benchmark działają w obu językach
+
+**Prompt**
+```
+Realizujemy Etap 14 — Wersja 1.3. Branch: feat/stage-14-english.
+
+Zakres:
+1. Angielskie teksty jako domyślne (`values/`), polskie w `values-pl/`; koniec wymuszania polskiego (D-078).
+2. Wybór języka w ustawieniach (systemowy / polski / angielski).
+3. Instrukcje ćwiczeń zależne od języka.
+Na koniec: changelog 1.3.0 do akceptacji, potem tag v1.3.0.
 ```
 
 ---
