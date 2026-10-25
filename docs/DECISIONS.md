@@ -690,9 +690,10 @@ Właściciel zatwierdził wszystkie (2026-10-24):
 - **Test na emulatorze (API 36):** buildy `benchmark` 1.0.0, 1.0.1 i 1.0.2 (ten sam klucz debug) oraz `python -m http.server` z `latest.json` w formacie GitHuba. Sprawdzone: dialog z notatkami i rozmiarem, prośba o zgodę i powrót, pobranie, potwierdzenie systemu, instalacja 1.0.0 → 1.0.1 i 1.0.1 → 1.0.2 (dane zostają, instalatorem staje się aplikacja), APK podpisany innym kluczem odrzucony, anulowanie i ponowna próba, „Masz najnowszą wersję”, brak sieci w karcie, motyw ciemny i jasny.
 - Po instalacji system zamyka aplikację i jej nie otwiera; mówi o tym dialog „Instalowanie”.
 
-### D-089 Uprawnienie REQUEST_INSTALL_PACKAGES
-- Nowe uprawnienie w manifeście, wymagane przez A5.11 (instalacja przez `PackageInstaller`). Do akceptacji razem z etapem, jak D-045.
-- **Nie dodane:** `UPDATE_PACKAGES_WITHOUT_USER_ACTION` (zwykłe uprawnienie, Android 12+). Z nim kolejne aktualizacje, gdy aplikacja jest już instalatorem, mogłyby przechodzić bez systemowego „Zaktualizować tę aplikację?”. Bez zgody właściciela zostaje potwierdzenie przy każdej aktualizacji (sprawdzone na emulatorze przy drugiej aktualizacji).
+### D-089 Uprawnienia REQUEST_INSTALL_PACKAGES i UPDATE_PACKAGES_WITHOUT_USER_ACTION
+- `REQUEST_INSTALL_PACKAGES`: wymagane przez A5.11 (instalacja przez `PackageInstaller`). Zaakceptowane przez właściciela (2026-10-25).
+- `UPDATE_PACKAGES_WITHOUT_USER_ACTION` (zwykłe uprawnienie, Android 12+): dodane na prośbę właściciela (2026-10-25). Razem z `USER_ACTION_NOT_REQUIRED` w sesji aplikacja aktualizuje samą siebie bez systemowego „Zaktualizować tę aplikację?”; zostaje „Aktualizuj” w dialogu aplikacji i jednorazowa zgoda „Instaluj nieznane aplikacje”. Nie daje dostępu do żadnych danych.
+- Sprawdzone na emulatorze (API 36): 1.0.3 zainstalowana przez `adb` (bez instalatora) zaktualizowała się z aplikacji do 1.0.4 bez okna systemu; instalatorem staje się sama aplikacja. Bez tego uprawnienia (1.0.0–1.0.2) system pytał przy każdej aktualizacji. Jeśli system jednak poprosi o potwierdzenie (np. inny instalator rości sobie prawo do aktualizacji), aplikacja je pokazuje, jak wcześniej.
 
 ### D-090 UI aktualizatora
 - Jeden `GlassDialog` nad całą aplikacją (`UpdatePrompt` w `GymTrackerRoot`), treść według stanu: nowa wersja (notatki jako zwykły tekst z Markdownu, rozmiar, „Później” / „Aktualizuj”), zgoda na instalację, pobieranie z procentem, instalowanie (bez przycisków, aż odpowie instalator), błąd. Dialog zachowuje ostatnią treść podczas znikania.

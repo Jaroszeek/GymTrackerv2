@@ -24,10 +24,10 @@
     - wersja z tagu (`-PappVersion`, D-085), podpis release z `keystore.properties` albo sekretów CI (D-086);
     - `.github/workflows/release.yml` na tag `vX.Y.Z` z opisem z `CHANGELOG.md` (D-087); `CHANGELOG.md` z sekcją 1.0.0;
     - aktualizator (A5.11): sprawdzanie przy starcie co 24 h i ręcznie, dialog z notatkami, pobranie, weryfikacja podpisu, instalacja przez `PackageInstaller`, zgoda „Instaluj nieznane aplikacje” (D-088, D-090); karta w Ustawieniach;
-    - uprawnienie `REQUEST_INSTALL_PACKAGES` (D-089, do akceptacji);
+    - uprawnienia `REQUEST_INSTALL_PACKAGES` i `UPDATE_PACKAGES_WITHOUT_USER_ACTION` (D-089, zaakceptowane 2026-10-25);
     - testy porównania wersji, terminu sprawdzania, notatek i parsowania odpowiedzi GitHuba;
     - finalne README (A9): zrzuty, instalacja APK, przeniesienie danych z wersji testowej, wydawanie wersji z `keytool` i `gh secret set`.
-  - Sprawdzone na emulatorze (API 36, buildy `benchmark` z lokalnym serwerem): aktualizacja 1.0.0 → 1.0.1 → 1.0.2 z poziomu aplikacji, dane zostają; zgoda na instalację, potwierdzenie systemu i jego anulowanie, odrzucenie APK z innym kluczem, „Masz najnowszą wersję”, brak sieci; motyw ciemny i jasny.
+  - Sprawdzone na emulatorze (API 36, buildy `benchmark` z lokalnym serwerem): aktualizacja 1.0.0 → 1.0.1 → 1.0.2 z poziomu aplikacji, dane zostają; zgoda na instalację, potwierdzenie systemu i jego anulowanie, a z `UPDATE_PACKAGES_WITHOUT_USER_ACTION` aktualizacja 1.0.3 → 1.0.4 bez okna systemu (D-089), odrzucenie APK z innym kluczem, „Masz najnowszą wersję”, brak sieci; motyw ciemny i jasny.
   - Sprawdzone lokalnie: `assembleRelease` bez klucza (niepodpisany) i z jednorazowym kluczem testowym (podpisany, `apksigner`). Workflow wydania jeszcze nie działał na GitHubie (pierwszy przebieg przy v1.0.0).
   - Testy: JVM 305/305, UI 6/6 na emulatorze API 36, lint 0 błędów (1 znane ostrzeżenie o targetSdk 36).
 - **Etap 10** zaakceptowany i zmergowany (PR #10, 2026-10-24). Wydania testowe `preview-stage-10`, `10.1`, `10.2`.
@@ -116,7 +116,7 @@ Najpierw jednorazowo (README, „Wydawanie wersji”): keystore, `keystore.prope
 2. Na telefonie pobierz `GymTracker-1.0.0.apk` z Releases i zainstaluj. Aplikacja „GymTracker” instaluje się obok „GymTracker Debug”.
 3. Przeniesienie danych: w „GymTracker Debug” Ustawienia → Dane → „Eksportuj kopię”, w „GymTracker” → „Importuj kopię” z tym plikiem. Wygląd i Health Connect ustaw ponownie.
 4. Ustawienia → Aktualizacje → „Sprawdź teraz”: „Masz najnowszą wersję…”. O aplikacji: „Wersja 1.0.0”.
-5. Potem testowe v1.0.1 (sekcja w `CHANGELOG.md`, tag). Na telefonie „Sprawdź teraz” (automatycznie najwcześniej 24 h po poprzednim sprawdzeniu): dialog „Nowa wersja 1.0.1” z notatkami → „Aktualizuj” → „Otwórz ustawienia” → „Zezwalaj z tego źródła” → wstecz → pobieranie → systemowe „Zaktualizować tę aplikację?” → „Aktualizuj”. Aplikacja się zamyka; po otwarciu „Wersja 1.0.1” i te same dane.
+5. Potem testowe v1.0.1 (sekcja w `CHANGELOG.md`, tag). Na telefonie „Sprawdź teraz” (automatycznie najwcześniej 24 h po poprzednim sprawdzeniu): dialog „Nowa wersja 1.0.1” z notatkami → „Aktualizuj” → „Otwórz ustawienia” → „Zezwalaj z tego źródła” → wstecz → pobieranie → instalacja bez dodatkowego okna systemu (jeśli One UI jednak zapyta „Zaktualizować?”, zanotuj to). Aplikacja się zamyka; po otwarciu „Wersja 1.0.1” i te same dane.
 6. One UI: jeśli Samsung pokaże ostrzeżenie Auto Blocker albo ochrony przed nieznanymi aplikacjami, zanotuj jego treść (może blokować instalację spoza sklepu).
 7. Do raportu: zrzut dialogu nowej wersji i wszystko, co odbiega od kroków 4–5.
 
