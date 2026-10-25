@@ -16,6 +16,15 @@
     <string name="number_decrease">Zmniejsz: %1$s</string>
     <string name="number_increase">Zwiększ: %1$s</string>
     <string name="number_empty">—</string>
+    <!-- Date and time picker -->
+    <string name="date_time_title">Data i godzina</string>
+    <!-- "sob., 24 października, 18:30" -->
+    <string name="date_time_value">%1$s, %2$s</string>
+    <string name="date_time_previous_month">Poprzedni miesiąc</string>
+    <string name="date_time_next_month">Następny miesiąc</string>
+    <string name="date_time_hour">Godzina</string>
+    <string name="date_time_minute">Minuta</string>
+    <string name="date_time_future">Ta chwila jeszcze nie nadeszła. Wybierz wcześniejszą godzinę.</string>
     <string name="action_clear">Wyczyść</string>
     <string name="action_retry">Spróbuj ponownie</string>
     <string name="action_back">Wstecz</string>
@@ -396,6 +405,8 @@
     <string name="workout_editor_title">Edytuj trening</string>
     <string name="workout_editor_name_error">Podaj nazwę treningu</string>
     <string name="workout_editor_duration">Czas trwania</string>
+    <string name="workout_editor_start">Początek</string>
+    <string name="workout_editor_start_title">Początek treningu</string>
     <string name="unit_min">min</string>
     <string name="workout_editor_remove_exercise">Usuń ćwiczenie</string>
     <string name="workout_editor_reps_missing">Uzupełnij powtórzenia w każdej serii albo usuń pustą serię.</string>
@@ -731,7 +742,8 @@
     <string name="profile_composition_lean_text">Bez tkanki tłuszczowej masa beztłuszczowa pochodzi z Health Connect, a masa tłuszczu to reszta wagi z tego samego ważenia. Mięśnie szkieletowe wpisujesz ręcznie, bo Health Connect ich nie zapisuje.</string>
     <string name="profile_add">Dodaj pomiar</string>
     <string name="profile_add_title">Nowy pomiar</string>
-    <string name="profile_add_now">Zapisany z bieżącą datą i godziną.</string>
+    <string name="profile_add_time_now">Teraz</string>
+    <string name="profile_add_time_title">Kiedy zmierzono?</string>
     <string name="profile_add_range">Dozwolone %1$s–%2$s %3$s</string>
     <string name="profile_charts_title">Wykresy</string>
     <string name="profile_chart_empty">Brak pomiarów w tym okresie.</string>

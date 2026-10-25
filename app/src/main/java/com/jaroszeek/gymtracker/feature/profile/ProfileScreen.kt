@@ -45,6 +45,8 @@ import com.jaroszeek.gymtracker.designsystem.component.GlassButton
 import com.jaroszeek.gymtracker.designsystem.component.GlassButtonStyle
 import com.jaroszeek.gymtracker.designsystem.component.GlassCard
 import com.jaroszeek.gymtracker.designsystem.component.GlassChip
+import com.jaroszeek.gymtracker.designsystem.component.GlassDateTimeField
+import com.jaroszeek.gymtracker.designsystem.component.GlassDateTimeSheet
 import com.jaroszeek.gymtracker.designsystem.component.GlassDialog
 import com.jaroszeek.gymtracker.designsystem.component.GlassIconButton
 import com.jaroszeek.gymtracker.designsystem.component.GlassLineChart
@@ -67,6 +69,7 @@ import com.jaroszeek.gymtracker.feature.health.HealthConnectEntry
 import com.jaroszeek.gymtracker.feature.health.kcalLabel
 import com.jaroszeek.gymtracker.feature.health.sourceLabel
 import com.jaroszeek.gymtracker.feature.progress.StatColumn
+import com.jaroszeek.gymtracker.feature.progress.dayLabel
 import com.jaroszeek.gymtracker.feature.progress.shortDate
 import com.jaroszeek.gymtracker.feature.progress.shownIn
 import com.jaroszeek.gymtracker.feature.progress.timeLabel
@@ -95,6 +98,9 @@ fun ProfileRoute(onSettings: () -> Unit, onHealthConnect: () -> Unit, viewModel:
         onAdd = viewModel::onAdd,
         onAddMetric = viewModel::onAddMetric,
         onAddValue = viewModel::onAddValue,
+        onAddTimePick = viewModel::onAddTimePick,
+        onAddTimeDismiss = viewModel::onAddTimeDismiss,
+        onAddTime = viewModel::onAddTime,
         onAddDismiss = viewModel::onAddDismiss,
         onAddSave = viewModel::onAddSave,
         onDeleteRequest = viewModel::onDeleteRequest,
@@ -119,6 +125,9 @@ fun ProfileScreen(
     onAdd: (BodyMetric) -> Unit,
     onAddMetric: (BodyMetric) -> Unit,
     onAddValue: (Double?) -> Unit,
+    onAddTimePick: () -> Unit,
+    onAddTimeDismiss: () -> Unit,
+    onAddTime: (Long) -> Unit,
     onAddDismiss: () -> Unit,
     onAddSave: () -> Unit,
     onDeleteRequest: (BodyMeasurement) -> Unit,
@@ -182,8 +191,17 @@ fun ProfileScreen(
 
     val adding = state.adding
     GlassBottomSheet(visible = adding != null, onDismissRequest = onAddDismiss) {
-        if (adding != null) AddForm(adding, onAddMetric, onAddValue, onAddSave)
+        if (adding != null) AddForm(adding, onAddMetric, onAddValue, onAddTimePick, onAddSave)
     }
+    // After the sheet it opens from, so back closes it first
+    GlassDateTimeSheet(
+        visible = adding?.timeMax != null,
+        value = adding?.time ?: adding?.timeMax ?: 0L,
+        title = stringResource(R.string.profile_add_time_title),
+        onConfirm = onAddTime,
+        onDismissRequest = onAddTimeDismiss,
+        max = adding?.timeMax,
+    )
     val editingAge = state.editingAge
     GlassBottomSheet(visible = editingAge != null, onDismissRequest = onAgeDismiss) {
         if (editingAge != null) AgeForm(editingAge, onAgeValue, onAgeSave)
@@ -405,7 +423,7 @@ private fun MeasurementRow(measurement: BodyMeasurement, onDelete: () -> Unit) {
 }
 
 @Composable
-private fun AddForm(adding: NewMeasurement, onMetric: (BodyMetric) -> Unit, onValue: (Double?) -> Unit, onSave: () -> Unit) {
+private fun AddForm(adding: NewMeasurement, onMetric: (BodyMetric) -> Unit, onValue: (Double?) -> Unit, onTime: () -> Unit, onSave: () -> Unit) {
     val colors = GtTheme.colors
     val metric = adding.metric
     val unit = stringResource(metric.unit(adding.unit))
@@ -435,7 +453,11 @@ private fun AddForm(adding: NewMeasurement, onMetric: (BodyMetric) -> Unit, onVa
         color = if (adding.invalid) colors.danger else colors.textSecondary,
         style = GtTheme.typography.bodySmall,
     )
-    Text(stringResource(R.string.profile_add_now), color = colors.textTertiary, style = GtTheme.typography.labelSmall)
+    GlassDateTimeField(
+        value = adding.time?.let { stringResource(R.string.date_time_value, dayLabel(it), timeLabel(it)) } ?: stringResource(R.string.profile_add_time_now),
+        label = stringResource(R.string.date_time_title),
+        onClick = onTime,
+    )
     GlassButton(stringResource(R.string.action_save), onClick = onSave, enabled = adding.value != null, modifier = Modifier.fillMaxWidth())
 }
 
@@ -468,7 +490,8 @@ private fun PreviewScreen(state: ProfileUiState) {
             ProfileScreen(
                 state = state,
                 onSettings = {}, onHealthConnect = {}, onAgeEdit = {}, onAgeValue = {}, onAgeDismiss = {}, onAgeSave = {}, onChart = {}, onRange = {},
-                onShowAll = {}, onAdd = {}, onAddMetric = {}, onAddValue = {}, onAddDismiss = {}, onAddSave = {}, onDeleteRequest = {}, onDeleteDismiss = {},
+                onShowAll = {}, onAdd = {}, onAddMetric = {}, onAddValue = {}, onAddTimePick = {}, onAddTimeDismiss = {}, onAddTime = {}, onAddDismiss = {},
+                onAddSave = {}, onDeleteRequest = {}, onDeleteDismiss = {},
                 onDeleteConfirm = {},
             )
         }

@@ -182,12 +182,13 @@ class WorkoutRepositoryTest {
             .addExercise(butterfly)
             .let { w -> w.updateSet(w.exercises.last().id, w.exercises.last().sets.single().id) { it.copy(weightKg = 30.0, reps = 12) } }
             .withDuration(45)
+            .withStart(500)
             .copy(name = " Push A ")
 
         assertTrue(workouts.update(edited))
 
         val reloaded = workouts.observeWorkout(id).first()!!
-        assertEquals(listOf("Push A", 1_000L, 1_000L + 45 * 60_000), listOf(reloaded.name, reloaded.startedAt, reloaded.endedAt))
+        assertEquals(listOf("Push A", 500L, 500L + 45 * 60_000), listOf(reloaded.name, reloaded.startedAt, reloaded.endedAt))
         assertEquals(listOf(bench, butterfly), reloaded.exercises.map { it.exerciseId })
         assertEquals(
             listOf(listOf(PerformedSet(60.0, 10), PerformedSet(60.0, 7, SetType.Failure)), listOf(PerformedSet(30.0, 12))),

@@ -111,13 +111,14 @@ class WorkoutRepository @Inject constructor(
         .flowOn(io)
 
     /**
-     * Replaces the workout's name, end and sets with the edited ones; false when none of its exercises
-     * exists any more, in which case nothing changes.
+     * Replaces the workout's name, start, end and sets with the edited ones; false when none of its exercises
+     * exists any more, in which case nothing changes. A new start re-sorts the history, and records, being
+     * worked out on reading (D-054), follow by themselves.
      */
     suspend fun update(workout: LoggedWorkout): Boolean = database.withWriteTransaction {
         val kept = existing(workout.exercises)
         if (kept.isEmpty()) return@withWriteTransaction false
-        dao.updateWorkout(workout.id, workout.name.trim(), workout.endedAt)
+        dao.updateWorkout(workout.id, workout.name.trim(), workout.startedAt, workout.endedAt)
         dao.deleteExercises(workout.id)
         insertExercises(workout.id, kept)
         true
