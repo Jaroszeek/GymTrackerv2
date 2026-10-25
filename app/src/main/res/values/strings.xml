@@ -16,6 +16,15 @@
     <string name="number_decrease">Zmniejsz: %1$s</string>
     <string name="number_increase">Zwiększ: %1$s</string>
     <string name="number_empty">—</string>
+    <!-- Date and time picker -->
+    <string name="date_time_title">Data i godzina</string>
+    <!-- "sob., 24 października, 18:30" -->
+    <string name="date_time_value">%1$s, %2$s</string>
+    <string name="date_time_previous_month">Poprzedni miesiąc</string>
+    <string name="date_time_next_month">Następny miesiąc</string>
+    <string name="date_time_hour">Godzina</string>
+    <string name="date_time_minute">Minuta</string>
+    <string name="date_time_future">Ta chwila jeszcze nie nadeszła. Wybierz wcześniejszą godzinę.</string>
     <string name="action_clear">Wyczyść</string>
     <string name="action_retry">Spróbuj ponownie</string>
     <string name="action_back">Wstecz</string>

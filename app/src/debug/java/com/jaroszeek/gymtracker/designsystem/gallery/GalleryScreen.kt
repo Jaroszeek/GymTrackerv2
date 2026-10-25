@@ -32,6 +32,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -61,6 +62,8 @@ import com.jaroszeek.gymtracker.designsystem.component.GlassButton
 import com.jaroszeek.gymtracker.designsystem.component.GlassButtonStyle
 import com.jaroszeek.gymtracker.designsystem.component.GlassCard
 import com.jaroszeek.gymtracker.designsystem.component.GlassChip
+import com.jaroszeek.gymtracker.designsystem.component.GlassDateTimeField
+import com.jaroszeek.gymtracker.designsystem.component.GlassDateTimeSheet
 import com.jaroszeek.gymtracker.designsystem.component.GlassDialog
 import com.jaroszeek.gymtracker.designsystem.component.GlassFullScreenOverlay
 import com.jaroszeek.gymtracker.designsystem.component.GlassIconButton
@@ -90,6 +93,8 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.ThemeMode
 import com.jaroszeek.gymtracker.designsystem.theme.ThemeSettings
 import com.jaroszeek.gymtracker.designsystem.theme.gtColors
+import com.jaroszeek.gymtracker.feature.progress.dayLabel
+import com.jaroszeek.gymtracker.feature.progress.timeLabel
 import com.jaroszeek.gymtracker.feature.progress.weekdayLabel
 import com.jaroszeek.gymtracker.feature.routines.weightLabel
 import java.time.DayOfWeek
@@ -200,6 +205,7 @@ fun GalleryScreen(settings: ThemeSettings, onSettingsChange: (ThemeSettings) -> 
                     GlassButton(stringResource(R.string.gallery_show_fullscreen), onClick = { fullScreen = true }, style = GlassButtonStyle.Secondary)
                 }
             }
+            section(R.string.gallery_section_date_time) { DateTimeSample() }
             section(R.string.gallery_section_progress) {
                 Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(GtSpacing.l), verticalAlignment = Alignment.CenterVertically) {
@@ -466,6 +472,29 @@ private fun Surfaces() {
             Text(stringResource(R.string.gallery_panel_text), color = GtTheme.colors.textSecondary, style = GtTheme.typography.bodySmall)
         }
     }
+}
+
+/** The field opens the picker, which allows nothing after the moment it opened. */
+@Composable
+private fun DateTimeSample() {
+    var value by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    var max by remember { mutableStateOf<Long?>(null) }
+    GlassDateTimeField(
+        value = stringResource(R.string.date_time_value, dayLabel(value), timeLabel(value)),
+        label = stringResource(R.string.date_time_title),
+        onClick = { max = System.currentTimeMillis() },
+    )
+    GlassDateTimeSheet(
+        visible = max != null,
+        value = value,
+        title = stringResource(R.string.date_time_title),
+        onConfirm = {
+            value = it
+            max = null
+        },
+        onDismissRequest = { max = null },
+        max = max,
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
