@@ -68,6 +68,21 @@ class TabNavigatorTest {
     }
 
     @Test
+    fun aTabOnTheLeftComesInFromTheLeft() {
+        val navigator = navigator()
+        navigator.select(TopLevelTab.Progress)
+        assertEquals(false, navigator.leftward)
+        navigator.select(TopLevelTab.Exercises)
+        assertEquals(true, navigator.leftward)
+        // A screen within the tab comes in from the right again
+        navigator.navigate(Detail)
+        assertEquals(false, navigator.leftward)
+        navigator.select(TopLevelTab.Profile)
+        navigator.open(TopLevelTab.Workout, ActiveWorkoutKey)
+        assertEquals(true, navigator.leftward)
+    }
+
+    @Test
     fun tabsKeepTheirStacks() {
         val navigator = navigator()
         navigator.select(TopLevelTab.Exercises)

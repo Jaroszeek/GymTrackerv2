@@ -157,7 +157,7 @@ fun GymTrackerRoot(openWorkoutRequests: Int = 0) {
                     entries = navigator.visibleTabs.flatMap { decorated.getValue(it) },
                     onBack = navigator::back,
                     sharedTransitionScope = this,
-                    transitionSpec = { forward() },
+                    transitionSpec = { forward(fromLeft = navigator.leftward) },
                     popTransitionSpec = { backward() },
                     predictivePopTransitionSpec = { backward() },
                 )
@@ -286,9 +286,10 @@ private fun entryProvider(navigator: TabNavigator): (NavKey) -> NavEntry<NavKey>
     }
 }
 
-// Transitions as in vynox: a short slide with a fade
-private fun forward(): ContentTransform =
-    (slideInHorizontally(GtMotion.Page) { it / 5 } + fadeIn(tween(GtMotion.FADE_IN_MILLIS))) togetherWith fadeOut(tween(GtMotion.FADE_OUT_MILLIS))
+// Transitions as in vynox: a short slide with a fade. A tab left of the last one comes in from the left,
+// so the screens move the way the navbar does
+private fun forward(fromLeft: Boolean = false): ContentTransform =
+    (slideInHorizontally(GtMotion.Page) { if (fromLeft) -it / 5 else it / 5 } + fadeIn(tween(GtMotion.FADE_IN_MILLIS))) togetherWith fadeOut(tween(GtMotion.FADE_OUT_MILLIS))
 
 private fun backward(): ContentTransform =
     fadeIn(tween(GtMotion.FADE_IN_MILLIS)) togetherWith (slideOutHorizontally(GtMotion.Page) { it / 5 } + fadeOut(tween(GtMotion.FADE_OUT_MILLIS)))
