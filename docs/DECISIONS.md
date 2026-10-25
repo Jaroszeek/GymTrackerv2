@@ -753,17 +753,24 @@ Właściciel zatwierdził wszystkie (2026-10-24):
 - Pod kalendarzem, tylko gdy w miesiącu są takie dni, linia z kropką i liczbą („1 dzień z sesją z zegarka”) — to też legenda. Opis dostępności dnia: „24, sesja z zegarka”. Seria tygodni i liczba treningów liczą tylko treningi z aplikacji.
 - Bez HC i zgód kropek nie ma (dane z lokalnej `health.db`).
 
+### D-101 Aktualizacja zależności (2026-10-25)
+- Przegląd według C8: każdą pozycję `libs.versions.toml`, wrapper Gradle i plugin foojay porównałem z Google Maven, Maven Central, Gradle Plugin Portal i `services.gradle.org`, tylko wersje stabilne.
+- **Zaktualizowane:** kotlinx-serialization-json 1.11.0 → 1.12.0 (zbudowana na Kotlinie 2.4.10; stabilizacja API, szybsze parsowanie, każdy wyjątek dekodowania opakowany w `JsonException`, która nadal jest `SerializationException`, więc obsługa błędów w `ActiveWorkoutStore` i aktualizatorze bez zmian; limit głębokości zagnieżdżenia JSON). Gradle 9.8.1 → 9.8.2 (jedna poprawka fałszywego ostrzeżenia przy wyrównywaniu wersji przez platformę; AGP 9.4 wymaga co najmniej 9.6.0).
+- **Bez zmian, bo to już najnowsze stabilne:** AGP 9.4.1, Kotlin 2.4.21, KSP 2.3.12, Compose BOM 2026.09.00, core-ktx, activity, lifecycle, navigation3, Hilt, androidx.hilt, Room 3, sqlite, Coil, coroutines, datastore, WorkManager, Health Connect 1.1.0, backdrop, shapes, reorderable, benchmark/baselineprofile, uiautomator, androidx.test, JUnit, foojay 1.0.0.
+- **Pominięte:** OkHttp 5.5.1 (blokuje skompromitowane certyfikaty pośrednie eMudhra) przychodzi tylko przez Coil; przypięcie wymagałoby nowej bezpośredniej zależności, a według notatek wydania telefony z Google Play Services dostały tę poprawkę automatycznie. Wejdzie z następnym Coilem. compileSdk zostaje 37: platformy 37.1 i 37.2 są w SDK, ale oficjalna tabela AGP podaje dla AGP 9.4 maksymalnie API 37.0; przejście wymaga też pobrania nowej platformy SDK.
+- Bez zmian w kodzie.
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |
 |---|---|---|---|---|
-| AGP / Gradle | 9.4.1 / 9.8.1 | Apache-2.0 | 1 | build |
+| AGP / Gradle | 9.4.1 / 9.8.2 | Apache-2.0 | 1 | build |
 | Kotlin (KGP, compose, serialization) / KSP | 2.4.21 / 2.3.12 | Apache-2.0 | 1 | język, Compose, generowanie kodu |
 | Compose BOM | 2026.09.00 (ui 1.12.1, material3 1.4.0) | Apache-2.0 | 1 | UI |
 | activity-compose / core-ktx / lifecycle | 1.13.0 / 1.19.1 / 2.11.0 | Apache-2.0 | 1 | podstawa |
 | navigation3 + lifecycle-viewmodel-navigation3 | 1.2.0 / 2.11.0 | Apache-2.0 | 1 | nawigacja (D-003) |
 | Hilt / androidx.hilt | 2.60.1 / 1.4.0 | Apache-2.0 | 1 | DI |
-| kotlinx-serialization-json | 1.11.0 | Apache-2.0 | 1 | klucze nawigacji, JSON |
+| kotlinx-serialization-json | 1.12.0 | Apache-2.0 | 1 | klucze nawigacji, JSON |
 | datastore-preferences | 1.3.0 | Apache-2.0 | 5, 9 | flagi aplikacji i ustawienia (D-048, D-074) |
 | backdrop / shapes | 2.0.1 / 1.2.1 | Apache-2.0 | 1 | szkło (D-006) |
 | room3 / sqlite-framework | 3.0.3 / 2.7.1 | Apache-2.0 | 2 | baza (D-004) |
