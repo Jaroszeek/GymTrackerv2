@@ -16,9 +16,23 @@
 | 9 | Ustawienia i kopia zapasowa | ✅ zaakceptowany (2026-10-24), wydanie `preview-stage-9`; czeka na test na telefonie |
 | 10 | Szlif, wydajność, QA | ✅ zaakceptowany (2026-10-24), wydania `preview-stage-10`, `10.1`, `10.2`; czeka na test na telefonie |
 | 11 | Wydanie i aktualizator | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-11`, **v1.0.0** i testowe v1.0.1; czeka na test aktualizacji na telefonie |
+| 12 | Szlif 1.1 (pomysły z `IDEAS.md`) | 🔄 PR i wydanie `preview-stage-12`; changelog 1.1.0 czeka na akceptację |
 
 ## Bieżący stan
 
+- **Etap 12** (branch `feat/stage-12-polish`, 2026-10-25): zakres wybrany przez właściciela z `IDEAS.md` (D-092).
+  - Zrobione:
+    - arkusz zamyka się przeciągnięciem w dół, także z przewijaną treścią (D-093);
+    - wybór daty i godziny w design systemie, w galerii (D-094);
+    - edycja treningu zmienia datę i godzinę startu (D-095), pomiar ciała z wybraną datą (D-096);
+    - szkice edytora rutyny, edycji treningu i nowego pomiaru wracają po ubiciu procesu (D-097);
+    - filtr kategorii na liście i w pickerze ćwiczeń (D-098);
+    - masa beztłuszczowa z HC bez % tkanki tłuszczowej (D-099);
+    - kalendarz na Starcie z kropkami dni z sesją z zegarka (D-100);
+    - tap w nagłówek ćwiczenia w szczegółach treningu otwiera szczegóły ćwiczenia.
+  - Sprawdzone na emulatorze (API 36): wszystkie punkty poza masą beztłuszczową (brak narzędzia do danych testowych, D-099); szkice po `adb shell am kill` i powrocie z ostatnich.
+  - Testy: JVM 319/319, lint 0 błędów (1 znane ostrzeżenie o targetSdk). Projekt (A9): `.\gradlew.bat lint testDebugUnitTest assembleRelease` przechodzi lokalnie (2026-10-25).
+  - Changelog 1.1.0 w `CHANGELOG.md` czeka na akceptację; potem tag `v1.1.0` (C7).
 - **Etap 11** zaakceptowany i zmergowany (PR #11, 2026-10-25): changelog 1.0.0 zatwierdzony, aktualizacja bez okna systemu dodana (D-089), repo zostaje publiczne, kod bez licencji (D-091). Wydanie testowe `preview-stage-11`.
   - Klucz wydania wygenerowany na prośbę właściciela, sekrety ustawione (D-086). **Właściciel: kopia zapasowa `%USERPROFILE%\keys\gymtracker-release.jks` i `gymtracker-release-password.txt`.**
   - **v1.0.0** wydane z tagu: workflow „Release” zielony, `GymTracker-1.0.0.apk` podpisany kluczem wydania, `releases/latest` wskazuje v1.0.0. Na emulatorze: instalacja z Releases, „Sprawdź teraz” → „Masz najnowszą wersję” (prawdziwe API GitHuba).
@@ -110,6 +124,19 @@
   - Test UI: `.\gradlew.bat :app:connectedDebugAndroidTest` (D-042).
   - Gdy emulator przestaje rysować (czarny ekran, tapnięcia bez reakcji, w logu `lowmemorykiller … device is not responding` i ANR „no focused window”), pomaga zimny start: `adb emu kill`, potem `emulator -avd gt-api36 -no-snapshot-load`.
 - **vynox:** sklonowany do `%TEMP%\vynox-ref`, tylko do odczytu.
+
+## Etap 12 — test na telefonie
+
+1. Instalacja: APK z wydania `preview-stage-12` albo `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Dane zostają.
+2. Dowolny arkusz (np. Profil → Dodaj pomiar, akcje rutyny): przeciągnięcie w dół zamyka, krótkie wraca na miejsce; długa lista w arkuszu (zmiany celów po treningu) przewija się normalnie.
+3. Postępy → Historia → trening → tap w nazwę ćwiczenia: szczegóły ćwiczenia.
+4. Ołówek w treningu → „Początek” → inny dzień i godzina → Zapisz: trening przenosi się w historii i w kalendarzu, czas trwania bez zmian.
+5. Profil → Dodaj pomiar → wartość → „Data i godzina” → wczoraj → Zapisz: wpis z wczorajszą datą w dzienniku i na wykresie.
+6. Ćwiczenia → chip „Rozciąganie”: 123 ćwiczenia; to samo w pickerze edytora rutyny.
+7. Szkice: w edytorze rutyny usuń ćwiczenie, wyjdź na ekran główny i otwórz kilka ciężkich aplikacji (albo `adb shell am kill com.jaroszeek.gymtracker.debug`), wróć z ostatnich: zmiana jest, Wstecz pyta o odrzucenie. To samo w edycji treningu i w otwartym arkuszu pomiaru.
+8. Start → kalendarz: dni z samą sesją z Samsung Health mają kropkę, pod spodem „N dni z sesją z zegarka”. Jeśli kropek jest prawie codziennie (spacery wykrywane automatycznie), daj znać.
+9. Profil → Skład ciała bez wpisanej tkanki tłuszczowej, gdy waga Samsunga podaje masę beztłuszczową: masa beztłuszczowa z datą i źródłem.
+10. Do raportu: zrzut kalendarza i karty składu ciała.
 
 ## Etap 11 — test na telefonie
 
@@ -209,5 +236,6 @@ Klucz, sekrety i wydania v1.0.0 oraz v1.0.1 są gotowe. Kopia zapasowa klucza i 
 
 ## Następny krok
 
+- Właściciel: akceptacja Etapu 12 i changelogu 1.1.0, potem tag `v1.1.0` (aktualizacja z aplikacji 1.0.x → 1.1.0).
 - Właściciel: kopia zapasowa klucza i hasła, test aktualizacji 1.0.0 → 1.0.1 na telefonie (wyżej).
 - Wyniki testów Etapów 9–10 na telefonie, gdy właściciel je przekaże.

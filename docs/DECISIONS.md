@@ -706,6 +706,53 @@ Właściciel zatwierdził wszystkie (2026-10-24):
 - Właściciel (2026-10-25) chciał prywatnego repo, ale po wskazaniu konfliktu z A8 (prywatne repo = 404 w `releases/latest` i brak aktualizacji z aplikacji) wybrał: repo zostaje publiczne, a kod jest bez licencji open source (wszystkie prawa zastrzeżone, wpis w README).
 - **Odrzucone:** prywatny kod i osobne publiczne repo na same wydania (rekomendacja; dodatkowy token w CI); token tylko do odczytu w aplikacji (sekret w APK, wygasa); prywatne repo bez aktualizatora.
 
+## 2026-10-25 — Etap 12 (szlif 1.1)
+
+### D-092 Zakres Etapu 12
+- Właściciel po Etapie 11 wybrał z `IDEAS.md` cztery grupy: szybkie poprawki UX, filtr kategorii ćwiczeń, szkice po ubiciu procesu i dodatki Health Connect. Bez migracji bazy, bez nowych uprawnień i zależności.
+- Pomysł „propozycja połączenia z zegarkiem zaraz po treningu” odpada: od Etapu 10 trening łączy się z sesją sam po każdej synchronizacji (D-084), więc propozycji już nie ma.
+- Szczegóły treningu: klikalny jest nagłówek ćwiczenia (miniatura i nazwa) i prowadzi do szczegółów ćwiczenia w stosie zakładki Postępy. Serie i wykres tętna zostają nieklikalne.
+- Pracę podzieliło trzech agentów w osobnych worktree (rozłączne pliki, budowanie z kompilatorem Kotlina w procesie Gradle); scalenie bez konfliktów.
+
+### D-093 Arkusz: przeciąganie w dół (zmienia D-019)
+- Arkusz idzie za palcem tylko w dół. Zamyka go puszczenie dalej niż 96 dp albo rzut w dół szybszy niż 500 dp/s (`GtSizes.SheetDismissDrag`, `GtMotion.SheetDismissVelocity`); rzut w górę anuluje, reszta sprężynuje na miejsce.
+- Przewijana treść przewija się dalej: arkusz bierze przez `nestedScroll` tylko przeciągnięcie, którego lista nie zużyła na samej górze, i oddaje je pierwsze przy ruchu w górę. Rozpęd listy nie ciągnie arkusza.
+- Progi większe niż w M3 (56 dp, 125 dp/s), bo arkusze trzymają formularze z wpisanymi danymi i łatwo byłoby je zamknąć przypadkiem.
+- **Alternatywy:** `ModalBottomSheet` z M3 (osobne okno, sprzeczne z D-006), `AnchoredDraggable` (za dużo API na jeden stan). Bez uchwytu i bez przygaszania scrimu w trakcie gestu.
+
+### D-094 Wybór daty i godziny
+- `GlassDateTimeSheet` w design systemie: siatka miesiąca od poniedziałku (zawsze 6 rzędów), strzałki miesięcy, godzina i minuta w `GlassNumberField` (24 h, strzałki minut co 5, wpisać można każdą). Opcjonalne maksimum wyłącza późniejsze dni i blokuje „Gotowe” dla późniejszej godziny. `GlassDateTimeField` otwiera arkusz. W galerii.
+- Czysta logika (strefa urządzenia, zmiana czasu, układ tygodni) w `DateTimeInput`, z testami.
+- **Alternatywy:** M3 `DatePicker` (potrzebuje co najmniej 360 dp szerokości, wychodził poza arkusz), `TimePicker` (eksperymentalne API), dialogi platformy (osobne okna, sprzeczne z D-006 i D-019).
+
+### D-095 Zmiana początku treningu (zmienia D-053)
+- Edycja treningu zmienia też datę i godzinę startu. Czas trwania zostaje, więc koniec i czasy odhaczenia serii przesuwają się razem z początkiem. Początek nie może być w przyszłości (ViewModel przycina do „teraz”). Bez zmiany schematu: tylko zapytanie UPDATE.
+- Konsekwencje: historia, kalendarz, seria tygodni i rekordy liczą się od startu przy odczycie (D-054), więc same się przestawiają. Opcjonalna kopia w HC (D-064) dostaje nowe czasy. Trening połączony z sesją z zegarka zostaje połączony (rozłączyć można ręcznie), a niepołączony i nieodłączony może połączyć się sam, gdy trafi na sesję (D-084).
+
+### D-096 Pomiar ciała z datą (zmienia D-071)
+- Arkusz nowego pomiaru ma pole „Data i godzina”: domyślnie „Teraz”, można wybrać wcześniejszą chwilę. Przyszłą repozytorium przycina do „teraz”. Deduplikacja z HC (D-071) zostawia wpis ręczny także przy dacie wstecz.
+
+### D-097 Szkice po ubiciu procesu
+- Edytor rutyny, edycja treningu i arkusz nowego pomiaru zapisują szkic w `SavedStateHandle` wpisu nawigacji przez `androidx.lifecycle.serialization.saved` (kotlinx.serialization; lifecycle 2.11.0 jest już w zależnościach) przy każdej zmianie. Stosy nawigacji przeżywają śmierć procesu (`rememberNavBackStack`), więc ekran wraca z szkicem.
+- Pytanie o odrzucenie zmian działa po powrocie: edycja treningu trzyma też stan wyjściowy, a edytor rutyny wczytuje zapisaną rutynę z bazy jako punkt odniesienia (w trakcie edycji baza się nie zmienia), żeby nie podwajać rozmiaru stanu.
+- Otwarte pickery i arkusze celów nie wracają; arkusz nowego pomiaru wraca otwarty. Rutyna w stanie to ok. 15–30 KB (pełne ćwiczenia), daleko od limitu 1 MB; alternatywa (same id i ponowny odczyt ćwiczeń) wymagała osobnych klas i obsługi brakujących ćwiczeń.
+- Sprawdzone na emulatorze (`adb shell am kill` w tle, powrót z ostatnich): rutyna, edycja treningu i pomiar.
+
+### D-098 Filtr kategorii ćwiczeń
+- Trzeci rząd chipów pod sprzętem: kategorie z bazy ćwiczeń (siłowe, rozciąganie, plyometria, trójbój, podnoszenie ciężarów, strongman, cardio). W grupie OR, między grupami AND, jak dotychczasowe filtry; działa też w pickerze ćwiczeń (rutyna, trening). „Wyczyść filtry” czyści też kategorie.
+- **Alternatywa:** sam przełącznik „bez rozciągania” — niespójny z resztą filtrów i z A5.5.
+
+### D-099 Masa beztłuszczowa z Health Connect (zmienia D-071)
+- Gdy jest waga i % tkanki tłuszczowej, skład ciała liczy się jak dotąd. Bez % tłuszczu karta pokazuje ostatnią masę beztłuszczową z HC (`LeanBodyMassRecord`, już importowany, klucz `lean_mass`) w zakresie 20–400 kg, z datą i źródłem. Masa tłuszczu = waga z tego samego ważenia (najwyżej 30 min obok, jak duplikaty w D-071) minus masa beztłuszczowa, tylko gdy wynik jest dodatni; inaczej „—”.
+- Masa beztłuszczowa nie jest metryką ręczną: nie ma jej w dzienniku, kopii zapasowej ani na wykresach.
+- **Alternatywy:** ostatnia waga bez względu na czas (dzienne wahania weszłyby w tłuszcz), nowsza z dwóch metod (prośba mówi wprost „gdy nie ma % tłuszczu”).
+- Testy domenowe i repozytorium; na emulatorze niesprawdzone, bo narzędzie testowe (`HealthSeedActivity`) nie zapisuje masy beztłuszczowej, a dopisanie wymaga uprawnienia `WRITE_LEAN_BODY_MASS` w buildzie `benchmark`.
+
+### D-100 Kalendarz: dni z sesjami z zegarka (zmienia D-070)
+- Dzień, w którym jest tylko sesja z zegarka (dzień startu w strefie urządzenia), dostaje kropkę w kolorze akcentu pod numerem; obwódka jest zajęta przez „dziś”. Dzień z treningiem i sesją wygląda jak dzień treningu. Sesja połączona z treningiem nie liczy się osobno: regułę `notLinkedTo` dzielą kalendarz i historia.
+- Pod kalendarzem, tylko gdy w miesiącu są takie dni, linia z kropką i liczbą („1 dzień z sesją z zegarka”) — to też legenda. Opis dostępności dnia: „24, sesja z zegarka”. Seria tygodni i liczba treningów liczą tylko treningi z aplikacji.
+- Bez HC i zgód kropek nie ma (dane z lokalnej `health.db`).
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |

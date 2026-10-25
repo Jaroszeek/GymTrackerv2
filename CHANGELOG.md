@@ -2,6 +2,17 @@
 
 Najnowsza wersja na górze. Workflow wydania bierze do opisu Release sekcję `## X.Y.Z` zgodną z tagiem `vX.Y.Z`.
 
+## 1.1.0
+
+- Arkusze zamkniesz, przeciągając je w dół.
+- W szczegółach treningu dotknięcie ćwiczenia otwiera jego szczegóły z wykresem i rekordami.
+- W edycji treningu zmienisz też datę i godzinę startu; czas trwania zostaje.
+- Pomiar ciała dodasz z wybraną datą i godziną, np. starsze ważenie.
+- Lista ćwiczeń ma filtr kategorii: siłowe, rozciąganie, cardio i inne.
+- Niezapisane zmiany w edytorze rutyny, w edycji treningu i w nowym pomiarze wracają, gdy system zamknie aplikację w tle.
+- Kalendarz na Starcie zaznacza kropką dni z sesją z zegarka.
+- Bez % tkanki tłuszczowej skład ciała pokazuje masę beztłuszczową z Health Connect.
+
 ## 1.0.1
 
 - Wydanie testowe: sprawdza aktualizację z poziomu aplikacji (Ustawienia → Aktualizacje). Aplikacja działa tak samo jak w 1.0.0.
