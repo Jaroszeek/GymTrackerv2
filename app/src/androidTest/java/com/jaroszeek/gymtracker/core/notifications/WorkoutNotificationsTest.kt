@@ -8,9 +8,11 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
 import com.jaroszeek.gymtracker.domain.workout.ActiveWorkout
 import com.jaroszeek.gymtracker.domain.workout.WorkoutVariant
+import com.jaroszeek.gymtracker.testing.PolishRule
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -18,7 +20,11 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class WorkoutNotificationsTest {
 
-    private val notifications = WorkoutNotifications(InstrumentationRegistry.getInstrumentation().targetContext)
+    @get:Rule
+    val polish = PolishRule()
+
+    // After the rule, so it builds in Polish
+    private val notifications by lazy { WorkoutNotifications(InstrumentationRegistry.getInstrumentation().targetContext) }
     private val workout = ActiveWorkout(1, "Push", startedAt = 1_000, updatedAt = 1_000)
         .addExercise(listOf(WorkoutVariant(10, 100, RoutineTargets(3, 8, 12, 60.0, restSeconds = 120))))
         .addExercise(listOf(WorkoutVariant(20, 200, RoutineTargets(2, 10, 10))))

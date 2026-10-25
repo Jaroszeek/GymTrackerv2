@@ -23,6 +23,7 @@ import com.jaroszeek.gymtracker.data.workout.ActiveWorkoutStore
 import com.jaroszeek.gymtracker.data.workout.WorkoutRepository
 import com.jaroszeek.gymtracker.designsystem.component.GlassScaffold
 import com.jaroszeek.gymtracker.designsystem.theme.GymTrackerTheme
+import com.jaroszeek.gymtracker.testing.PolishRule
 import java.io.File
 import java.time.Clock
 import kotlinx.coroutines.CoroutineScope
@@ -46,7 +47,10 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class ImportFlowTest {
 
-    @get:Rule
+    @get:Rule(order = 0)
+    val polish = PolishRule()
+
+    @get:Rule(order = 1)
     val compose = createComposeRule()
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
