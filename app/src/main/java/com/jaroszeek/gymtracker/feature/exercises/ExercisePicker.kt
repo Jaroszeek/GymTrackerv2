@@ -28,6 +28,7 @@ fun ExercisePicker(viewModel: ExercisesViewModel, onPick: (Exercise) -> Unit, on
             onQueryChange = viewModel::onQueryChange,
             onToggleBodyPart = viewModel::onToggleBodyPart,
             onToggleEquipment = viewModel::onToggleEquipment,
+            onToggleCategory = viewModel::onToggleCategory,
             onClearFilters = viewModel::onClearFilters,
             onRetry = viewModel::onRetry,
             onOpen = { id -> (state as? ExercisesUiState.Content)?.exercises?.firstOrNull { it.id == id }?.let(onPick) },

@@ -13,6 +13,7 @@ import com.jaroszeek.gymtracker.data.routine.TemplateRepository
 import com.jaroszeek.gymtracker.domain.exercise.BodyPart
 import com.jaroszeek.gymtracker.domain.exercise.EquipmentGroup
 import com.jaroszeek.gymtracker.domain.exercise.Exercise
+import com.jaroszeek.gymtracker.domain.exercise.ExerciseCategory
 import com.jaroszeek.gymtracker.domain.exercise.ExerciseFilter
 import com.jaroszeek.gymtracker.domain.exercise.ExerciseIndex
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -81,6 +82,8 @@ class ExercisesViewModel @Inject constructor(
     fun onToggleBodyPart(bodyPart: BodyPart) = chips.update { it.copy(bodyParts = it.bodyParts.toggle(bodyPart)) }
 
     fun onToggleEquipment(group: EquipmentGroup) = chips.update { it.copy(equipment = it.equipment.toggle(group)) }
+
+    fun onToggleCategory(category: ExerciseCategory) = chips.update { it.copy(categories = it.categories.toggle(category)) }
 
     fun onClearFilters() {
         query = ""

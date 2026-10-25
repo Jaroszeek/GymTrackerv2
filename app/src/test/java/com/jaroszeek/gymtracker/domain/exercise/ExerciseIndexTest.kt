@@ -1,6 +1,7 @@
 package com.jaroszeek.gymtracker.domain.exercise
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -13,11 +14,12 @@ class ExerciseIndexTest {
         aliases: List<String> = emptyList(),
         primary: Set<Muscle> = setOf(Muscle.Chest),
         equipment: Equipment? = Equipment.Barbell,
+        category: ExerciseCategory = ExerciseCategory.Strength,
     ) = Exercise(
         id = nextId++,
         name = name,
         aliases = aliases,
-        category = ExerciseCategory.Strength,
+        category = category,
         equipment = equipment,
         level = null,
         mechanic = null,
@@ -130,6 +132,21 @@ class ExerciseIndexTest {
     fun filtersCombineWithAnd() {
         assertEquals(listOf(bench), search("wyciskanie", bodyParts = setOf(BodyPart.Chest), equipment = setOf(EquipmentGroup.Barbell)))
         assertTrue(search("deska", equipment = setOf(EquipmentGroup.Barbell)).isEmpty())
+    }
+
+    @Test
+    fun categoriesAreOrWithinAndAndWithOtherFilters() {
+        val stretch = exercise("Chest Stretch", primary = setOf(Muscle.Chest), equipment = null, category = ExerciseCategory.Stretching)
+        val jacks = exercise("Jumping Jacks", primary = setOf(Muscle.Quadriceps), equipment = null, category = ExerciseCategory.Cardio)
+        val withStretch = ExerciseIndex(listOf(bench, plank, stretch, jacks))
+        fun search(query: String = "", bodyParts: Set<BodyPart> = emptySet(), categories: Set<ExerciseCategory>) =
+            withStretch.search(ExerciseFilter(query, bodyParts, categories = categories))
+        assertEquals(listOf(stretch), search(categories = setOf(ExerciseCategory.Stretching)))
+        assertEquals(listOf(stretch, jacks), search(categories = setOf(ExerciseCategory.Stretching, ExerciseCategory.Cardio)))
+        assertEquals(listOf(bench, plank), search(categories = setOf(ExerciseCategory.Strength)))
+        assertEquals(listOf(stretch), search(bodyParts = setOf(BodyPart.Chest), categories = setOf(ExerciseCategory.Stretching)))
+        assertTrue(search("bench", categories = setOf(ExerciseCategory.Stretching)).isEmpty())
+        assertFalse(ExerciseFilter(categories = setOf(ExerciseCategory.Cardio)).isEmpty)
     }
 
     @Test
