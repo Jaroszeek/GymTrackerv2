@@ -5,13 +5,16 @@ import com.jaroszeek.gymtracker.domain.progress.RecordType
 import com.jaroszeek.gymtracker.domain.progress.volumeKg
 import com.jaroszeek.gymtracker.domain.routine.PerformedSet
 import com.jaroszeek.gymtracker.domain.routine.SetType
+import kotlinx.serialization.Serializable
 
 /** A set of a finished workout; 0 reps only while it is being edited. [doneAt]: when it was ticked off, if known. */
+@Serializable
 data class LoggedSet(val id: Long, val type: SetType, val weightKg: Double?, val reps: Int, val doneAt: Long? = null) {
     val performed: PerformedSet get() = PerformedSet(weightKg, reps, type)
 }
 
 /** [id] is the entry in the workout, [exerciseId] the exercise done. */
+@Serializable
 data class LoggedExercise(val id: Long, val exerciseId: Long, val routineVariantId: Long?, val sets: List<LoggedSet>)
 
 /** A row of the history list; [healthSessionId] is the linked watch session (Etap 7). */
@@ -28,9 +31,11 @@ data class WorkoutListItem(
 data class HealthLink(val startedAt: Long, val endedAt: Long, val sessionId: String?, val dismissed: Boolean)
 
 /**
- * A finished workout from history, also the draft its editor works on. Entry ids are unique among the
- * entries and set ids among all sets of the workout. Times are epoch millis UTC.
+ * A finished workout from history, also the draft its editor works on (serializable, so the draft survives
+ * the process being killed). Entry ids are unique among the entries and set ids among all sets of the
+ * workout. Times are epoch millis UTC.
  */
+@Serializable
 data class LoggedWorkout(
     val id: Long,
     val routineId: Long?,

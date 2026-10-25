@@ -4,6 +4,7 @@ import com.jaroszeek.gymtracker.domain.progress.PersonalBests
 import com.jaroszeek.gymtracker.domain.progress.RecordType
 import com.jaroszeek.gymtracker.domain.progress.RepBest
 import com.jaroszeek.gymtracker.domain.routine.SetType
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -69,6 +70,12 @@ class LoggedWorkoutTest {
         // A set without a time stays without one
         assertEquals(listOf(null, 600_000L - 86_400_000, null), moved.exercises[0].sets.map { it.doneAt })
         assertEquals(timed, moved.withStart(1_000))
+    }
+
+    @Test
+    fun aDraftSurvivesSerialization() {
+        val draft = workout.updateSet(10, 12) { it.copy(doneAt = 600_000, weightKg = null) }.addSet(20)
+        assertEquals(draft, Json.decodeFromString<LoggedWorkout>(Json.encodeToString(draft)))
     }
 
     @Test

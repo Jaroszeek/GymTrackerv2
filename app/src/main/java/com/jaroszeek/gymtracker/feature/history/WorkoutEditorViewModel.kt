@@ -1,7 +1,9 @@
 package com.jaroszeek.gymtracker.feature.history
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.serialization.saved
 import androidx.lifecycle.viewModelScope
 import com.jaroszeek.gymtracker.data.exercise.ExerciseRepository
 import com.jaroszeek.gymtracker.data.workout.WorkoutRepository
@@ -25,6 +27,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 
 data class WorkoutEditorUiState(
     val loading: Boolean = true,
@@ -45,17 +48,28 @@ data class WorkoutEditorUiState(
     val finished: Boolean = false,
 )
 
-/** Edits a finished workout: sets, exercises, name, start and duration (A5.6); saving replaces its sets. */
+/** The editor's draft and the workout it started from, which tells whether anything changed. */
+@Serializable
+private data class EditorDraft(val saved: LoggedWorkout, val draft: LoggedWorkout)
+
+/**
+ * Edits a finished workout: sets, exercises, name, start and duration (A5.6); saving replaces its sets.
+ * The draft survives the process being killed in the background.
+ */
 @HiltViewModel(assistedFactory = WorkoutEditorViewModel.Factory::class)
 class WorkoutEditorViewModel @AssistedInject constructor(
     @Assisted private val id: Long,
     private val workouts: WorkoutRepository,
     exercises: ExerciseRepository,
     private val clock: Clock,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private var saved: LoggedWorkout? = null
     private val local = MutableStateFlow(WorkoutEditorUiState())
+
+    /** Written on every edit; restored instead of the workout from the database. */
+    private var stored: EditorDraft? by savedStateHandle.saved { null }
 
     private val exercisesById = exercises.observeAll()
         .map { all -> all.associateBy { it.id } }
@@ -69,14 +83,20 @@ class WorkoutEditorViewModel @AssistedInject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), WorkoutEditorUiState())
 
     init {
-        viewModelScope.launch {
-            try {
-                saved = workouts.observeWorkout(id).first()
-                local.update { it.copy(loading = false, draft = saved) }
-            } catch (e: Exception) {
-                if (e is CancellationException) throw e
-                Log.e(TAG, "Loading workout $id failed", e)
-                local.update { it.copy(loading = false, loadFailed = true) }
+        val restored = stored
+        if (restored != null) {
+            saved = restored.saved
+            local.update { it.copy(loading = false, draft = restored.draft, dirty = restored.draft != restored.saved) }
+        } else {
+            viewModelScope.launch {
+                try {
+                    saved = workouts.observeWorkout(id).first()
+                    local.update { it.copy(loading = false, draft = saved) }
+                } catch (e: Exception) {
+                    if (e is CancellationException) throw e
+                    Log.e(TAG, "Loading workout $id failed", e)
+                    local.update { it.copy(loading = false, loadFailed = true) }
+                }
             }
         }
     }
@@ -166,9 +186,13 @@ class WorkoutEditorViewModel @AssistedInject constructor(
         local.update { it.copy(expanded = SetRef(exerciseId, set.id)) }
     }
 
-    private fun edit(change: (LoggedWorkout) -> LoggedWorkout) = local.update { state ->
-        val draft = state.draft?.let(change) ?: return@update state
-        state.copy(draft = draft, dirty = draft != saved, saveFailed = false)
+    private fun edit(change: (LoggedWorkout) -> LoggedWorkout) {
+        local.update { state ->
+            val draft = state.draft?.let(change) ?: return@update state
+            state.copy(draft = draft, dirty = draft != saved, saveFailed = false)
+        }
+        val draft = local.value.draft ?: return
+        stored = saved?.let { EditorDraft(it, draft) }
     }
 
     @AssistedFactory

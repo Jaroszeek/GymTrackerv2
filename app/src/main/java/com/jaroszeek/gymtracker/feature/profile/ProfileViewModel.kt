@@ -1,7 +1,9 @@
 package com.jaroszeek.gymtracker.feature.profile
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.serialization.saved
 import androidx.lifecycle.viewModelScope
 import com.jaroszeek.gymtracker.core.datastore.AppPreferences
 import com.jaroszeek.gymtracker.core.di.IoDispatcher
@@ -41,13 +43,17 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 enum class BodyChart { Weight, Bmi, BodyFat }
 
 /**
  * The sheet for a new value, [value] as entered: in [unit] for masses, centimetres for the height;
- * [invalid] after saving a value outside the metric's range.
+ * [invalid] after saving a value outside the metric's range. Serializable: the draft survives the
+ * process being killed in the background.
  */
+@Serializable
 data class NewMeasurement(
     val metric: BodyMetric = BodyMetric.Weight,
     val value: Double? = null,
@@ -55,8 +61,8 @@ data class NewMeasurement(
     val unit: WeightUnit = WeightUnit.Kg,
     /** When it was measured, epoch millis UTC; null = now, when it is saved. */
     val time: Long? = null,
-    /** While the time picker is open: the latest time it allows, the time it opened. */
-    val timeMax: Long? = null,
+    /** While the time picker is open: the latest time it allows, the time it opened; closed after a restore. */
+    @Transient val timeMax: Long? = null,
 )
 
 /** The age sheet with the age as entered; saving it empty clears the age. */
@@ -100,12 +106,20 @@ class ProfileViewModel @Inject constructor(
     private val healthConnect: HealthConnect,
     private val clock: Clock,
     @IoDispatcher private val io: CoroutineDispatcher,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val zone = ZoneId.systemDefault()
     private val today = MutableStateFlow(today())
     private val activityPermitted = MutableStateFlow(false)
-    private val local = MutableStateFlow(Local())
+
+    /** The new value's sheet, written on every change and open again after a restore. */
+    private var savedAdding: NewMeasurement? by savedStateHandle.saved { null }
+    private val local = MutableStateFlow(Local(adding = savedAdding))
+
+    init {
+        viewModelScope.launch { local.collect { savedAdding = it.adding } }
+    }
 
     private val unit = preferences.weightUnit.stateIn(viewModelScope, SharingStarted.Eagerly, WeightUnit.Kg)
 
