@@ -238,4 +238,4 @@ docs/                      postęp, decyzje, pomysły, zrzuty ekranu
 
 ## Licencje
 
-Kod aplikacji: do ustalenia przed wydaniem. Baza ćwiczeń: [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (Unlicense, domena publiczna). Fonty Geist i Instrument Serif: SIL Open Font License 1.1 (teksty licencji w `app/src/main/assets/licenses/`). Ikony Material Symbols: Apache-2.0.
+Kod aplikacji: bez licencji open source, wszystkie prawa zastrzeżone. Repo jest publiczne, żeby aktualizator w aplikacji mógł pobierać wydania bez tokenu. Baza ćwiczeń: [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (Unlicense, domena publiczna). Fonty Geist i Instrument Serif: SIL Open Font License 1.1 (teksty licencji w `app/src/main/assets/licenses/`). Ikony Material Symbols: Apache-2.0.

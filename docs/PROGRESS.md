@@ -15,11 +15,11 @@
 | 8 | Start i Profil | ✅ zaakceptowany (2026-10-24), wydanie `preview-stage-8`, sprawdzony na telefonie (2026-10-23) |
 | 9 | Ustawienia i kopia zapasowa | ✅ zaakceptowany (2026-10-24), wydanie `preview-stage-9`; czeka na test na telefonie |
 | 10 | Szlif, wydajność, QA | ✅ zaakceptowany (2026-10-24), wydania `preview-stage-10`, `10.1`, `10.2`; czeka na test na telefonie |
-| 11 | Wydanie i aktualizator | 🟡 PR otwarty, czeka na akceptację; potem klucz i sekrety od właściciela, v1.0.0 i test v1.0.1 na telefonie |
+| 11 | Wydanie i aktualizator | ✅ zaakceptowany (2026-10-25), wydanie `preview-stage-11`; czeka na klucz i sekrety od właściciela, potem v1.0.0 i test v1.0.1 na telefonie |
 
 ## Bieżący stan
 
-- **Etap 11** (branch `feat/stage-11-release`) gotowy do przeglądu.
+- **Etap 11** zaakceptowany (2026-10-25): changelog 1.0.0 zatwierdzony, aktualizacja bez okna systemu dodana (D-089), repo zostaje publiczne, kod bez licencji (D-091). Wydanie testowe `preview-stage-11`.
   - Zrobione:
     - wersja z tagu (`-PappVersion`, D-085), podpis release z `keystore.properties` albo sekretów CI (D-086);
     - `.github/workflows/release.yml` na tag `vX.Y.Z` z opisem z `CHANGELOG.md` (D-087); `CHANGELOG.md` z sekcją 1.0.0;
@@ -97,7 +97,7 @@
   - Sprawdzone na emulatorze (D-050): promocja `FLAG_PROMOTED_ONGOING` na 36.1, akcje z panelu, wibracja na koniec przerwy przy wygaszonym ekranie (także w Doze), odliczanie na ekranie blokady, brak osieroconych powiadomień po `kill -9`, odtworzenie po powrocie. Testy: JVM 99/99, UI 4/4 (36.0), test powiadomienia 3/3 (36.1), lint 0 błędów.
   - Wydanie testowe `preview-stage-5` (pre-release z APK debug, D-051) na prośbę właściciela.
 - **Tryb pracy:** plan etapu nie czeka na akceptację (D-032), akceptacja na PR.
-- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-090).
+- **Decyzje:** `docs/DECISIONS.md` (D-001 … D-091).
 - **Środowisko:**
   - Android Studio 2026.2.1 w `C:\Program Files\Android\Android Studio1` (JBR 25). Gdy `java` z PATH nie startuje, ustaw `$env:JAVA_HOME` na JBR.
   - `adb`: `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe`.
@@ -206,7 +206,6 @@ Najpierw jednorazowo (README, „Wydawanie wersji”): keystore, `keystore.prope
 
 ## Następny krok
 
-- Akceptacja Etapu 11 i merge.
-- Właściciel: keystore, `keystore.properties`, kopia zapasowa, sekrety (README).
+- Właściciel: keystore, `keystore.properties`, kopia zapasowa, sekrety (README, „Wydawanie wersji”).
 - Potem tag `v1.0.0` (pierwszy Release) i testowe `v1.0.1` do sprawdzenia aktualizacji na telefonie (wyżej).
 - Wyniki testów Etapów 9–10 na telefonie, gdy właściciel je przekaże.

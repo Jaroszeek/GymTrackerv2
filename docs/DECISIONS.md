@@ -701,6 +701,10 @@ Właściciel zatwierdził wszystkie (2026-10-24):
 - Przy pierwszym starcie dialog aktualizacji czeka, aż zniknie prośba o powiadomienia (wcześniej dwa dialogi nakładały się na siebie).
 - Karta „Aktualizacje” w Ustawieniach: stan (najnowsza wersja z datą sprawdzenia, sprawdzanie, dostępna wersja, błąd sieci na czerwono), przełącznik „Sprawdzaj automatycznie” i „Sprawdź teraz” albo „Zainstaluj wersję X”.
 
+### D-091 Repo publiczne, kod bez licencji
+- Właściciel (2026-10-25) chciał prywatnego repo, ale po wskazaniu konfliktu z A8 (prywatne repo = 404 w `releases/latest` i brak aktualizacji z aplikacji) wybrał: repo zostaje publiczne, a kod jest bez licencji open source (wszystkie prawa zastrzeżone, wpis w README).
+- **Odrzucone:** prywatny kod i osobne publiczne repo na same wydania (rekomendacja; dodatkowy token w CI); token tylko do odczytu w aplikacji (sekret w APK, wygasa); prywatne repo bez aktualizatora.
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |
