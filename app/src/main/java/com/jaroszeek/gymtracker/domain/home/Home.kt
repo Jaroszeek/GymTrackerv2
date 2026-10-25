@@ -1,7 +1,10 @@
 package com.jaroszeek.gymtracker.domain.home
 
+import com.jaroszeek.gymtracker.domain.health.HealthSession
+import com.jaroszeek.gymtracker.domain.health.notLinkedTo
 import com.jaroszeek.gymtracker.domain.progress.Week
 import com.jaroszeek.gymtracker.domain.workout.WorkoutListItem
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -54,6 +57,15 @@ fun weeklyStreak(workoutDays: Collection<LocalDate>, today: LocalDate): Int {
         week = week.previous()
     }
     return streak
+}
+
+/**
+ * Days of the calendar with a session imported from Health Connect, e.g. a run recorded by a watch, and no
+ * workout here: a day with both shows the workout. A linked session is its workout and adds no day.
+ */
+fun sessionDays(workouts: List<WorkoutListItem>, sessions: List<HealthSession>, zone: ZoneId): Set<LocalDate> {
+    fun day(millis: Long) = Instant.ofEpochMilli(millis).atZone(zone).toLocalDate()
+    return sessions.notLinkedTo(workouts).mapTo(HashSet()) { day(it.startTime) } - workouts.mapTo(HashSet()) { day(it.startedAt) }
 }
 
 /** Totals of a week's workouts; volume and sets leave warm-ups out, as everywhere. */

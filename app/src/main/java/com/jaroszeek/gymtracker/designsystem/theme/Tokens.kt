@@ -85,6 +85,7 @@ object GtSizes {
     val MiniChartHeight = 64.dp
     val MiniBarMin = 4.dp
     val TodayOutline = 1.5.dp
+    val CalendarDot = 4.dp
 }
 
 object GtAlpha {

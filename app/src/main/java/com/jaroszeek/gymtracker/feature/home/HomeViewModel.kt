@@ -16,10 +16,12 @@ import com.jaroszeek.gymtracker.domain.body.BodyMeasurement
 import com.jaroszeek.gymtracker.domain.body.BodyMetric
 import com.jaroszeek.gymtracker.domain.body.BodySummary
 import com.jaroszeek.gymtracker.domain.body.bodySummary
+import com.jaroszeek.gymtracker.domain.health.HealthSession
 import com.jaroszeek.gymtracker.domain.home.HomeLayout
 import com.jaroszeek.gymtracker.domain.home.HomeWidget
 import com.jaroszeek.gymtracker.domain.home.WeekStats
 import com.jaroszeek.gymtracker.domain.home.proposedRoutine
+import com.jaroszeek.gymtracker.domain.home.sessionDays
 import com.jaroszeek.gymtracker.domain.home.weekStats
 import com.jaroszeek.gymtracker.domain.home.weeklyStreak
 import com.jaroszeek.gymtracker.domain.progress.Week
@@ -72,6 +74,8 @@ data class HomeUiState(
     val week: WeekStats = WeekStats(),
     val lastWorkout: WorkoutListItem? = null,
     val workoutDays: Set<LocalDate> = emptySet(),
+    /** Days with only a session from Health Connect; none without it. */
+    val sessionDays: Set<LocalDate> = emptySet(),
     val records: List<HeadlineRecord> = emptyList(),
     /** Steps of the last 7 days, today last; null while Health Connect gives none (the card offers to connect). */
     val steps: List<Long>? = null,
@@ -84,7 +88,12 @@ data class HomeUiState(
     val openWorkout: Boolean = false,
 )
 
-private data class Training(val history: List<WorkoutListItem>, val routines: List<Routine>, val running: QuickStart.Running?)
+private data class Training(
+    val history: List<WorkoutListItem>,
+    val routines: List<Routine>,
+    val running: QuickStart.Running?,
+    val sessions: List<HealthSession>,
+)
 
 private data class Overlays(val workoutRunning: Boolean = false, val openWorkout: Boolean = false)
 
@@ -114,6 +123,7 @@ class HomeViewModel @Inject constructor(
         workouts.observeHistory(),
         routines.observeAll(),
         manager.workout.map { workout -> workout?.let { QuickStart.Running(it.name, it.startedAt) } }.distinctUntilChanged(),
+        health.observeSessions(),
         ::Training,
     )
     private val layout = combine(preferences.homeLayout, draft, overlays, ::Triple)
@@ -141,6 +151,7 @@ class HomeViewModel @Inject constructor(
                 week = weekStats(training.history, Week.of(today), zone),
                 lastWorkout = training.history.firstOrNull(),
                 workoutDays = days,
+                sessionDays = sessionDays(training.history, training.sessions, zone),
                 records = headlineRecords(records),
                 steps = if (permitted || activity.any { it.steps != null }) {
                     (STEP_DAYS - 1 downTo 0).map { back -> activity.firstOrNull { it.day == today.minusDays(back) }?.steps ?: 0 }

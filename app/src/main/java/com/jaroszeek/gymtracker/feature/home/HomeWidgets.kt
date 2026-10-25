@@ -269,9 +269,12 @@ private fun recordLabel(hit: RecordHit): String {
     return stringResource(R.string.summary_record_value, stringResource(hit.type.label()), value)
 }
 
-/** A month with the workout days filled and today ringed; the arrows go back in time, up to this month. */
+/**
+ * A month with the workout days filled, the days with only a session from a watch dotted and today ringed;
+ * the arrows go back in time, up to this month.
+ */
 @Composable
-fun ActivityCalendarCard(workoutDays: Set<LocalDate>, today: LocalDate, modifier: Modifier = Modifier) {
+fun ActivityCalendarCard(workoutDays: Set<LocalDate>, sessionDays: Set<LocalDate>, today: LocalDate, modifier: Modifier = Modifier) {
     val colors = GtTheme.colors
     val current = YearMonth.from(today)
     var month by rememberSaveable(current) { mutableStateOf(current) }
@@ -305,22 +308,32 @@ fun ActivityCalendarCard(workoutDays: Set<LocalDate>, today: LocalDate, modifier
         val cells = List(first.dayOfWeek.value - 1) { null } + (1..month.lengthOfMonth()).map { month.atDay(it) }
         cells.chunked(DayOfWeek.entries.size).forEach { week ->
             Row(Modifier.fillMaxWidth()) {
-                week.forEach { day -> DayCell(day, worked = day in workoutDays, today = day == today, Modifier.weight(1f)) }
+                week.forEach { day -> DayCell(day, worked = day in workoutDays, session = day in sessionDays, today = day == today, Modifier.weight(1f)) }
                 repeat(DayOfWeek.entries.size - week.size) { Box(Modifier.weight(1f)) }
             }
         }
         val count = workoutDays.count { YearMonth.from(it) == month }
         Text(pluralStringResource(R.plurals.home_calendar_workouts, count, count), color = colors.textSecondary, style = GtTheme.typography.labelSmall)
+        // The count of dotted days is their legend too
+        val sessions = sessionDays.count { YearMonth.from(it) == month }
+        if (sessions > 0) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
+                SessionDot()
+                Text(pluralStringResource(R.plurals.home_calendar_sessions, sessions, sessions), color = colors.textSecondary, style = GtTheme.typography.labelSmall)
+            }
+        }
     }
 }
 
+/** A workout here fills the day; a day with only a session from a watch gets a dot under its number. */
 @Composable
-private fun DayCell(day: LocalDate?, worked: Boolean, today: Boolean, modifier: Modifier) {
+private fun DayCell(day: LocalDate?, worked: Boolean, session: Boolean, today: Boolean, modifier: Modifier) {
     val colors = GtTheme.colors
     Box(modifier.aspectRatio(1f).padding(GtSpacing.xxs), contentAlignment = Alignment.Center) {
         if (day == null) return@Box
         val description = when {
             worked -> stringResource(R.string.home_calendar_day, day.dayOfMonth.toString())
+            session -> stringResource(R.string.home_calendar_session_day, day.dayOfMonth.toString())
             today -> stringResource(R.string.home_calendar_today)
             else -> null
         }
@@ -338,8 +351,14 @@ private fun DayCell(day: LocalDate?, worked: Boolean, today: Boolean, modifier: 
                 color = if (worked) colors.onAccent else if (today) colors.accentText else colors.textPrimary,
                 style = GtTheme.typography.labelSmall,
             )
+            if (session) SessionDot(Modifier.align(Alignment.BottomCenter).padding(bottom = GtSpacing.xs))
         }
     }
+}
+
+@Composable
+private fun SessionDot(modifier: Modifier = Modifier) {
+    Box(modifier.size(GtSizes.CalendarDot).background(GtTheme.colors.accentText, GtShapes.Pill))
 }
 
 @Composable
@@ -420,7 +439,7 @@ private fun HomeWidgetsPreview() {
                     ),
                     onOpen = {},
                 )
-                ActivityCalendarCard(setOf(today, today.minusDays(2), today.minusDays(5)), today)
+                ActivityCalendarCard(setOf(today, today.minusDays(2), today.minusDays(5)), setOf(today.minusDays(3), today.minusDays(9)), today)
                 StepsCard(listOf(6_200, 9_800, 4_100, 0, 12_400, 8_000, 3_512), today, onConnect = {})
                 BodyCard(
                     BodySummary(
