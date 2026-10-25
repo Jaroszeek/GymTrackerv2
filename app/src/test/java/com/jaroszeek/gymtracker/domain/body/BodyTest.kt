@@ -110,6 +110,46 @@ class BodyTest {
     }
 
     @Test
+    fun withoutBodyFatLeanMassComesFromHealthConnectAndFatMassFromItsWeighing() {
+        val values = listOf(
+            BodyMeasurement(BodyMetric.Weight, 0, 85.0, manualId = 1),
+            BodyMeasurement(BodyMetric.Weight, day, 80.0, origin = "scale"),
+            BodyMeasurement(BodyMetric.Weight, day + 2 * 60 * minute, 79.0, manualId = 2),
+        )
+        val lean = LeanMass(day + 5 * minute, 64.0, "scale")
+        val summary = bodySummary(values, lean)
+        assertEquals(79.0, summary.weight!!.value, 0.0)
+        assertEquals(lean, summary.leanMass)
+        assertEquals(values[1], summary.leanWeight)
+        assertEquals(64.0, summary.leanMassKg!!, 1e-9)
+        assertEquals(16.0, summary.fatMassKg!!, 1e-9)
+    }
+
+    @Test
+    fun leanMassWithoutItsWeighingHasNoFatMass() {
+        val weight = BodyMeasurement(BodyMetric.Weight, 0, 80.0, manualId = 1)
+        val alone = bodySummary(listOf(weight), LeanMass(31 * minute, 64.0, "scale"))
+        assertEquals(64.0, alone.leanMassKg!!, 1e-9)
+        assertNull(alone.fatMassKg)
+        // Not a lean mass of that weighing
+        assertNull(bodySummary(listOf(weight), LeanMass(0, 80.0, "scale")).fatMassKg)
+        assertEquals(64.0, bodySummary(emptyList(), LeanMass(0, 64.0, "scale")).leanMassKg!!, 1e-9)
+    }
+
+    @Test
+    fun bodyFatWinsOverLeanMass() {
+        val weight = BodyMeasurement(BodyMetric.Weight, day, 80.0, origin = "scale")
+        val bodyFat = BodyMeasurement(BodyMetric.BodyFat, 0, 25.0, manualId = 1)
+        val lean = LeanMass(day, 70.0, "scale")
+        val summary = bodySummary(listOf(weight, bodyFat), lean)
+        assertNull(summary.leanMass)
+        assertEquals(20.0, summary.fatMassKg!!, 1e-9)
+        assertEquals(60.0, summary.leanMassKg!!, 1e-9)
+        // Body fat alone gives no masses, so Health Connect's lean mass does
+        assertEquals(lean, bodySummary(listOf(bodyFat), lean).leanMass)
+    }
+
+    @Test
     fun rangesTakeTheEdgesAndKeysMatchHealthConnect() {
         assertEquals(true, 20.0 in BodyMetric.Weight.range)
         assertEquals(false, 19.9 in BodyMetric.Weight.range)

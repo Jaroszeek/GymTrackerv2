@@ -720,6 +720,7 @@
     <string name="profile_lean_mass">Masa beztłuszczowa</string>
     <string name="profile_skeletal_muscle">Mięśnie szkieletowe</string>
     <string name="profile_composition_text">Masy liczone z ostatniej wagi i tkanki tłuszczowej. Mięśnie szkieletowe wpisujesz ręcznie, bo Health Connect ich nie zapisuje.</string>
+    <string name="profile_composition_lean_text">Bez tkanki tłuszczowej masa beztłuszczowa pochodzi z Health Connect, a masa tłuszczu to reszta wagi z tego samego ważenia. Mięśnie szkieletowe wpisujesz ręcznie, bo Health Connect ich nie zapisuje.</string>
     <string name="profile_add">Dodaj pomiar</string>
     <string name="profile_add_title">Nowy pomiar</string>
     <string name="profile_add_now">Zapisany z bieżącą datą i godziną.</string>

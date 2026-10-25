@@ -110,12 +110,12 @@ class ProfileViewModel @Inject constructor(
     }
 
     val state: StateFlow<ProfileUiState> =
-        combine(body.observeMeasurements(), preferences.observeAge(clock), todaysCalories, local) { measurements, age, calories, local ->
+        combine(body.observeMeasurements(), body.observeLeanMass(), preferences.observeAge(clock), todaysCalories, local) { measurements, leanMass, age, calories, local ->
             val points = chartPoints(measurements, local.chart)
             ProfileUiState(
                 loading = false,
                 measurements = measurements,
-                summary = bodySummary(measurements),
+                summary = bodySummary(measurements, leanMass),
                 age = age,
                 calories = calories,
                 chart = local.chart,
