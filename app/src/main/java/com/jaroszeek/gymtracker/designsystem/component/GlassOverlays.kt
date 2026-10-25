@@ -262,7 +262,7 @@ private class SheetDrag(private val distance: Float, private val velocity: Float
         if (speed > velocity || (speed > -velocity && offset > distance)) {
             onDismiss()
         } else {
-            // A new touch cancels the spring and catches the sheet where it is
+            // A new drag cancels the spring and takes the sheet from where it is
             state.drag { animate(offset, 0f, speed, GtMotion.Standard) { value, _ -> dragBy(value - offset) } }
         }
     }
