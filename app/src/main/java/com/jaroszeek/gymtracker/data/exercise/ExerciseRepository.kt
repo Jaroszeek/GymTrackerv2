@@ -18,6 +18,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -46,13 +47,13 @@ class ExerciseRepository @Inject constructor(
     fun observeCommonIds(externalIds: Set<String>): Flow<Set<Long>> =
         dao.observeCommonIds(externalIds).map { it.toSet() }.distinctUntilChanged().flowOn(io)
 
-    /** With the Polish instructions of a built-in exercise where there are some (D-102). */
+    /** With the Polish instructions of a built-in exercise where there are some, in the Polish app (D-102, D-106). */
     fun observe(id: Long): Flow<Exercise?> = flow {
         seeder.ensureSeeded()
         emitAll(
-            dao.observe(id).map { row ->
+            combine(dao.observe(id), translations.polish) { row, polish ->
                 row?.toDomain()?.let { exercise ->
-                    translations.instructions(row.exercise.externalId)?.let { exercise.copy(instructions = it) } ?: exercise
+                    translations.instructions(row.exercise.externalId)?.takeIf { polish }?.let { exercise.copy(instructions = it) } ?: exercise
                 }
             },
         )
