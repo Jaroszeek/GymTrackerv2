@@ -62,13 +62,13 @@ class RoutineEditorViewModel @AssistedInject constructor(
      * The draft after the last change, kept in saved state so it survives process death; null until
      * the first change. The open picker or targets sheet is not kept.
      */
-    private var savedDraft: RoutineDraft? by savedStateHandle.saved { null }
+    private var restorableDraft: RoutineDraft? by savedStateHandle.saved { null }
 
     private val _state = MutableStateFlow(RoutineEditorUiState(routineId = id, loading = id != null))
     val state: StateFlow<RoutineEditorUiState> = _state.asStateFlow()
 
     init {
-        val restored = savedDraft
+        val restored = restorableDraft
         if (id != null) {
             viewModelScope.launch {
                 // The saved routine is loaded even with a restored draft, to tell whether it has changes
@@ -148,7 +148,7 @@ class RoutineEditorViewModel @AssistedInject constructor(
     }
 
     private fun edit(change: (RoutineDraft) -> RoutineDraft) {
-        savedDraft = _state.updateAndGet { state ->
+        restorableDraft = _state.updateAndGet { state ->
             val draft = change(state.draft)
             state.copy(draft = draft, dirty = draft != saved)
         }.draft
