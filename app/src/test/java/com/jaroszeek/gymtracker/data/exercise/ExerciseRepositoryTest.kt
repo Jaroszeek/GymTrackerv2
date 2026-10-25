@@ -94,6 +94,15 @@ class ExerciseRepositoryTest {
     }
 
     @Test
+    fun theEnglishAppShowsTheSourceInstructions() = runTest {
+        val translations = ExerciseTranslations({ false }) { mapOf("Barbell_Deadlift" to listOf("Podejdź do sztangi.")) }
+        val repository = ExerciseRepository(database, seeder(), Dispatchers.IO, translations)
+        val deadlift = repository.observeAll().first().single { it.name == "Barbell Deadlift" }
+        assertEquals(deadlift.instructions, repository.observe(deadlift.id).first()!!.instructions)
+        assertTrue(deadlift.instructions.isNotEmpty())
+    }
+
+    @Test
     fun polishInstructionsMatchTheBundledSeed() {
         val polish = Json.decodeFromString<Map<String, List<String>>>(asset("exercises/instructions_pl.json"))
         val seeded = bundledSeed.associate { it.entity.externalId to it.entity }
