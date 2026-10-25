@@ -29,6 +29,7 @@ class ExerciseRepository @Inject constructor(
     private val database: GtDatabase,
     private val seeder: ExerciseSeeder,
     @IoDispatcher private val io: CoroutineDispatcher,
+    private val translations: ExerciseTranslations = ExerciseTranslations { emptyMap() },
 ) {
     private val dao = database.exerciseDao()
 
@@ -45,9 +46,16 @@ class ExerciseRepository @Inject constructor(
     fun observeCommonIds(externalIds: Set<String>): Flow<Set<Long>> =
         dao.observeCommonIds(externalIds).map { it.toSet() }.distinctUntilChanged().flowOn(io)
 
+    /** With the Polish instructions of a built-in exercise where there are some (D-102). */
     fun observe(id: Long): Flow<Exercise?> = flow {
         seeder.ensureSeeded()
-        emitAll(dao.observe(id).map { it?.toDomain() })
+        emitAll(
+            dao.observe(id).map { row ->
+                row?.toDomain()?.let { exercise ->
+                    translations.instructions(row.exercise.externalId)?.let { exercise.copy(instructions = it) } ?: exercise
+                }
+            },
+        )
     }.flowOn(io)
 
     /** Inserts a new custom exercise ([id] null) or updates an existing one; returns its id. */

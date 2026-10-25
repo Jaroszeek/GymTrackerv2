@@ -945,7 +945,7 @@
     <string name="licenses_title">Licencje i atrybucje</string>
     <string name="licenses_show">Pokaż tekst licencji</string>
     <string name="licenses_hide">Ukryj tekst licencji</string>
-    <string name="licenses_exercises">Ćwiczenia i zdjęcia: free-exercise-db (yuhonas). Warianty z programów Jeffa Nipparda, bez zdjęć.</string>
+    <string name="licenses_exercises">Ćwiczenia i zdjęcia: free-exercise-db (yuhonas), instrukcje przetłumaczone maszynowo na polski. Warianty z programów Jeffa Nipparda, bez zdjęć.</string>
     <string name="license_apache" translatable="false">Apache License 2.0</string>
     <string name="license_ofl" translatable="false">SIL Open Font License 1.1</string>
     <string name="license_unlicense" translatable="false">The Unlicense</string>
