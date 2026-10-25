@@ -3,6 +3,7 @@ package com.jaroszeek.gymtracker.data.body
 import com.jaroszeek.gymtracker.core.database.MeasurementEntity
 import com.jaroszeek.gymtracker.domain.body.BodyMeasurement
 import com.jaroszeek.gymtracker.domain.body.BodyMetric
+import com.jaroszeek.gymtracker.domain.body.LeanMass
 import com.jaroszeek.gymtracker.domain.health.HealthMetric
 import com.jaroszeek.gymtracker.testing.inMemoryDatabase
 import com.jaroszeek.gymtracker.testing.inMemoryHealthDatabase
@@ -15,6 +16,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -65,6 +67,14 @@ class BodyRepositoryTest {
     }
 
     @Test
+    fun aValueCanBeSavedAsMeasuredEarlierButNotLater() = runTest {
+        assertTrue(repository.add(BodyMetric.Weight, 80.0, time = NOW - DAY))
+        assertTrue(repository.add(BodyMetric.Weight, 81.0, time = NOW + DAY))
+
+        assertEquals(listOf(NOW - DAY, NOW), repository.observeMeasurements().first().map { it.time })
+    }
+
+    @Test
     fun deletingRemovesOnlyThatValue() = runTest {
         repository.add(BodyMetric.Weight, 80.0)
         repository.add(BodyMetric.SkeletalMuscle, 35.0)
@@ -73,6 +83,21 @@ class BodyRepositoryTest {
         repository.delete(weight.manualId!!)
 
         assertEquals(listOf(BodyMetric.SkeletalMuscle), repository.observeMeasurements().first().map { it.metric })
+    }
+
+    @Test
+    fun leanMassIsTheLatestPlausibleOneFromHealthConnect() = runTest {
+        assertNull(repository.observeLeanMass().first())
+        health.healthDao().upsertMeasurements(
+            listOf(
+                MeasurementEntity("lean-1", HealthMetric.LeanMass.key, NOW - DAY, 64.0, SCALE),
+                MeasurementEntity("lean-0", HealthMetric.LeanMass.key, NOW - 2 * DAY, 65.0, SCALE),
+                // Another app's 0 kg
+                MeasurementEntity("lean-2", HealthMetric.LeanMass.key, NOW, 0.0, "com.example"),
+            ),
+        )
+
+        assertEquals(LeanMass(NOW - DAY, 64.0, SCALE), repository.observeLeanMass().first())
     }
 
     private companion object {

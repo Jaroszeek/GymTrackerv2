@@ -1,7 +1,9 @@
 package com.jaroszeek.gymtracker.feature.routines
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.serialization.saved
 import androidx.lifecycle.viewModelScope
 import com.jaroszeek.gymtracker.data.routine.RoutineRepository
 import com.jaroszeek.gymtracker.domain.exercise.Exercise
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 
 /** Where the exercise picked in the picker goes. */
@@ -49,18 +52,32 @@ data class RoutineEditorUiState(
 class RoutineEditorViewModel @AssistedInject constructor(
     @Assisted private val id: Long?,
     private val repository: RoutineRepository,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
+    /** The routine as last saved: the draft is compared with it to ask about unsaved changes. */
     private var saved = RoutineDraft()
+
+    /**
+     * The draft after the last change, kept in saved state so it survives process death; null until
+     * the first change. The open picker or targets sheet is not kept.
+     */
+    private var restorableDraft: RoutineDraft? by savedStateHandle.saved { null }
+
     private val _state = MutableStateFlow(RoutineEditorUiState(routineId = id, loading = id != null))
     val state: StateFlow<RoutineEditorUiState> = _state.asStateFlow()
 
     init {
+        val restored = restorableDraft
         if (id != null) {
             viewModelScope.launch {
+                // The saved routine is loaded even with a restored draft, to tell whether it has changes
                 saved = repository.observe(id).first()?.toDraft() ?: RoutineDraft()
-                _state.update { it.copy(loading = false, draft = saved) }
+                val draft = restored ?: saved
+                _state.update { it.copy(loading = false, draft = draft, dirty = draft != saved) }
             }
+        } else if (restored != null) {
+            _state.update { it.copy(draft = restored, dirty = restored != saved) }
         }
     }
 
@@ -130,9 +147,11 @@ class RoutineEditorViewModel @AssistedInject constructor(
         }
     }
 
-    private fun edit(change: (RoutineDraft) -> RoutineDraft) = _state.update { state ->
-        val draft = change(state.draft)
-        state.copy(draft = draft, dirty = draft != saved)
+    private fun edit(change: (RoutineDraft) -> RoutineDraft) {
+        restorableDraft = _state.updateAndGet { state ->
+            val draft = change(state.draft)
+            state.copy(draft = draft, dirty = draft != saved)
+        }.draft
     }
 
     @AssistedFactory

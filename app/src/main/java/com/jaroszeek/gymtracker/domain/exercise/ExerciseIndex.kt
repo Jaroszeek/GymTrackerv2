@@ -6,8 +6,9 @@ data class ExerciseFilter(
     val query: String = "",
     val bodyParts: Set<BodyPart> = emptySet(),
     val equipment: Set<EquipmentGroup> = emptySet(),
+    val categories: Set<ExerciseCategory> = emptySet(),
 ) {
-    val isEmpty: Boolean get() = query.isBlank() && bodyParts.isEmpty() && equipment.isEmpty()
+    val isEmpty: Boolean get() = query.isBlank() && bodyParts.isEmpty() && equipment.isEmpty() && categories.isEmpty()
 }
 
 /**
@@ -39,6 +40,7 @@ class ExerciseIndex(exercises: List<Exercise>, common: Set<Long> = emptySet()) {
             val exercise = entry.exercise
             (muscles.isEmpty() || exercise.primaryMuscles.any { it in muscles }) &&
                 (filter.equipment.isEmpty() || exercise.equipmentGroup in filter.equipment) &&
+                (filter.categories.isEmpty() || exercise.category in filter.categories) &&
                 tokens.all { it in entry.text }
         }
         if (tokens.isEmpty()) return matches.map { it.exercise }

@@ -13,6 +13,7 @@
     <string name="gallery_section_inputs">Pola i przełączniki</string>
     <string name="gallery_section_surfaces">Karta i panel</string>
     <string name="gallery_section_overlays">Nakładki</string>
+    <string name="gallery_section_date_time">Data i godzina</string>
     <string name="gallery_section_live_update">Sonda Live Update</string>
     <string name="gallery_section_progress">Postęp i trening</string>
     <string name="gallery_section_charts">Wykresy, segmenty i paski</string>
@@ -68,7 +69,7 @@
     <string name="gallery_dialog_confirm">Odrzuć</string>
     <string name="gallery_dialog_dismiss">Wróć</string>
     <string name="gallery_sheet_title">Wybierz wariant</string>
-    <string name="gallery_sheet_text">Wyciskanie sztangą albo hantlami.</string>
+    <string name="gallery_sheet_text">Przeciągnij w dół, żeby zamknąć. Lista przewija się, a przeciągnięta w dół na samej górze przesuwa arkusz.</string>
 
     <string name="gallery_filler_title">Ćwiczenie %1$d</string>
     <plurals name="gallery_filler_sets">

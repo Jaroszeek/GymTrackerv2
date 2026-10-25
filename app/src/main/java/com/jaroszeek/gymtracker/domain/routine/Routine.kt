@@ -21,9 +21,11 @@ data class RoutineTargets(
     }
 }
 
+@Serializable
 data class RoutineVariant(val id: Long, val exercise: Exercise, val targets: RoutineTargets)
 
 /** A single exercise, or several alternatives of which one is picked during the workout. */
+@Serializable
 data class RoutineBlock(val id: Long, val variants: List<RoutineVariant>)
 
 data class Routine(

@@ -81,8 +81,8 @@ interface WorkoutDao {
     @Query("SELECT id, name FROM exercises WHERE id IN (:ids)")
     fun observeExerciseNames(ids: Collection<Long>): Flow<List<ExerciseNameRow>>
 
-    @Query("UPDATE workouts SET name = :name, ended_at = :endedAt WHERE id = :id")
-    suspend fun updateWorkout(id: Long, name: String, endedAt: Long)
+    @Query("UPDATE workouts SET name = :name, started_at = :startedAt, ended_at = :endedAt WHERE id = :id")
+    suspend fun updateWorkout(id: Long, name: String, startedAt: Long, endedAt: Long)
 
     @Query("SELECT * FROM workouts WHERE id = :id")
     suspend fun workout(id: Long): WorkoutEntity?

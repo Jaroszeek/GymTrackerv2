@@ -1,5 +1,7 @@
 package com.jaroszeek.gymtracker.domain.exercise
 
+import kotlinx.serialization.Serializable
+
 /** Keys match free-exercise-db, which is also how they are stored. */
 enum class Muscle(val key: String) {
     Abdominals("abdominals"),
@@ -117,6 +119,8 @@ enum class ExerciseSource(val key: String) {
     }
 }
 
+/** Serializable so a routine draft holding it survives process death (saved state). */
+@Serializable
 data class Exercise(
     val id: Long,
     val name: String,

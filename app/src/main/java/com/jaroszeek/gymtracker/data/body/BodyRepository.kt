@@ -6,7 +6,9 @@ import com.jaroszeek.gymtracker.core.database.HealthDatabase
 import com.jaroszeek.gymtracker.core.di.IoDispatcher
 import com.jaroszeek.gymtracker.domain.body.BodyMeasurement
 import com.jaroszeek.gymtracker.domain.body.BodyMetric
+import com.jaroszeek.gymtracker.domain.body.LeanMass
 import com.jaroszeek.gymtracker.domain.body.withoutDuplicates
+import com.jaroszeek.gymtracker.domain.health.HealthMetric
 import java.time.Clock
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -14,6 +16,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 /**
@@ -41,13 +44,23 @@ class BodyRepository @Inject constructor(
             (entered + synced).withoutDuplicates()
         }.flowOn(io)
 
-    /** Saved as measured now; false, and nothing saved, when [value] is outside the metric's range. */
-    suspend fun add(metric: BodyMetric, value: Double): Boolean {
+    /**
+     * Saved as measured at [time], now when null and at most now; false, and nothing saved, when [value] is
+     * outside the metric's range.
+     */
+    suspend fun add(metric: BodyMetric, value: Double, time: Long? = null): Boolean {
         if (value !in metric.range) return false
-        withContext(io) { dao.insert(BodyMeasurementEntity(type = metric.key, time = clock.millis(), value = value)) }
+        val now = clock.millis()
+        withContext(io) { dao.insert(BodyMeasurementEntity(type = metric.key, time = time?.coerceAtMost(now) ?: now, value = value)) }
         return true
     }
 
     /** Only values entered here can be deleted; the others are changed in their app. */
     suspend fun delete(manualId: Long) = withContext(io) { dao.delete(manualId) }
+
+    /** Health Connect's latest lean body mass; a value that cannot be a body mass, e.g. 0 kg, stays out. */
+    fun observeLeanMass(): Flow<LeanMass?> =
+        healthDao.observeMeasurements(listOf(HealthMetric.LeanMass.key), from = 0).map { rows ->
+            rows.lastOrNull { it.value in BodyMetric.Weight.range }?.let { LeanMass(it.time, it.value, it.origin) }
+        }.flowOn(io)
 }

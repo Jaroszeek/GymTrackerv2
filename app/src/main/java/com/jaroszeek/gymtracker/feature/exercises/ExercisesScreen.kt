@@ -70,6 +70,7 @@ fun ExercisesRoute(onOpen: (Long) -> Unit, onAdd: () -> Unit, viewModel: Exercis
         onQueryChange = viewModel::onQueryChange,
         onToggleBodyPart = viewModel::onToggleBodyPart,
         onToggleEquipment = viewModel::onToggleEquipment,
+        onToggleCategory = viewModel::onToggleCategory,
         onClearFilters = viewModel::onClearFilters,
         onRetry = viewModel::onRetry,
         onOpen = onOpen,
@@ -84,6 +85,7 @@ fun ExercisesScreen(
     onQueryChange: (String) -> Unit,
     onToggleBodyPart: (BodyPart) -> Unit,
     onToggleEquipment: (EquipmentGroup) -> Unit,
+    onToggleCategory: (ExerciseCategory) -> Unit,
     onClearFilters: () -> Unit,
     onRetry: () -> Unit,
     onOpen: (Long) -> Unit,
@@ -139,6 +141,9 @@ fun ExercisesScreen(
             }
             item(key = "equipment") {
                 ChipRow(EquipmentGroup.entries, filter.equipment, { it.label }, onToggleEquipment)
+            }
+            item(key = "categories") {
+                ChipRow(ExerciseCategory.entries, filter.categories, { it.label }, onToggleCategory)
             }
             when (state) {
                 ExercisesUiState.Loading -> item(key = "loading") { LoadingRows() }
@@ -274,7 +279,7 @@ private fun ExercisesScreenPreview() {
             ExercisesScreen(
                 state = ExercisesUiState.Content(sample, ExerciseFilter(bodyParts = setOf(BodyPart.Chest))),
                 query = "",
-                onQueryChange = {}, onToggleBodyPart = {}, onToggleEquipment = {}, onClearFilters = {}, onRetry = {}, onOpen = {}, onAdd = {},
+                onQueryChange = {}, onToggleBodyPart = {}, onToggleEquipment = {}, onToggleCategory = {}, onClearFilters = {}, onRetry = {}, onOpen = {}, onAdd = {},
             )
         }
     }
