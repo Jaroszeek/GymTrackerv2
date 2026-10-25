@@ -107,7 +107,7 @@ fun HomeRoute(
     )
 }
 
-/** Start (A5.1): the greeting, quick start and the widgets in the saved order; edit mode reorders and hides them. */
+/** Start (A5.1): the greeting and the widgets, quick start among them, in the saved order; edit mode reorders and hides them. */
 @Composable
 fun HomeScreen(
     state: HomeUiState,
@@ -189,6 +189,7 @@ fun HomeScreen(
                                 title = stringResource(widget.label()),
                                 checked = widget !in state.layout.hidden,
                                 onCheckedChange = { onToggle(widget) },
+                                enabled = widget.hideable,
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -215,9 +216,9 @@ fun HomeScreen(
                 return@LazyColumn
             }
         }
-        item(key = "quick-start") { QuickStartCard(state.quickStart, onStart, onStartEmpty, onOpenWorkout, onChooseRoutine) }
         items(state.layout.visible, key = { it.key }) { widget ->
             when (widget) {
+                HomeWidget.QuickStart -> QuickStartCard(state.quickStart, onStart, onStartEmpty, onOpenWorkout, onChooseRoutine)
                 HomeWidget.Hero -> HeroCard(state.streak, state.week, onClick = onProgress)
                 HomeWidget.LastWorkout -> LastWorkoutCard(state.lastWorkout, onOpen = onOpenWorkoutDetail, onStart = onChooseRoutine)
                 HomeWidget.Readiness -> readiness()
@@ -227,7 +228,7 @@ fun HomeScreen(
                 HomeWidget.Body -> BodyCard(state.body, state.weights, onOpen = onProfile)
             }
         }
-        if (state.layout.visible.isEmpty()) {
+        if (state.layout.visible.none { it.hideable }) {
             item(key = "all-hidden") {
                 GlassCard(Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.home_all_hidden), color = colors.textSecondary, style = GtTheme.typography.body)
@@ -279,6 +280,7 @@ private fun Message(text: String) {
 }
 
 private fun HomeWidget.label(): Int = when (this) {
+    HomeWidget.QuickStart -> R.string.home_quick_title
     HomeWidget.Hero -> R.string.home_widget_hero
     HomeWidget.LastWorkout -> R.string.home_widget_last_workout
     HomeWidget.Readiness -> R.string.home_widget_readiness
