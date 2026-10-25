@@ -787,6 +787,11 @@ Właściciel zatwierdził wszystkie (2026-10-24):
 - Polskie instrukcje tylko w polskiej wersji; angielska pokazuje oryginał z free-exercise-db. `ExerciseTranslations.polish` to przepływ języka aplikacji (z `ComponentCallbacks`), połączony z ćwiczeniem w `ExerciseRepository.observe`: otwarty ekran ćwiczenia przełącza instrukcje razem z językiem, choć jego ViewModel przeżywa zmianę.
 - **Alternatywy:** sprawdzanie języka tylko przy odczycie (otwarty ekran zostawał w starym języku — sprawdzone na emulatorze, odrzucone).
 
+### D-107 Porządek w GitHub Releases (zmienia D-058)
+- Na prośbę właściciela (2026-10-25): w Releases zostają wersje stabilne i tylko najnowsze wydanie testowe. Usunięte wydania testowe Etapów 5–13 (z tagami) i wydanie testowe v1.0.1 (tag został, sekcja w `CHANGELOG.md` też).
+- Od teraz każdy etap dalej dostaje wydanie testowe `preview-stage-<nr>`, a poprzednie usuwam razem z tagiem. Po wydaniu wersji stabilnej wydanie testowe dostaje tytuł „GymTracker X.Y.Z — wersja testowa (debug)”.
+- **Alternatywy:** zostawić wszystkie (długa lista, trudno znaleźć właściwy APK); usuwać też wydania testowe po każdej wersji stabilnej (właściciel testuje wersję debug obok zwykłej).
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |

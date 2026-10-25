@@ -41,7 +41,7 @@ Wymaga Androida 15 lub nowszego.
 2. Otwórz pobrany plik i zezwól przeglądarce albo menedżerowi plików na instalowanie nieznanych aplikacji („Instaluj nieznane aplikacje”).
 3. Kolejne wersje instaluje aktualizator w aplikacji (Ustawienia → Aktualizacje). Przy pierwszej aktualizacji Android poprosi o tę samą zgodę dla GymTrackera. Aktualizator instaluje tylko APK podpisany tym samym kluczem co zainstalowana aplikacja.
 
-Wydania `preview-stage-<nr>` to wersje testowe: APK debug, aplikacja „GymTracker Debug” (`com.jaroszeek.gymtracker.debug`), która instaluje się obok właściwej i ma osobne dane. Wersja testowa nie sprawdza aktualizacji. Żeby przenieść dane do wersji z Releases, w aplikacji testowej wybierz Ustawienia → Dane → „Eksportuj kopię”, a w docelowej „Importuj kopię” z tym plikiem. Ustawień i danych z Health Connect kopia nie zawiera: ustawienia wybierz ponownie, a dane z Health Connect wrócą po połączeniu i synchronizacji. Potem aplikację testową można odinstalować.
+Wydania `preview-stage-<nr>` to wersje testowe: APK debug, aplikacja „GymTracker Debug” (`com.jaroszeek.gymtracker.debug`), która instaluje się obok właściwej i ma osobne dane. Na GitHubie zostaje tylko najnowsze wydanie testowe. Wersja testowa nie sprawdza aktualizacji. Żeby przenieść dane do wersji z Releases, w aplikacji testowej wybierz Ustawienia → Dane → „Eksportuj kopię”, a w docelowej „Importuj kopię” z tym plikiem. Ustawień i danych z Health Connect kopia nie zawiera: ustawienia wybierz ponownie, a dane z Health Connect wrócą po połączeniu i synchronizacji. Potem aplikację testową można odinstalować.
 
 ## Stack
 
