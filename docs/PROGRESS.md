@@ -16,11 +16,12 @@
 | 9 | Ustawienia i kopia zapasowa | ✅ zaakceptowany (2026-10-24), wydanie `preview-stage-9`; czeka na test na telefonie |
 | 10 | Szlif, wydajność, QA | ✅ zaakceptowany (2026-10-24), wydania `preview-stage-10`, `10.1`, `10.2`; czeka na test na telefonie |
 | 11 | Wydanie i aktualizator | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-11`, **v1.0.0** i testowe v1.0.1; czeka na test aktualizacji na telefonie |
-| 12 | Szlif 1.1 (pomysły z `IDEAS.md`) | 🔄 PR i wydanie `preview-stage-12`; changelog 1.1.0 czeka na akceptację |
+| 12 | Szlif 1.1 (pomysły z `IDEAS.md`) | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-12` i **v1.1.0**; czeka na test na telefonie |
 
 ## Bieżący stan
 
-- **Etap 12** (branch `feat/stage-12-polish`, 2026-10-25): zakres wybrany przez właściciela z `IDEAS.md` (D-092).
+- **Etap 12** zaakceptowany i zmergowany (PR #13, 2026-10-25): zakres wybrany przez właściciela z `IDEAS.md` (D-092).
+  - **v1.1.0** wydane z tagu: workflow „Release” zielony, `releases/latest` wskazuje v1.1.0. Na emulatorze wydana 1.0.1 znalazła ją w Ustawienia → Aktualizacje → „Sprawdź teraz” i zaktualizowała się bez okna systemu (D-089), dane zostały.
   - Zrobione:
     - arkusz zamyka się przeciągnięciem w dół, także z przewijaną treścią (D-093);
     - wybór daty i godziny w design systemie, w galerii (D-094);
@@ -32,7 +33,6 @@
     - tap w nagłówek ćwiczenia w szczegółach treningu otwiera szczegóły ćwiczenia.
   - Sprawdzone na emulatorze (API 36): wszystkie punkty poza masą beztłuszczową (brak narzędzia do danych testowych, D-099); szkice po `adb shell am kill` i powrocie z ostatnich.
   - Testy: JVM 319/319, UI 6/6 (API 36), lint 0 błędów (1 znane ostrzeżenie o targetSdk). Projekt (A9): `.\gradlew.bat lint testDebugUnitTest assembleRelease` przechodzi lokalnie (2026-10-25).
-  - Changelog 1.1.0 w `CHANGELOG.md` czeka na akceptację; potem tag `v1.1.0` (C7).
 - **Etap 11** zaakceptowany i zmergowany (PR #11, 2026-10-25): changelog 1.0.0 zatwierdzony, aktualizacja bez okna systemu dodana (D-089), repo zostaje publiczne, kod bez licencji (D-091). Wydanie testowe `preview-stage-11`.
   - Klucz wydania wygenerowany na prośbę właściciela, sekrety ustawione (D-086). **Właściciel: kopia zapasowa `%USERPROFILE%\keys\gymtracker-release.jks` i `gymtracker-release-password.txt`.**
   - **v1.0.0** wydane z tagu: workflow „Release” zielony, `GymTracker-1.0.0.apk` podpisany kluczem wydania, `releases/latest` wskazuje v1.0.0. Na emulatorze: instalacja z Releases, „Sprawdź teraz” → „Masz najnowszą wersję” (prawdziwe API GitHuba).
@@ -236,6 +236,7 @@ Klucz, sekrety i wydania v1.0.0 oraz v1.0.1 są gotowe. Kopia zapasowa klucza i 
 
 ## Następny krok
 
-- Właściciel: akceptacja Etapu 12 i changelogu 1.1.0, potem tag `v1.1.0` (aktualizacja z aplikacji 1.0.x → 1.1.0).
+- Właściciel: test Etapu 12 na telefonie (wyżej) i aktualizacja z aplikacji do v1.1.0.
+- Plan z części B i Etap 12 są zamknięte; kolejny zakres wybiera właściciel (np. z `IDEAS.md`).
 - Właściciel: kopia zapasowa klucza i hasła, test aktualizacji 1.0.0 → 1.0.1 na telefonie (wyżej).
 - Wyniki testów Etapów 9–10 na telefonie, gdy właściciel je przekaże.
