@@ -56,6 +56,9 @@ object GtSizes {
     val NavBarMargin = 16.dp
     val NavBarGap = 12.dp
     val HideBarThreshold = 48.dp
+
+    /** A bottom sheet released lower than this closes. */
+    val SheetDismissDrag = 96.dp
     val TopBarHeight = 56.dp
     val ButtonHeight = 52.dp
     val ChipHeight = 36.dp
@@ -113,6 +116,9 @@ object GtMotion {
 
     /** A chart line drawing itself from the left. */
     val Reveal = spring<Float>(dampingRatio = 1f, stiffness = 120f)
+
+    /** A bottom sheet released moving down faster than this (per second) closes. */
+    val SheetDismissVelocity = 500.dp
 
     const val PRESSED_SCALE = 0.96f
     const val NAV_PRESSED_SCALE = 0.88f

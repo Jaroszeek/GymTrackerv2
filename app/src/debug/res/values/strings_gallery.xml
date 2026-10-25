@@ -68,7 +68,7 @@
     <string name="gallery_dialog_confirm">Odrzuć</string>
     <string name="gallery_dialog_dismiss">Wróć</string>
     <string name="gallery_sheet_title">Wybierz wariant</string>
-    <string name="gallery_sheet_text">Wyciskanie sztangą albo hantlami.</string>
+    <string name="gallery_sheet_text">Przeciągnij w dół, żeby zamknąć. Lista przewija się, a przeciągnięta w dół na samej górze przesuwa arkusz.</string>
 
     <string name="gallery_filler_title">Ćwiczenie %1$d</string>
     <plurals name="gallery_filler_sets">
