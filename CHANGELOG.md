@@ -5,6 +5,7 @@ Najnowsza wersja na górze. Workflow wydania bierze do opisu Release sekcję `##
 ## 1.3.1
 
 - Przejście między zakładkami idzie w tę stronę, w którą przesuwasz się w pasku: zakładka po lewej wjeżdża z lewej, po prawej z prawej.
+- „Szybki start” przestawisz na Starcie jak inne widżety (ołówek → przeciągnij). Ukryć się go nie da.
 
 ## 1.3.0
 
