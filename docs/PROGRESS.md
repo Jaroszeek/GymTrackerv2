@@ -28,7 +28,7 @@
     - kalendarz na Starcie bez kropek za spacery; w historii zostają (D-104).
   - Zależności (C8): osobny branch `chore/deps-2026-10` i osobny PR.
   - Sprawdzone na emulatorze (API 36): polskie instrukcje w szczegółach Barbell Deadlift (instalacja zaseedowana wcześniej po angielsku), minuty „03”, spacer z 21.10 w historii bez kropki w kalendarzu, a sesje siłowe z kropką.
-  - Testy: JVM 322/322, lint 0 błędów (ostrzeżenia: targetSdk i jedna nowsza wersja zależności — do PR zależności).
+  - Testy: JVM 322/322, UI 6/6 (API 36), lint 0 błędów (ostrzeżenia: targetSdk i jedna nowsza wersja zależności — do PR zależności). `WorkoutFlowTest` czeka teraz na wiersze serii: nazwa ćwiczenia potrafi pojawić się klatkę wcześniej (wyścig w teście, nie w aplikacji).
 - **Etap 12** zaakceptowany i zmergowany (PR #13, 2026-10-25): zakres wybrany przez właściciela z `IDEAS.md` (D-092).
   - **v1.1.0** wydane z tagu: workflow „Release” zielony, `releases/latest` wskazuje v1.1.0. Na emulatorze wydana 1.0.1 znalazła ją w Ustawienia → Aktualizacje → „Sprawdź teraz” i zaktualizowała się bez okna systemu (D-089), dane zostały.
   - Zrobione:
