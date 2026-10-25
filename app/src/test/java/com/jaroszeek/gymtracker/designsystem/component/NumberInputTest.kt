@@ -35,6 +35,13 @@ class NumberInputTest {
     }
 
     @Test
+    fun padsWholeNumbersToMinDigits() {
+        assertEquals("07", NumberInput.format(7.0, 0, ',', minDigits = 2))
+        assertEquals("45", NumberInput.format(45.0, 0, ',', minDigits = 2))
+        assertEquals(7.0, NumberInput.parse("07", 0)!!, 0.0)
+    }
+
+    @Test
     fun stepsWithoutFloatingPointNoise() {
         var value: Double? = 0.0
         repeat(3) { value = NumberInput.step(value, 0.1, 2, 0.0..100.0) }
