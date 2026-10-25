@@ -2,12 +2,18 @@
 
 Natywna aplikacja na Androida do śledzenia treningów siłowych. Działa lokalnie, integruje się z Health Connect (dane z Samsung Health i Galaxy Watch) i ma design „liquid glass”: prawdziwe rozmycie tła pod pływającymi warstwami, ciemne tło z subtelną aurorą i duże, tabularne liczby.
 
-Wszystkie dane zostają na telefonie. Aplikacja nie ma konta, analityki ani reklam; sieci używa tylko do zdjęć ćwiczeń i (od v1.0.0) do sprawdzania aktualizacji na GitHubie.
+Wszystkie dane zostają na telefonie. Aplikacja nie ma konta, analityki ani reklam; sieci używa tylko do zdjęć ćwiczeń i do sprawdzania aktualizacji na GitHubie.
 
 <p>
   <img src="docs/screenshots/stage10-home-dark.png" width="200" alt="Start, motyw ciemny">
+  <img src="docs/screenshots/stage10-fix-routines.png" width="200" alt="Rutyny w zakładce Trening">
   <img src="docs/screenshots/stage10-workout-dark.png" width="200" alt="Aktywny trening, motyw ciemny">
+  <img src="docs/screenshots/stage4-rest-dark.png" width="200" alt="Przerwa z pierścieniem odliczania">
+</p>
+<p>
+  <img src="docs/screenshots/stage10-fix-search.png" width="200" alt="Wyszukiwanie ćwiczeń z filtrami">
   <img src="docs/screenshots/stage10-progress-dark.png" width="200" alt="Wykres postępów ćwiczenia, motyw ciemny">
+  <img src="docs/screenshots/stage10-exercise-hr-dark.png" width="200" alt="Tętno w każdym ćwiczeniu ze znacznikami serii">
   <img src="docs/screenshots/stage10-profile-light.png" width="200" alt="Profil, motyw jasny">
 </p>
 
@@ -19,20 +25,23 @@ Wszystkie dane zostają na telefonie. Aplikacja nie ma konta, analityki ani rekl
 - **Przerwa:** pełnoekranowy timer z pierścieniem, odliczanie w powiadomieniu na żywo (Live Update, Now Bar na Samsungu) i na ekranie blokady, wibracja i dźwięk na koniec także przy wygaszonym ekranie.
 - **Ćwiczenia:** 902 ćwiczenia (free-exercise-db ze zdjęciami i warianty z programów Jeffa Nipparda), wyszukiwanie także po polskich nazwach, filtry partii i sprzętu, własne ćwiczenia, wykres i rekordy każdego ćwiczenia.
 - **Historia i postępy:** szczegóły i edycja treningów, rekordy, szacowany 1RM (Epley, Brzycki), wykresy z zakresami i przeciąganiem, postęp rutyn, tygodniowe serie na partię.
-- **Health Connect:** sesje z zegarka z tętnem, strefami i kaloriami, łączenie ich z treningami, pomiary ciała, kroki, sen, tętno spoczynkowe i HRV. Opcjonalny zapis treningów do Health Connect.
+- **Health Connect:** sesje z zegarka w historii; trening łączy się sam z nakładającą się sesją z zegarka i pokazuje tętno, strefy i kalorie, a każde ćwiczenie ma własny wykres tętna ze znacznikami serii. Pomiary ciała, kroki, sen, tętno spoczynkowe i HRV. Opcjonalny zapis treningów do Health Connect.
 - **Profil:** waga, wzrost, wiek, BMI, skład ciała, wykresy i dziennik pomiarów (ręcznych i z Health Connect, bez duplikatów).
 - **Ustawienia:** motyw (systemowy, jasny, ciemny), 6 akcentów i motywy Onyx i Porcelain, AMOLED, Material You, „Ogranicz przezroczystość”, kg albo lb, domyślna przerwa, dźwięk i wibracja.
 - **Kopia zapasowa:** eksport całej bazy do pliku i import z kontrolą pliku, podsumowaniem i kopią poprzednich danych. Ten sam przycisk przyjmuje kopię z pierwszej wersji GymTrackera.
+- **Aktualizacje:** sprawdzanie nowej wersji na GitHubie przy starcie (najwyżej raz na dobę) i ręcznie, dialog z notatkami wydania, pobranie APK, sprawdzenie podpisu i instalacja.
+
+Lista zmian w kolejnych wersjach: [CHANGELOG.md](CHANGELOG.md).
 
 ## Instalacja APK
 
 Wymaga Androida 15 lub nowszego.
 
-1. Na telefonie otwórz [Releases](https://github.com/Jaroszeek/GymTrackerv2/releases) i pobierz plik `.apk` z sekcji „Assets”.
-2. Otwórz pobrany plik i zezwól przeglądarce albo menedżerowi plików na instalowanie nieznanych aplikacji.
-3. Sumę SHA-256 pliku podaje opis wydania.
+1. Na telefonie otwórz [Releases](https://github.com/Jaroszeek/GymTrackerv2/releases/latest) i pobierz `GymTracker-<wersja>.apk` z sekcji „Assets” (GitHub pokazuje przy pliku jego sumę SHA-256).
+2. Otwórz pobrany plik i zezwól przeglądarce albo menedżerowi plików na instalowanie nieznanych aplikacji („Instaluj nieznane aplikacje”).
+3. Kolejne wersje instaluje aktualizator w aplikacji (Ustawienia → Aktualizacje). Przy pierwszej aktualizacji Android poprosi o tę samą zgodę dla GymTrackera. Aktualizator instaluje tylko APK podpisany tym samym kluczem co zainstalowana aplikacja.
 
-Wydania `preview-stage-<nr>` to wersje testowe (APK debug, aplikacja „GymTracker Debug”), które instalują się obok wersji docelowej. Pierwsze właściwe wydanie to v1.0.0; kolejne wersje zainstaluje aktualizator w aplikacji (Ustawienia → Aktualizacje).
+Wydania `preview-stage-<nr>` to wersje testowe: APK debug, aplikacja „GymTracker Debug” (`com.jaroszeek.gymtracker.debug`), która instaluje się obok właściwej i ma osobne dane. Wersja testowa nie sprawdza aktualizacji. Żeby przenieść dane do wersji z Releases, w aplikacji testowej wybierz Ustawienia → Dane → „Eksportuj kopię”, a w docelowej „Importuj kopię” z tym plikiem. Ustawień i danych z Health Connect kopia nie zawiera: ustawienia wybierz ponownie, a dane z Health Connect wrócą po połączeniu i synchronizacji. Potem aplikację testową można odinstalować.
 
 ## Stack
 
@@ -60,9 +69,10 @@ Wymagania: Android Studio 2026.2 lub nowsze (JBR 25), Android SDK z platformą 3
 .\gradlew.bat :app:connectedDebugAndroidTest  # testy UI na emulatorze
 .\gradlew.bat lintDebug              # lint
 adb install -r app\build\outputs\apk\debug\app-debug.apk
+.\gradlew.bat assembleRelease "-PappVersion=1.0.0"  # APK release (R8): app\build\outputs\apk\release
 ```
 
-Wariant debug ma identyfikator `com.jaroszeek.gymtracker.debug`, więc instaluje się obok wersji release.
+Wariant debug ma identyfikator `com.jaroszeek.gymtracker.debug`, więc instaluje się obok wersji release. Wersję podaje `-PappVersion` (bez niego `0.1.0`); `versionCode` to `major * 10000 + minor * 100 + patch`, więc minor i patch muszą być mniejsze niż 100. Bez danych keystore (sekcja „Wydawanie wersji”) `assembleRelease` buduje niepodpisany `app-release-unsigned.apk`, którego nie da się zainstalować.
 
 ### Galeria komponentów (tylko debug)
 
@@ -146,6 +156,69 @@ adb logcat -s LiveUpdate WorkoutService RestAlarm Workout
 
 Najważniejsze pozycje: „Zgoda na powiadomienia na żywo” (`canPostPromotedNotifications`), „Powiadomienie spełnia wymagania” (`hasPromotableCharacteristics`) i „Powiadomienie jest na żywo” (`FLAG_PROMOTED_ONGOING`). Gdy dwie pierwsze są na „Tak”, a trzecia na „Nie”, promocję blokuje ustawienie systemu albo One UI.
 
+## Wydawanie wersji
+
+Tag `vX.Y.Z` uruchamia `.github/workflows/release.yml`: lint, testy, podpisany `assembleRelease` z wersją z tagu i GitHub Release z plikiem `GymTracker-X.Y.Z.apk` oraz opisem z sekcji `## X.Y.Z` w [CHANGELOG.md](CHANGELOG.md). Aktualizator w aplikacji porównuje `versionCode` zainstalowanej wersji z tagiem najnowszego wydania (bez wydań testowych), więc każdy kolejny tag musi mieć wyższy numer.
+
+### Klucz podpisu (jednorazowo)
+
+1. Wygeneruj keystore poza repo. `keytool` jest w JBR Android Studio (`<katalog Android Studio>\jbr\bin\keytool.exe`); zapyta o hasło i dane właściciela (dane mogą zostać puste):
+
+   ```powershell
+   New-Item -ItemType Directory -Force "$env:USERPROFILE\keys"
+   keytool -genkeypair -v -keystore "$env:USERPROFILE\keys\gymtracker-release.jks" -alias gymtracker -keyalg RSA -keysize 4096 -validity 10000
+   ```
+
+   Keystore PKCS12 ma jedno hasło dla magazynu i klucza, więc `storePassword` i `keyPassword` są takie same.
+
+2. Utwórz w katalogu głównym repo plik `keystore.properties` (jest w `.gitignore`, nie trafia do repo). `storeFile` to ścieżka względem katalogu repo albo bezwzględna, z ukośnikami `/`:
+
+   ```properties
+   storeFile=C:/Users/<użytkownik>/keys/gymtracker-release.jks
+   storePassword=<hasło>
+   keyAlias=gymtracker
+   keyPassword=<hasło>
+   ```
+
+   Od teraz `.\gradlew.bat assembleRelease` buduje podpisany `app\build\outputs\apk\release\app-release.apk`.
+
+3. **Zrób kopię zapasową** pliku `gymtracker-release.jks` i hasła w co najmniej dwóch miejscach poza tym komputerem (np. menedżer haseł i zaszyfrowany pendrive). Bez tego klucza nie da się wydać aktualizacji zainstalowanej aplikacji: Android odrzuci APK podpisany innym kluczem i zostanie tylko odinstalowanie (z utratą danych bez kopii zapasowej).
+
+4. Zapisz sekrety w GitHubie (`gh secret set` bez `--body` pyta o wartość, więc hasło nie trafia do historii PowerShella):
+
+   ```powershell
+   [Convert]::ToBase64String([IO.File]::ReadAllBytes("$env:USERPROFILE\keys\gymtracker-release.jks")) | gh secret set KEYSTORE_BASE64
+   gh secret set KEYSTORE_PASSWORD
+   gh secret set KEY_ALIAS --body gymtracker
+   gh secret set KEY_PASSWORD
+   gh secret list
+   ```
+
+   Bez sekretów workflow kończy się błędem zamiast wydać niepodpisany APK.
+
+### Każde wydanie
+
+1. Dopisz na górze `CHANGELOG.md` sekcję `## X.Y.Z` (po polsku, z perspektywy użytkownika) i wprowadź ją na `main` przez PR z zielonym CI.
+2. Otaguj `main` i wypchnij tag:
+
+   ```powershell
+   git switch main; git pull
+   git tag vX.Y.Z
+   git push origin vX.Y.Z
+   ```
+
+3. Sprawdź workflow i wydanie:
+
+   ```powershell
+   gh run list --workflow release.yml --limit 1
+   gh run watch
+   gh release view vX.Y.Z
+   ```
+
+   W „Assets” ma być `GymTracker-X.Y.Z.apk`. Na telefonie: Ustawienia → Aktualizacje → „Sprawdź teraz”.
+
+Gdy workflow się nie uda, wydanie nie powstaje. Po poprawce na `main` usuń tag (`git push origin :refs/tags/vX.Y.Z`, `git tag -d vX.Y.Z`) i utwórz go ponownie.
+
 ## Struktura
 
 ```
@@ -159,9 +232,10 @@ app/src/main/java/com/jaroszeek/gymtracker/
   feature/                 ekrany funkcji
 app/src/debug/             galeria komponentów i sonda Live Update
 baselineprofile/           macrobenchmarki i generator Baseline Profile
+.github/workflows/         CI (ci.yml) i wydania (release.yml)
 docs/                      postęp, decyzje, pomysły, zrzuty ekranu
 ```
 
 ## Licencje
 
-Kod aplikacji: do ustalenia przed wydaniem. Baza ćwiczeń: [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (Unlicense, domena publiczna). Fonty Geist i Instrument Serif: SIL Open Font License 1.1 (teksty licencji w `app/src/main/assets/licenses/`). Ikony Material Symbols: Apache-2.0.
+Kod aplikacji: bez licencji open source, wszystkie prawa zastrzeżone. Repo jest publiczne, żeby aktualizator w aplikacji mógł pobierać wydania bez tokenu. Baza ćwiczeń: [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (Unlicense, domena publiczna). Fonty Geist i Instrument Serif: SIL Open Font License 1.1 (teksty licencji w `app/src/main/assets/licenses/`). Ikony Material Symbols: Apache-2.0.

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -7,6 +9,31 @@ plugins {
     alias(libs.plugins.room)
     alias(libs.plugins.baselineprofile)
 }
+
+// A8: the version comes from the release tag, `-PappVersion=1.2.3` (CI passes the tag without "v"); local builds
+// get 0.1.0. versionCode = major * 10_000 + minor * 100 + patch. The in-app updater computes the same code from
+// the latest release tag, so the formula must stay the same in both places.
+val appVersion = providers.gradleProperty("appVersion").getOrElse("0.1.0")
+val appVersionCode = Regex("""(\d+)\.(\d+)\.(\d+)""").matchEntire(appVersion)
+    ?.groupValues?.drop(1)?.map { it.toIntOrNull() ?: -1 }
+    ?.takeIf { (major, minor, patch) -> major >= 0 && minor in 0..99 && patch in 0..99 }
+    ?.let { (major, minor, patch) -> major * 10_000 + minor * 100 + patch }
+    ?: throw GradleException("appVersion must be MAJOR.MINOR.PATCH with MINOR and PATCH below 100, got \"$appVersion\"")
+
+// A8: release signing from keystore.properties in the project root (local, gitignored; storeFile relative to the
+// root), otherwise from the environment (CI secrets). Without credentials assembleRelease builds an unsigned APK.
+val keystoreProperties = providers.fileContents(rootProject.layout.projectDirectory.file("keystore.properties"))
+    .asText.orNull?.let { text -> Properties().apply { load(text.reader()) } }
+
+fun signingValue(key: String, env: String): String? =
+    keystoreProperties?.getProperty(key) ?: providers.environmentVariable(env).orNull
+
+val releaseSigning = listOf(
+    signingValue("storeFile", "KEYSTORE_FILE"),
+    signingValue("storePassword", "KEYSTORE_PASSWORD"),
+    signingValue("keyAlias", "KEY_ALIAS"),
+    signingValue("keyPassword", "KEY_PASSWORD"),
+).takeIf { values -> values.none { it.isNullOrBlank() } }?.filterNotNull()
 
 android {
     namespace = "com.jaroszeek.gymtracker"
@@ -18,10 +45,24 @@ android {
         applicationId = "com.jaroszeek.gymtracker"
         minSdk = 35
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = appVersionCode
+        versionName = appVersion
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // GitHub API endpoint of the in-app updater (A5.11); empty = no update checks (debug)
+        buildConfigField("String", "UPDATE_URL", "\"\"")
+    }
+
+    signingConfigs {
+        if (releaseSigning != null) {
+            create("release") {
+                val (file, password, alias, aliasPassword) = releaseSigning
+                storeFile = rootProject.file(file)
+                storePassword = password
+                keyAlias = alias
+                keyPassword = aliasPassword
+            }
+        }
     }
 
     buildTypes {
@@ -29,10 +70,11 @@ android {
             applicationIdSuffix = ".debug"
         }
         release {
-            // Signing arrives in Stage 11
+            signingConfig = signingConfigs.findByName("release")
             optimization {
                 enable = true
             }
+            buildConfigField("String", "UPDATE_URL", "\"https://api.github.com/repos/Jaroszeek/GymTrackerv2/releases/latest\"")
         }
         // Release-like build for macrobenchmarks (:baselineprofile); also carries the debug gallery
         create("benchmark") {
@@ -40,6 +82,9 @@ android {
             applicationIdSuffix = ".benchmark"
             signingConfig = signingConfigs.getByName("debug")
             matchingFallbacks += "release"
+            // Never GitHub: macrobenchmarks must not hit the network. The updater is tested end to end against a
+            // local server, `-PupdateUrl=http://10.0.2.2:8000/latest` (cleartext to the emulator host: src/benchmark)
+            buildConfigField("String", "UPDATE_URL", "\"${providers.gradleProperty("updateUrl").getOrElse("")}\"")
         }
     }
     sourceSets {
@@ -68,6 +113,10 @@ android {
 androidComponents {
     finalizeDsl { android ->
         android.buildTypes.matching { it.name.startsWith("nonMinified") }.configureEach { optimization { enable = false } }
+        // The copies (benchmarkRelease, nonMinifiedRelease, ...) run the generator and macrobenchmarks: no updater
+        android.buildTypes
+            .matching { it.name != "benchmark" && (it.name.startsWith("nonMinified") || it.name.startsWith("benchmark")) }
+            .configureEach { buildConfigField("String", "UPDATE_URL", "\"\"") }
     }
 }
 

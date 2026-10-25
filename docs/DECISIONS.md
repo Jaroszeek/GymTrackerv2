@@ -659,6 +659,52 @@ Właściciel zatwierdził wszystkie (2026-10-24):
 - **UI:** w karcie ćwiczenia w szczegółach treningu: „Tętno: średnie …, maks. …” i niski wykres (`GtSizes.ChartCompactHeight`) z pionowym znacznikiem w chwili odhaczenia każdej serii. `GlassLineChart` dostał opcjonalne `markers` (znacznik tuż za ostatnią próbką rysowany na krawędzi) i `height`; przykład w galerii.
 - Bez nowych zależności i uprawnień.
 
+## 2026-10-24 — Etap 11 (wydanie i aktualizator)
+
+### D-085 Wersja z tagu
+- `versionName` i `versionCode` pochodzą z właściwości Gradle `appVersion` (`-PappVersion=1.2.3`; workflow wydania podaje tag bez „v”). `versionCode = major × 10 000 + minor × 100 + patch`, więc minor i patch muszą być mniejsze niż 100. Zły format kończy build czytelnym błędem.
+- Bez właściwości: `0.1.0` (versionCode 100) dla buildów lokalnych, debug i wydań `preview-stage-*`. Wcześniejsze wersje testowe miały versionCode 1, więc nowa instaluje się na nich jako aktualizacja.
+- Aktualizator liczy ten sam kod z tagu najnowszego wydania (`AppVersion.versionCode`). Wzór musi być taki sam w obu miejscach; zapisane w komentarzu w `app/build.gradle.kts`.
+- **Alternatywy:** liczba commitów albo numer przebiegu CI jako versionCode (aplikacja nie odtworzy go z tagu); wersja w pliku w repo (dodatkowy commit przed każdym tagiem).
+
+### D-086 Podpis wydania
+- Konfiguracja `release` z `keystore.properties` w katalogu repo (lokalnie, w `.gitignore`), a gdy go nie ma — ze zmiennych środowiskowych `KEYSTORE_FILE`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` (CI). Odczyt przez `providers` (zgodny z configuration cache).
+- Bez danych `assembleRelease` buduje niepodpisany APK, więc A9 („`assembleRelease` przechodzi lokalnie”) działa też bez klucza. Workflow wydania kończy się błędem, gdy APK wyszedł niepodpisany.
+- W CI keystore jest w sekrecie `KEYSTORE_BASE64` i trafia do `$RUNNER_TEMP`. Keystore generuje i przechowuje właściciel (A8); komendy i kopia zapasowa w README („Wydawanie wersji”).
+- Sprawdzone lokalnie z jednorazowym kluczem testowym (poza repo): podpis z `keystore.properties` i ze zmiennych, `apksigner verify --print-certs`.
+
+### D-087 Workflow wydania
+- `.github/workflows/release.yml` na tag `v*`: sprawdza format `vX.Y.Z`, bierze opis z sekcji `## X.Y.Z` w `CHANGELOG.md` (brak sekcji = błąd), uruchamia `lintRelease testDebugUnitTest assembleRelease`, sprawdza podpis i tworzy Release przez preinstalowane `gh release create` z plikiem `GymTracker-X.Y.Z.apk`. Akcje i JDK jak w `ci.yml`, uprawnienie tylko `contents: write`.
+- Release jest pełnym wydaniem (nie pre-release), bo aktualizator czyta `releases/latest`, które pomija pre-release. Wydania testowe `preview-stage-*` zostają pre-release i aplikacja ich nie proponuje.
+- `CHANGELOG.md` po polsku, najnowsza wersja na górze, z perspektywy użytkownika (C7).
+- **Alternatywy:** akcje firm trzecich do tworzenia Release (dodatkowa zależność z dostępem do tokenu); opis generowany z commitów (angielski, techniczny).
+
+### D-088 Aktualizator w aplikacji (A5.11)
+- **Sprawdzanie:** `GET releases/latest` w GitHub API bez tokenu (repo publiczne, A8), z nagłówkami `Accept: application/vnd.github+json`, `X-GitHub-Api-Version` i `User-Agent`. 404 (brak pełnego wydania) oznacza „aktualna wersja”. Wydanie robocze, pre-release, tag inny niż `vX.Y.Z` albo brak pliku `.apk` — nic do zaproponowania. Propozycja tylko przy wyższym versionCode.
+- **Kiedy:** przy każdym `onStart` aktywności, jeśli automatyczne sprawdzanie jest włączone (domyślnie tak, przełącznik w Ustawieniach) i od ostatniego udanego sprawdzenia minęły 24 h; zegar cofnięty przed ostatnie sprawdzenie liczy się jak „pora”. Błąd sprawdzania automatycznego trafia tylko do logu; ręczne („Sprawdź teraz”) pokazuje błąd w karcie.
+- **Pobranie:** `HttpURLConnection` i kotlinx.serialization, bez nowych zależności. APK do `cacheDir/updates/` z postępem; katalog czyszczony przed pobraniem i po przekazaniu pliku instalatorowi.
+- **Weryfikacja:** `getPackageArchiveInfo(GET_SIGNING_CERTIFICATES)`: ten sam `packageName`, wyższy `longVersionCode` i ten sam zbiór certyfikatów (`apkContentsSigners`) co zainstalowana aplikacja. Inaczej „Pobrany plik nie jest podpisany tym samym kluczem…” i plik jest usuwany. Sumy SHA-256 z pola `digest` nie sprawdzamy (`ponytail:` w kodzie): integralność pokrywa podpis APK, sprawdzany przez nas i ponownie przez instalator.
+- **Instalacja:** sesja `PackageInstaller` (`MODE_FULL_INSTALL`, `setAppPackageName`, `INSTALL_REASON_USER`, `USER_ACTION_NOT_REQUIRED`), wynik przez jawny `PendingIntent` do niewyeksportowanego `UpdateInstallReceiver`. Potwierdzenie systemu (`STATUS_PENDING_USER_ACTION`) czeka w kanale, aż aktywność będzie widoczna, i dopiero wtedy się otwiera. Na API 36 intent potwierdzenia dostaje `removeLaunchSecurityProtection()` (pochodzi wyłącznie od systemowego instalatora). Anulowanie daje „Instalacja została anulowana” z „Spróbuj ponownie”.
+- **Zgoda „Instaluj nieznane aplikacje”:** bez niej dialog wyjaśnia i otwiera `ACTION_MANAGE_UNKNOWN_APP_SOURCES` dla aplikacji; po powrocie instalacja rusza sama, jeśli zgoda jest.
+- **Warianty:** adres w `BuildConfig.UPDATE_URL`: release — GitHub; debug — pusty (aktualizator wyłączony, karta wyjaśnia, że wersję testową aktualizuje się plikiem APK); `benchmark` — `-PupdateUrl` albo pusty. Kopie z wtyczki Baseline Profile (`benchmarkRelease`, `nonMinified*`) mają pusty adres, więc pomiary nie łączą się z siecią. Tylko `benchmark` ma `networkSecurityConfig` z cleartext do `10.0.2.2` i `localhost`, do testu na emulatorze z lokalnym serwerem.
+- **Test na emulatorze (API 36):** buildy `benchmark` 1.0.0, 1.0.1 i 1.0.2 (ten sam klucz debug) oraz `python -m http.server` z `latest.json` w formacie GitHuba. Sprawdzone: dialog z notatkami i rozmiarem, prośba o zgodę i powrót, pobranie, potwierdzenie systemu, instalacja 1.0.0 → 1.0.1 i 1.0.1 → 1.0.2 (dane zostają, instalatorem staje się aplikacja), APK podpisany innym kluczem odrzucony, anulowanie i ponowna próba, „Masz najnowszą wersję”, brak sieci w karcie, motyw ciemny i jasny.
+- Po instalacji system zamyka aplikację i jej nie otwiera; mówi o tym dialog „Instalowanie”.
+
+### D-089 Uprawnienia REQUEST_INSTALL_PACKAGES i UPDATE_PACKAGES_WITHOUT_USER_ACTION
+- `REQUEST_INSTALL_PACKAGES`: wymagane przez A5.11 (instalacja przez `PackageInstaller`). Zaakceptowane przez właściciela (2026-10-25).
+- `UPDATE_PACKAGES_WITHOUT_USER_ACTION` (zwykłe uprawnienie, Android 12+): dodane na prośbę właściciela (2026-10-25). Razem z `USER_ACTION_NOT_REQUIRED` w sesji aplikacja aktualizuje samą siebie bez systemowego „Zaktualizować tę aplikację?”; zostaje „Aktualizuj” w dialogu aplikacji i jednorazowa zgoda „Instaluj nieznane aplikacje”. Nie daje dostępu do żadnych danych.
+- Sprawdzone na emulatorze (API 36): 1.0.3 zainstalowana przez `adb` (bez instalatora) zaktualizowała się z aplikacji do 1.0.4 bez okna systemu; instalatorem staje się sama aplikacja. Bez tego uprawnienia (1.0.0–1.0.2) system pytał przy każdej aktualizacji. Jeśli system jednak poprosi o potwierdzenie (np. inny instalator rości sobie prawo do aktualizacji), aplikacja je pokazuje, jak wcześniej.
+
+### D-090 UI aktualizatora
+- Jeden `GlassDialog` nad całą aplikacją (`UpdatePrompt` w `GymTrackerRoot`), treść według stanu: nowa wersja (notatki jako zwykły tekst z Markdownu, rozmiar, „Później” / „Aktualizuj”), zgoda na instalację, pobieranie z procentem, instalowanie (bez przycisków, aż odpowie instalator), błąd. Dialog zachowuje ostatnią treść podczas znikania.
+- „Później” chowa dialog; propozycja zostaje w karcie Ustawień („Zainstaluj wersję X”) do końca procesu.
+- Przy pierwszym starcie dialog aktualizacji czeka, aż zniknie prośba o powiadomienia (wcześniej dwa dialogi nakładały się na siebie).
+- Karta „Aktualizacje” w Ustawieniach: stan (najnowsza wersja z datą sprawdzenia, sprawdzanie, dostępna wersja, błąd sieci na czerwono), przełącznik „Sprawdzaj automatycznie” i „Sprawdź teraz” albo „Zainstaluj wersję X”.
+
+### D-091 Repo publiczne, kod bez licencji
+- Właściciel (2026-10-25) chciał prywatnego repo, ale po wskazaniu konfliktu z A8 (prywatne repo = 404 w `releases/latest` i brak aktualizacji z aplikacji) wybrał: repo zostaje publiczne, a kod jest bez licencji open source (wszystkie prawa zastrzeżone, wpis w README).
+- **Odrzucone:** prywatny kod i osobne publiczne repo na same wydania (rekomendacja; dodatkowy token w CI); token tylko do odczytu w aplikacji (sekret w APK, wygasa); prywatne repo bez aktualizatora.
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |

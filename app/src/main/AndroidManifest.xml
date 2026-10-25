@@ -33,6 +33,11 @@
     <uses-permission android:name="android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND" />
     <uses-permission android:name="android.permission.health.WRITE_EXERCISE" />
 
+    <!-- In-app updates from GitHub Releases through PackageInstaller (A5.11); the user allows it in "Instaluj nieznane aplikacje" -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Lets the session's USER_ACTION_NOT_REQUIRED skip the system's "update this app?" when we update ourselves (D-089) -->
+    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
+
     <application
         android:name=".GymTrackerApp"
         android:allowBackup="true"
@@ -76,6 +81,11 @@
 
         <receiver
             android:name=".core.notifications.RestAlarmReceiver"
+            android:exported="false" />
+
+        <!-- PackageInstaller's result for an update session (A5.11) -->
+        <receiver
+            android:name=".core.update.UpdateInstallReceiver"
             android:exported="false" />
     </application>
 
