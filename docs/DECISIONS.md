@@ -792,6 +792,11 @@ Właściciel zatwierdził wszystkie (2026-10-24):
 - Od teraz każdy etap dalej dostaje wydanie testowe `preview-stage-<nr>`, a poprzednie usuwam razem z tagiem. Po wydaniu wersji stabilnej wydanie testowe dostaje tytuł „GymTracker X.Y.Z — wersja testowa (debug)”.
 - **Alternatywy:** zostawić wszystkie (długa lista, trudno znaleźć właściwy APK); usuwać też wydania testowe po każdej wersji stabilnej (właściciel testuje wersję debug obok zwykłej).
 
+### D-108 Kierunek przejścia zakładek (Etap 15)
+- Na prośbę właściciela (2026-10-25): zakładka po lewej od obecnej wjeżdża z lewej, po prawej z prawej, tak jak przesuwa się kropla w pasku. Kierunek zapamiętuje `TabNavigator` przy zmianie zakładki. Ekran otwarty w zakładce dalej wjeżdża z prawej.
+- Powrót (także do Startu, pierwszej zakładki z lewej) zostaje bez zmian: stary ekran zjeżdża w prawo, czyli zgodnie z tą zasadą.
+- **Alternatywy:** rozpoznawanie zakładki po wpisach sceny w `NavDisplay` (klucze treści są tekstem, kruche); przesuwanie obu ekranów naraz (większa zmiana stylu przejść z vynox).
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |

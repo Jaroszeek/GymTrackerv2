@@ -310,6 +310,7 @@ POST_NOTIFICATIONS: prośba przy pierwszym starcie (z wyjaśnieniem) i baner na 
 | 12 | Szlif 1.1 (pomysły z `IDEAS.md`) | A4, A5.1, A5.2, A5.5, A5.6, A5.8 | wersja 1.1.0 |
 | 13 | Wersja 1.2: polskie instrukcje, poprawki, zależności | A5.1, A5.5, C8 | wersja 1.2.0 |
 | 14 | Wersja 1.3: angielska wersja aplikacji | A2, A5.9 | wersja 1.3.0 |
+| 15 | Wersja 1.3.1: kierunek przejścia zakładek | A4 | wersja 1.3.1 |
 
 ## Etap 0 — Start i plan
 **Kryteria akceptacji**
@@ -771,6 +772,21 @@ Zakres:
 2. Wybór języka w ustawieniach (systemowy / polski / angielski).
 3. Instrukcje ćwiczeń zależne od języka.
 Na koniec: changelog 1.3.0 do akceptacji, potem tag v1.3.0.
+```
+
+## Etap 15 — Wersja 1.3.1
+Dodany 2026-10-25 na prośbę właściciela: kierunek przejścia między zakładkami zgodny z paskiem nawigacji. Bez migracji bazy i bez nowych uprawnień.
+
+**Kryteria akceptacji**
+- [ ] Zakładka po lewej od obecnej wjeżdża z lewej, po prawej z prawej
+- [ ] Ekrany otwierane w zakładce i powrót działają jak dotąd
+
+**Prompt**
+```
+Realizujemy Etap 15 — Wersja 1.3.1. Branch: feat/stage-15-tab-direction.
+
+Zakres: przejście między zakładkami w kierunku ruchu w pasku nawigacji.
+Na koniec: changelog 1.3.1 do akceptacji, potem tag v1.3.1.
 ```
 
 ---
