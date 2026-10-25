@@ -2,6 +2,13 @@
 
 Najnowsza wersja na górze. Workflow wydania bierze do opisu Release sekcję `## X.Y.Z` zgodną z tagiem `vX.Y.Z`.
 
+## 1.2.0
+
+- Instrukcje wszystkich wbudowanych ćwiczeń są po polsku (tłumaczenie maszynowe). Nazwy ćwiczeń zostają po angielsku.
+- W wyborze daty i godziny minuty mają zero wiodące, np. „07”.
+- Kalendarz na Starcie nie zaznacza spacerów, które Samsung Health wykrywa sam. W historii nadal je widać.
+- Zaktualizowane biblioteki.
+
 ## 1.1.0
 
 - Arkusze zamkniesz, przeciągając je w dół.
