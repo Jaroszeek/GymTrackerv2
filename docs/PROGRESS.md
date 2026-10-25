@@ -31,7 +31,7 @@
     - kalendarz na Starcie z kropkami dni z sesją z zegarka (D-100);
     - tap w nagłówek ćwiczenia w szczegółach treningu otwiera szczegóły ćwiczenia.
   - Sprawdzone na emulatorze (API 36): wszystkie punkty poza masą beztłuszczową (brak narzędzia do danych testowych, D-099); szkice po `adb shell am kill` i powrocie z ostatnich.
-  - Testy: JVM 319/319, lint 0 błędów (1 znane ostrzeżenie o targetSdk). Projekt (A9): `.\gradlew.bat lint testDebugUnitTest assembleRelease` przechodzi lokalnie (2026-10-25).
+  - Testy: JVM 319/319, UI 6/6 (API 36), lint 0 błędów (1 znane ostrzeżenie o targetSdk). Projekt (A9): `.\gradlew.bat lint testDebugUnitTest assembleRelease` przechodzi lokalnie (2026-10-25).
   - Changelog 1.1.0 w `CHANGELOG.md` czeka na akceptację; potem tag `v1.1.0` (C7).
 - **Etap 11** zaakceptowany i zmergowany (PR #11, 2026-10-25): changelog 1.0.0 zatwierdzony, aktualizacja bez okna systemu dodana (D-089), repo zostaje publiczne, kod bez licencji (D-091). Wydanie testowe `preview-stage-11`.
   - Klucz wydania wygenerowany na prośbę właściciela, sekrety ustawione (D-086). **Właściciel: kopia zapasowa `%USERPROFILE%\keys\gymtracker-release.jks` i `gymtracker-release-password.txt`.**
