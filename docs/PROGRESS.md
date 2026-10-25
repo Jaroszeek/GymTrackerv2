@@ -17,9 +17,18 @@
 | 10 | Szlif, wydajność, QA | ✅ zaakceptowany (2026-10-24), wydania `preview-stage-10`, `10.1`, `10.2`; czeka na test na telefonie |
 | 11 | Wydanie i aktualizator | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-11`, **v1.0.0** i testowe v1.0.1; czeka na test aktualizacji na telefonie |
 | 12 | Szlif 1.1 (pomysły z `IDEAS.md`) | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-12` i **v1.1.0**; czeka na test na telefonie |
+| 13 | Wersja 1.2: polskie instrukcje, poprawki, zależności | 🔄 PR i wydanie `preview-stage-13`; zależności w osobnym PR; changelog 1.2.0 po obu |
 
 ## Bieżący stan
 
+- **Etap 13** (branch `feat/stage-13-polish-instructions`, 2026-10-25): zakres wybrany przez właściciela po wydaniu 1.1.0.
+  - Zrobione:
+    - instrukcje 897 wbudowanych ćwiczeń po polsku, podmieniane przy odczycie, bez migracji (D-102); w licencjach dopisek o tłumaczeniu maszynowym;
+    - minuty z zerem wiodącym w wyborze daty i godziny (D-103);
+    - kalendarz na Starcie bez kropek za spacery; w historii zostają (D-104).
+  - Zależności (C8): osobny branch `chore/deps-2026-10` i osobny PR.
+  - Sprawdzone na emulatorze (API 36): polskie instrukcje w szczegółach Barbell Deadlift (instalacja zaseedowana wcześniej po angielsku), minuty „03”, spacer z 21.10 w historii bez kropki w kalendarzu, a sesje siłowe z kropką.
+  - Testy: JVM 322/322, lint 0 błędów (ostrzeżenia: targetSdk i jedna nowsza wersja zależności — do PR zależności).
 - **Etap 12** zaakceptowany i zmergowany (PR #13, 2026-10-25): zakres wybrany przez właściciela z `IDEAS.md` (D-092).
   - **v1.1.0** wydane z tagu: workflow „Release” zielony, `releases/latest` wskazuje v1.1.0. Na emulatorze wydana 1.0.1 znalazła ją w Ustawienia → Aktualizacje → „Sprawdź teraz” i zaktualizowała się bez okna systemu (D-089), dane zostały.
   - Zrobione:
@@ -124,6 +133,14 @@
   - Test UI: `.\gradlew.bat :app:connectedDebugAndroidTest` (D-042).
   - Gdy emulator przestaje rysować (czarny ekran, tapnięcia bez reakcji, w logu `lowmemorykiller … device is not responding` i ANR „no focused window”), pomaga zimny start: `adb emu kill`, potem `emulator -avd gt-api36 -no-snapshot-load`.
 - **vynox:** sklonowany do `%TEMP%\vynox-ref`, tylko do odczytu.
+
+## Etap 13 — test na telefonie
+
+1. Instalacja: APK z wydania `preview-stage-13` albo `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Dane zostają.
+2. Ćwiczenia → dowolne wbudowane (np. Barbell Deadlift) → „Wykonanie”: kroki po polsku. Własne ćwiczenia bez zmian.
+3. Profil → Dodaj pomiar → „Data i godzina” → minus przy minutach do wartości poniżej 10: „05”, nie „5”.
+4. Start → kalendarz: dni z samym spacerem z Samsung Health bez kropki; spacery nadal w Postępy → Historia.
+5. Do raportu: kroki, które brzmią źle po polsku (nazwa ćwiczenia i numer kroku).
 
 ## Etap 12 — test na telefonie
 
@@ -236,7 +253,7 @@ Klucz, sekrety i wydania v1.0.0 oraz v1.0.1 są gotowe. Kopia zapasowa klucza i 
 
 ## Następny krok
 
-- Właściciel: test Etapu 12 na telefonie (wyżej) i aktualizacja z aplikacji do v1.1.0.
-- Plan z części B i Etap 12 są zamknięte; kolejny zakres wybiera właściciel (np. z `IDEAS.md`).
+- Właściciel: akceptacja Etapu 13 (PR) i PR zależności; potem changelog 1.2.0 i tag `v1.2.0`.
+- Właściciel: test Etapów 12–13 na telefonie (wyżej) i aktualizacja z aplikacji do v1.1.0.
 - Właściciel: kopia zapasowa klucza i hasła, test aktualizacji 1.0.0 → 1.0.1 na telefonie (wyżej).
 - Wyniki testów Etapów 9–10 na telefonie, gdy właściciel je przekaże.
