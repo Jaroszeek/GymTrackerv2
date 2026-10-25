@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -68,13 +69,14 @@ import com.jaroszeek.gymtracker.feature.workout.label
 import com.jaroszeek.gymtracker.feature.workout.setValueLabel
 
 @Composable
-fun WorkoutDetailRoute(viewModel: WorkoutDetailViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit) {
+fun WorkoutDetailRoute(viewModel: WorkoutDetailViewModel, onBack: () -> Unit, onEdit: (Long) -> Unit, onOpenExercise: (Long) -> Unit) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(state) { if (state == WorkoutDetailUiState.Deleted) onBack() }
     WorkoutDetailScreen(
         state = state,
         onBack = onBack,
         onEdit = onEdit,
+        onOpenExercise = onOpenExercise,
         onDeleteRequest = viewModel::onDeleteRequest,
         onDeleteDismiss = viewModel::onDeleteDismiss,
         onDeleteConfirm = viewModel::onDeleteConfirm,
@@ -90,6 +92,7 @@ fun WorkoutDetailScreen(
     state: WorkoutDetailUiState,
     onBack: () -> Unit,
     onEdit: (Long) -> Unit,
+    onOpenExercise: (Long) -> Unit,
     onDeleteRequest: () -> Unit,
     onDeleteDismiss: () -> Unit,
     onDeleteConfirm: () -> Unit,
@@ -115,7 +118,7 @@ fun WorkoutDetailScreen(
             when (state) {
                 is WorkoutDetailUiState.Content -> {
                     if (state.deleteFailed) Text(stringResource(R.string.workout_delete_failed), color = GtTheme.colors.danger, style = GtTheme.typography.bodySmall)
-                    WorkoutDetails(state.workout, state.exercises, state.records, state.exerciseHeartRate) {
+                    WorkoutDetails(state.workout, state.exercises, state.records, state.exerciseHeartRate, onOpenExercise) {
                         WatchSession(state.health, onUnlinkSession, onChooseSession)
                     }
                 }
@@ -203,6 +206,7 @@ private fun WorkoutDetails(
     exercises: Map<Long, Exercise>,
     records: Map<Long, Set<RecordType>>,
     heartRate: Map<Long, ExerciseHeartRate>,
+    onOpenExercise: (Long) -> Unit,
     watchSession: @Composable () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(GtSpacing.xs)) {
@@ -215,13 +219,23 @@ private fun WorkoutDetails(
     }
     SummaryStats(workout.summary())
     watchSession()
-    workout.exercises.forEach { exercise -> ExerciseSets(exercise, exercises[exercise.exerciseId], records, heartRate[exercise.id]) }
+    workout.exercises.forEach { exercise ->
+        ExerciseSets(exercise, exercises[exercise.exerciseId], records, heartRate[exercise.id], onOpen = { onOpenExercise(exercise.exerciseId) })
+    }
 }
 
 @Composable
-private fun ExerciseSets(exercise: LoggedExercise, info: Exercise?, records: Map<Long, Set<RecordType>>, heartRate: ExerciseHeartRate?) {
+private fun ExerciseSets(exercise: LoggedExercise, info: Exercise?, records: Map<Long, Set<RecordType>>, heartRate: ExerciseHeartRate?, onOpen: () -> Unit) {
     GlassCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(GtSpacing.l)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(GtSpacing.m)) {
+        // Only the header opens the exercise; the sets and the heart rate chart stay plain
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(GtShapes.Small)
+                .clickable(onClickLabel = stringResource(R.string.workout_detail_open_exercise), role = Role.Button, onClick = onOpen),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(GtSpacing.m),
+        ) {
             ExerciseImage(info?.images?.firstOrNull(), null, GtShapes.Small, Modifier.size(GtSizes.ThumbnailSmall))
             Text(info?.name.orEmpty(), style = GtTheme.typography.title, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
@@ -279,7 +293,7 @@ private fun WorkoutDetailScreenPreview() {
                     health = WorkoutHealth(session = HealthSession("s", "com.sec.android.app.shealth", 70, null, workout.startedAt, workout.endedAt), heartRate = samples),
                     exerciseHeartRate = exerciseHeartRate(workout, samples),
                 ),
-                {}, {}, {}, {}, {}, {}, {}, {}, {},
+                {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
             )
         }
     }

@@ -377,6 +377,7 @@
     <string name="workout_detail_not_found">Tego treningu już nie ma.</string>
     <string name="workout_editor_error">Nie udało się wczytać treningu.</string>
     <string name="workout_detail_time">%1$s–%2$s</string>
+    <string name="workout_detail_open_exercise">Otwórz szczegóły ćwiczenia</string>
     <string name="delete_workout_title">Usunąć trening?</string>
     <string name="delete_workout_text">Trening zniknie z historii, a rekordy i wykresy przeliczą się bez niego.</string>
     <string name="workout_delete_failed">Nie udało się usunąć treningu. Spróbuj ponownie.</string>

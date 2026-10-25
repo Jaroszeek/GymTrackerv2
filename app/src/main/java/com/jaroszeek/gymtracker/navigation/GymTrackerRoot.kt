@@ -237,6 +237,7 @@ private fun entryProvider(navigator: TabNavigator): (NavKey) -> NavEntry<NavKey>
                 viewModel = hiltViewModel<WorkoutDetailViewModel, WorkoutDetailViewModel.Factory> { it.create(key.id) },
                 onBack = navigator::back,
                 onEdit = { navigator.navigate(WorkoutEditorKey(it)) },
+                onOpenExercise = { navigator.navigate(ExerciseDetailKey(it)) },
             )
         }
         is WorkoutEditorKey -> NavEntry(key) {
