@@ -806,6 +806,9 @@ Właściciel zatwierdził wszystkie (2026-10-24):
 - Po zakończeniu albo pominięciu przerwy wraca wygląd serii: ikona hantla, akcent Volt, segmenty serii i akcja „Ukończ serię”.
 - Odświeżanie co sekundę działa w `WorkoutService` tylko wtedy, gdy trwa przerwa (`workout.rest != null`).
 
+### D-111 Diagnostyka powiadomień tylko w wersji debug w Ustawieniach (Etap 16, zmienia D-047)
+- Na prośbę właściciela (2026-11-01): z ekranu aktywnego treningu (`WorkoutScreen`, także z karty „Trening w tle”) usunięto całkowicie przyciski otwierające „Diagnostykę powiadomień na żywo”, a w `SettingsScreen` pozycja diagnostyki jest widoczna tylko w kompilacji `debug` (`BuildConfig.DEBUG`).
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |

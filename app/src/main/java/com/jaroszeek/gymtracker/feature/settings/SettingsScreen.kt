@@ -181,7 +181,7 @@ fun SettingsScreen(
             state.lastSync?.let { stringResource(R.string.health_sync_last, shortDate(it), timeLabel(it)) } ?: stringResource(R.string.health_entry_text),
             actions.onHealthConnect,
         )
-        Entry(R.drawable.ic_timer, stringResource(R.string.diagnostics_title), null, actions.onDiagnostics)
+        if (BuildConfig.DEBUG) Entry(R.drawable.ic_timer, stringResource(R.string.diagnostics_title), null, actions.onDiagnostics)
 
         SectionTitle(R.string.settings_data)
         DataCard(state, actions)
