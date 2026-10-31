@@ -200,3 +200,7 @@ fun contrastRatio(a: Color, b: Color): Float {
     val lb = b.luminance() + 0.05f
     return maxOf(la, lb) / minOf(la, lb)
 }
+
+/** Notification accent colors: Volt for an active set, Aqua for the rest countdown. */
+const val NotificationWorkoutArgb: Int = 0xFFC6F135.toInt()
+const val NotificationRestArgb: Int = 0xFF3EE6C8.toInt()
