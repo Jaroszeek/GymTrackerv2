@@ -276,8 +276,9 @@
     <string name="notification_channel_workout">Workout in progress</string>
     <string name="notification_channel_workout_description">Workout time, set progress and rest countdown. No sound; a vibration signals the end of rest.</string>
     <string name="notification_set">%1$s • set %2$d</string>
-    <string name="notification_rest_next">Rest • next: %1$s</string>
-    <string name="notification_rest_last">Rest • that was the last set</string>
+    <string name="notification_rest_title">Rest • %1$s</string>
+    <string name="notification_rest_next">Next: %1$s</string>
+    <string name="notification_rest_last">That was the last set</string>
     <string name="notification_all_done">All sets completed</string>
     <string name="notification_complete_set">Complete set</string>
     <string name="notification_skip_rest">Skip rest</string>

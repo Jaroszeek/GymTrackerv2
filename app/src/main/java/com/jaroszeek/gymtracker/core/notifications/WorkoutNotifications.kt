@@ -9,11 +9,14 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.jaroszeek.gymtracker.MainActivity
 import com.jaroszeek.gymtracker.R
+import com.jaroszeek.gymtracker.designsystem.theme.NotificationRestArgb
+import com.jaroszeek.gymtracker.designsystem.theme.NotificationWorkoutArgb
 import com.jaroszeek.gymtracker.domain.workout.ActiveWorkout
 import com.jaroszeek.gymtracker.domain.workout.NextSet
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.ceil
 
 /** Everything the workout notification shows; [completeSet] is the (exercise, set) the action ticks off. */
 data class WorkoutNotificationContent(
@@ -49,31 +52,45 @@ class WorkoutNotifications @Inject constructor(@ApplicationContext private val c
     }
 
     /**
-     * What the notification shows: name, "exercise • set", set progress and the session clock; while
-     * resting the clock counts the rest down. No short critical text, so the status bar chip ("fasolka")
-     * shows the clock too (D-044). [names] maps exercise ids to their names. Equal contents need no
-     * repost (typing a weight changes nothing here).
+     * What the notification shows: during a set, the routine name, "exercise • set", segmented set
+     * progress and the session clock; while resting, a distinct rest title ("Rest • <name>"), timer icon,
+     * Aqua progress bar draining with the remaining rest time, countdown clock and rest adjustment actions.
+     * No short critical text, so the status bar chip ("fasolka") shows the clock too (D-044).
      */
-    fun content(workout: ActiveWorkout, names: Map<Long, String>): WorkoutNotificationContent {
+    fun content(workout: ActiveWorkout, names: Map<Long, String>, now: Long = workout.updatedAt): WorkoutNotificationContent {
         val rest = workout.rest
         val next = workout.nextSet()
         val set = next?.let { it.exercise.sets[it.number - 1] }
+        val segments: List<Int>
+        val progress: Int
+        if (rest != null) {
+            val totalSec = ((rest.endsAt - rest.startsAt) / MILLIS_PER_SECOND).toInt().coerceAtLeast(1)
+            val remainingSec = ceil(rest.remainingMillis(now) / MILLIS_PER_SECOND.toDouble()).toInt().coerceIn(0, totalSec)
+            segments = listOf(totalSec)
+            progress = remainingSec
+        } else {
+            segments = workout.exercises.map { it.sets.size }.ifEmpty { listOf(1) }
+            progress = workout.doneSets
+        }
         return WorkoutNotificationContent(
-            title = workout.name,
+            title = if (rest != null) context.getString(R.string.notification_rest_title, workout.name) else workout.name,
             text = text(workout, next, names),
-            segments = workout.exercises.map { it.sets.size }.ifEmpty { listOf(1) },
-            progress = workout.doneSets,
+            segments = segments,
+            progress = progress,
             clockBase = rest?.endsAt ?: workout.startedAt,
             countDown = rest != null,
             completeSet = if (rest == null && next != null && set != null && set.canComplete) next.exercise.id to set.id else null,
         )
     }
 
-    fun build(workout: ActiveWorkout, names: Map<Long, String>): Notification = build(content(workout, names))
+    fun build(workout: ActiveWorkout, names: Map<Long, String>, now: Long = workout.updatedAt): Notification =
+        build(content(workout, names, now))
 
     fun build(content: WorkoutNotificationContent): Notification {
+        val accentArgb = if (content.countDown) NotificationRestArgb else NotificationWorkoutArgb
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_fitness_center)
+            .setSmallIcon(if (content.countDown) R.drawable.ic_timer else R.drawable.ic_fitness_center)
+            .setColor(accentArgb)
             .setContentTitle(content.title)
             .setContentText(content.text)
             .setOngoing(true)
@@ -91,10 +108,12 @@ class WorkoutNotifications @Inject constructor(@ApplicationContext private val c
             .setChronometerCountDown(content.countDown)
             .setStyle(
                 NotificationCompat.ProgressStyle()
-                    .setProgressSegments(content.segments.map { NotificationCompat.ProgressStyle.Segment(it) })
+                    .setProgressSegments(content.segments.map { NotificationCompat.ProgressStyle.Segment(it).setColor(accentArgb) })
                     .setProgress(content.progress),
             )
         if (content.countDown) {
+            builder.addAction(R.drawable.ic_remove, context.getString(R.string.rest_minus), serviceIntent(WorkoutService.ACTION_REST_MINUS))
+            builder.addAction(R.drawable.ic_add, context.getString(R.string.rest_plus), serviceIntent(WorkoutService.ACTION_REST_PLUS))
             builder.addAction(R.drawable.ic_timer, context.getString(R.string.notification_skip_rest), serviceIntent(WorkoutService.ACTION_SKIP_REST))
         }
         content.completeSet?.let { (exerciseId, setId) ->
@@ -138,5 +157,6 @@ class WorkoutNotifications @Inject constructor(@ApplicationContext private val c
     companion object {
         const val CHANNEL_ID = "workout"
         const val NOTIFICATION_ID = 1
+        private const val MILLIS_PER_SECOND = 1_000L
     }
 }

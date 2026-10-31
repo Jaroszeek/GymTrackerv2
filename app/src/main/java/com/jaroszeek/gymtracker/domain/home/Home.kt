@@ -10,6 +10,7 @@ import java.time.ZoneId
 
 /** Widgets of Start (A5.1) in their default order; [key] is stored. */
 enum class HomeWidget(val key: String) {
+    QuickStart("quick_start"),
     Hero("hero"),
     LastWorkout("last_workout"),
     Readiness("readiness"),
@@ -31,7 +32,10 @@ data class HomeLayout(val order: List<HomeWidget> = HomeWidget.entries, val hidd
     fun encode(): String = order.joinToString(",") { if (it in hidden) "-${it.key}" else it.key }
 
     companion object {
-        /** Unknown keys (from a newer version) are dropped; widgets missing from [value] (added later) come last, shown. */
+        /**
+         * Unknown keys (from a newer version) are dropped; widgets missing from [value] (added later) come last, shown.
+         * Quick start comes first instead: it was a fixed card at the top before it became a widget (D-109).
+         */
         fun decode(value: String?): HomeLayout {
             if (value.isNullOrBlank()) return HomeLayout()
             val stored = value.split(",").mapNotNull { token ->
@@ -39,7 +43,8 @@ data class HomeLayout(val order: List<HomeWidget> = HomeWidget.entries, val hidd
                 HomeWidget.entries.firstOrNull { it.key == key }?.let { it to token.startsWith("-") }
             }.distinctBy { it.first }
             val order = stored.map { it.first }
-            return HomeLayout(order + HomeWidget.entries.filter { it !in order }, stored.filter { it.second }.mapTo(HashSet()) { it.first })
+            val (top, rest) = HomeWidget.entries.filter { it !in order }.partition { it == HomeWidget.QuickStart }
+            return HomeLayout(top + order + rest, stored.filter { it.second }.mapTo(HashSet()) { it.first })
         }
     }
 }

@@ -23,6 +23,10 @@ class TabNavigator(
     var currentTab by tab
         private set
 
+    /** Whether the last move went to a tab left of the one before, so its screen comes in from the left. */
+    var leftward = false
+        private set
+
     /** Stacks on screen, bottom first: Start stays below the current tab, so back walks into it. */
     val visibleTabs: List<TopLevelTab>
         get() = if (currentTab == TopLevelTab.Home) listOf(TopLevelTab.Home) else listOf(TopLevelTab.Home, currentTab)
@@ -32,17 +36,18 @@ class TabNavigator(
             val stack = stacks.getValue(tab)
             while (stack.size > 1) stack.removeAt(stack.lastIndex)
         } else {
-            currentTab = tab
+            moveTo(tab)
         }
     }
 
     fun navigate(key: NavKey) {
+        leftward = false
         stacks.getValue(currentTab).add(key)
     }
 
     /** Selects [tab] and puts [key] on top of its stack, moving it up when it is deeper (the running workout). */
     fun open(tab: TopLevelTab, key: NavKey) {
-        currentTab = tab
+        moveTo(tab)
         val stack = stacks.getValue(tab)
         if (stack.lastOrNull() == key) return
         stack.remove(key)
@@ -58,6 +63,11 @@ class TabNavigator(
             stack.size > 1 -> stack.removeAt(stack.lastIndex)
             currentTab != TopLevelTab.Home -> currentTab = TopLevelTab.Home
         }
+    }
+
+    private fun moveTo(tab: TopLevelTab) {
+        leftward = tab < currentTab
+        currentTab = tab
     }
 }
 

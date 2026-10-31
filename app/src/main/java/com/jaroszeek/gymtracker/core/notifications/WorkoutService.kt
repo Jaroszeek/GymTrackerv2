@@ -17,15 +17,20 @@ import com.jaroszeek.gymtracker.data.exercise.ExerciseRepository
 import com.jaroszeek.gymtracker.data.workout.ActiveWorkoutManager
 import com.jaroszeek.gymtracker.domain.workout.ActiveWorkout
 import dagger.hilt.android.AndroidEntryPoint
+import java.time.Clock
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -44,6 +49,8 @@ class WorkoutService : Service() {
     @Inject lateinit var notifications: WorkoutNotifications
 
     @Inject lateinit var restAlarm: RestAlarm
+
+    @Inject lateinit var clock: Clock
 
     @Inject @DefaultDispatcher lateinit var dispatcher: CoroutineDispatcher
 
@@ -69,6 +76,8 @@ class WorkoutService : Service() {
         if ((fromApp || !foreground) && !enterForeground()) return START_NOT_STICKY
         when (intent?.action) {
             ACTION_COMPLETE_SET -> manager.completeSet(intent.getLongExtra(EXTRA_EXERCISE_ID, -1), intent.getLongExtra(EXTRA_SET_ID, -1))
+            ACTION_REST_MINUS -> manager.adjustRest(-REST_MINUS_SECONDS)
+            ACTION_REST_PLUS -> manager.adjustRest(REST_PLUS_SECONDS)
             ACTION_SKIP_REST -> manager.skipRest()
             ACTION_DISMISSED -> dismissed = true
             else -> dismissed = false
@@ -86,6 +95,7 @@ class WorkoutService : Service() {
         super.onDestroy()
     }
 
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     private fun collect() {
         collecting = true
         scope.launch {
@@ -94,7 +104,21 @@ class WorkoutService : Service() {
                 .collect { all -> names.value = all.associate { it.id to it.name } }
         }
         scope.launch {
-            combine(manager.workout, names) { workout, byId -> workout?.let { notifications.content(it, byId) } }
+            combine(manager.workout, names) { workout, byId -> workout to byId }
+                .flatMapLatest { (workout, byId) ->
+                    when {
+                        workout == null -> flowOf(null)
+                        workout.rest != null -> flow {
+                            while (true) {
+                                val now = clock.millis()
+                                emit(notifications.content(workout, byId, now))
+                                if (now >= workout.rest.endsAt) break
+                                delay(TICK_MILLIS)
+                            }
+                        }
+                        else -> flowOf(notifications.content(workout, byId))
+                    }
+                }
                 .distinctUntilChanged()
                 .collect { content -> if (content == null) stop() else if (!dismissed) post(content) }
         }
@@ -110,7 +134,7 @@ class WorkoutService : Service() {
             ServiceCompat.startForeground(
                 this,
                 WorkoutNotifications.NOTIFICATION_ID,
-                notifications.build(workout, names.value),
+                notifications.build(workout, names.value, clock.millis()),
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
             )
             foreground = true
@@ -142,10 +166,15 @@ class WorkoutService : Service() {
 
     companion object {
         const val ACTION_COMPLETE_SET = "com.jaroszeek.gymtracker.action.COMPLETE_SET"
+        const val ACTION_REST_MINUS = "com.jaroszeek.gymtracker.action.REST_MINUS"
+        const val ACTION_REST_PLUS = "com.jaroszeek.gymtracker.action.REST_PLUS"
         const val ACTION_SKIP_REST = "com.jaroszeek.gymtracker.action.SKIP_REST"
         const val ACTION_DISMISSED = "com.jaroszeek.gymtracker.action.NOTIFICATION_DISMISSED"
         const val EXTRA_EXERCISE_ID = "exercise_id"
         const val EXTRA_SET_ID = "set_id"
+        private const val REST_MINUS_SECONDS = 15
+        private const val REST_PLUS_SECONDS = 30
+        private const val TICK_MILLIS = 1_000L
         private const val TAG = "WorkoutService"
 
         /** Call only while the app is in the foreground (A7): a start from the background is refused on Android 12+. */

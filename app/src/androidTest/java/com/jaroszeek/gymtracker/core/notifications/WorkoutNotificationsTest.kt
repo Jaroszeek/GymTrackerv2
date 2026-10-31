@@ -5,6 +5,8 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.jaroszeek.gymtracker.designsystem.theme.NotificationRestArgb
+import com.jaroszeek.gymtracker.designsystem.theme.NotificationWorkoutArgb
 import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
 import com.jaroszeek.gymtracker.domain.workout.ActiveWorkout
 import com.jaroszeek.gymtracker.domain.workout.WorkoutVariant
@@ -30,12 +32,13 @@ class WorkoutNotificationsTest {
         .addExercise(listOf(WorkoutVariant(20, 200, RoutineTargets(2, 10, 10))))
     private val names = mapOf(10L to "Bench Press", 20L to "Dips")
 
+    private val Notification.title get() = extras.getCharSequence(Notification.EXTRA_TITLE).toString()
     private val Notification.text get() = extras.getCharSequence(Notification.EXTRA_TEXT).toString()
     private val Notification.shortText get() = extras.getCharSequence(NotificationCompat.EXTRA_SHORT_CRITICAL_TEXT)?.toString()
 
-    private fun Notification.assertPromotable() {
+    private fun Notification.assertPromotable(expectedTitle: String = "Push") {
         assertTrue(flags and Notification.FLAG_ONGOING_EVENT != 0)
-        assertEquals("Push", extras.getCharSequence(Notification.EXTRA_TITLE).toString())
+        assertEquals(expectedTitle, title)
         assertTrue(NotificationCompat.isRequestPromotedOngoing(this))
         // 36.0 has the method but promotes nothing (D-022); promotion starts with 36.1
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA && Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1) {
@@ -46,7 +49,8 @@ class WorkoutNotificationsTest {
     @Test
     fun setInProgressShowsTheProgressAndCompletesTheSet() {
         val notification = notifications.build(workout, names)
-        notification.assertPromotable()
+        notification.assertPromotable("Push")
+        assertEquals(NotificationWorkoutArgb, notification.color)
         assertEquals("Bench Press • seria 1", notification.text)
         // No short text: the status bar chip shows the session clock
         assertNull(notification.shortText)
@@ -56,23 +60,27 @@ class WorkoutNotificationsTest {
     }
 
     @Test
-    fun restCountsDownInTheChipAndCanBeSkipped() {
+    fun restCountsDownInTheChipAndCanBeAdjustedOrSkipped() {
         val bench = workout.exercises[0]
         val resting = workout.complete(bench.id, bench.sets[0].id, now = 10_000, defaultRestSeconds = 90)
-        val notification = notifications.build(resting, names)
-        notification.assertPromotable()
-        assertEquals("Przerwa • następne: Bench Press • seria 2", notification.text)
+        val content = notifications.content(resting, names, now = 40_000)
+        assertEquals(listOf(120), content.segments)
+        assertEquals(90, content.progress)
+        val notification = notifications.build(content)
+        notification.assertPromotable("Przerwa • Push")
+        assertEquals(NotificationRestArgb, notification.color)
+        assertEquals("Następne: Bench Press • seria 2", notification.text)
         // The chip counts the rest down
         assertNull(notification.shortText)
         assertEquals(130_000L, notification.`when`)
         assertTrue(notification.extras.getBoolean(Notification.EXTRA_CHRONOMETER_COUNT_DOWN))
-        assertEquals(listOf("Pomiń przerwę"), notification.actions.map { it.title.toString() })
+        assertEquals(listOf("−15 s", "+30 s", "Pomiń przerwę"), notification.actions.map { it.title.toString() })
     }
 
     @Test
     fun emptyWorkoutIsStillPromotable() {
         val notification = notifications.build(ActiveWorkout(null, "Push", 0, 0), emptyMap())
-        notification.assertPromotable()
+        notification.assertPromotable("Push")
         assertEquals("Dodaj pierwsze ćwiczenie, żeby zacząć.", notification.text)
         assertNull(notification.shortText)
         assertEquals(0, notification.actions?.size ?: 0)

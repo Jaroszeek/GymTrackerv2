@@ -19,9 +19,15 @@
 | 12 | Szlif 1.1 (pomysły z `IDEAS.md`) | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-12` i **v1.1.0**; czeka na test na telefonie |
 | 13 | Wersja 1.2: polskie instrukcje, poprawki, zależności | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-13` i **v1.2.0**; czeka na test na telefonie |
 | 14 | Wersja 1.3: angielska wersja aplikacji | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-14` i **v1.3.0**; czeka na test na telefonie |
+| 15 | Wersja 1.3.1: kierunek zakładek, widżet szybkiego startu, powiadomienie przerwy | 🔄 do akceptacji (2026-11-01), wydanie `preview-stage-15` |
 
 ## Bieżący stan
 
+- **Etap 15** do akceptacji (2026-11-01): przejście między zakładkami w kierunku ruchu w pasku nawigacji (D-108), „Szybki start” jako pełny widżet Startu — przesuwany i ukrywany (D-109), oraz osobny wygląd powiadomienia na żywo w trakcie przerwy z paskiem odliczającym czas i przyciskami „−15 s”, „+30 s”, „Pomiń przerwę” (D-110).
+  - Szybki start sprawdzony na emulatorze: zapisany wcześniej układ ma go na górze; przeciągnięty pod „Ostatni trening” zostaje tam po restarcie; przełącznik ukrywa i pokazuje kartę (`docs/screenshots/stage15-home-*.png`).
+  - Powiadomienie przerwy sprawdzone na emulatorze (API 36): `WorkoutNotificationsTest` 3/3, w trakcie przerwy ikona stopera, tytuł „Przerwa • …”, turkusowy pasek odliczający czas i działające przyciski „−15 s”, „+30 s”, „Pomiń przerwę” (`docs/screenshots/stage15-rest-notification.png`).
+  - Sprawdzone na emulatorze (API 36, animacje spowolnione 10×): Postępy → Ćwiczenia wjeżdża z lewej, Ćwiczenia → Profil z prawej (`docs/screenshots/stage15-tab-to-left.png`, `stage15-tab-to-right.png`).
+  - Wydanie testowe `preview-stage-15`; `preview-stage-14` usunięte (D-107). Tag v1.3.1 po akceptacji.
 - **Etap 14** zaakceptowany i zmergowany (PR #18, 2026-10-25): angielska wersja aplikacji na prośbę właściciela.
   - **v1.3.0** wydane z tagu: workflow „Release” zielony. Na emulatorze wydana 1.2.0 zaktualizowała się z aplikacji do 1.3.0 i została po polsku (zapisany język `pl-PL`).
   - Porządki w GitHub Releases na prośbę właściciela: zostały v1.0.0, v1.1.0, v1.2.0, v1.3.0 i jedno wydanie testowe `preview-stage-14` („GymTracker 1.3.0 — wersja testowa (debug)”). Usunięte: wydania testowe Etapów 5–13 razem z tagami i wydanie testowe v1.0.1 (tag został).
@@ -146,6 +152,14 @@
   - Test UI: `.\gradlew.bat :app:connectedDebugAndroidTest` (D-042).
   - Gdy emulator przestaje rysować (czarny ekran, tapnięcia bez reakcji, w logu `lowmemorykiller … device is not responding` i ANR „no focused window”), pomaga zimny start: `adb emu kill`, potem `emulator -avd gt-api36 -no-snapshot-load`.
 - **vynox:** sklonowany do `%TEMP%\vynox-ref`, tylko do odczytu.
+
+## Etap 15 — test na telefonie
+
+1. Instalacja: APK z wydania `preview-stage-15` albo `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Dane zostają.
+2. Profil → Ćwiczenia: ekran wjeżdża z lewej. Ćwiczenia → Postępy: z prawej. Start z innej zakładki: poprzedni ekran zjeżdża w prawo.
+3. W zakładce otwórz dowolny ekran (np. ćwiczenie): wjeżdża z prawej jak dotąd; gest wstecz bez zmian.
+4. Start → ołówek: „Szybki start” jest na górze listy; przeciągnij go niżej albo wyłącz przełącznikiem, „Gotowe” — układ zostaje także po restarcie.
+5. Trening → odhacz serię: powiadomienie zmienia się w stoper przerwy („Przerwa • …”, ikona stopera, turkusowy pasek ubywający z czasem, przyciski „−15 s”, „+30 s”, „Pomiń przerwę”).
 
 ## Etap 14 — test na telefonie
 
@@ -276,6 +290,7 @@ Klucz, sekrety i wydania v1.0.0 oraz v1.0.1 są gotowe. Kopia zapasowa klucza i 
 
 ## Następny krok
 
-- Właściciel: test Etapów 12–14 na telefonie (wyżej) i aktualizacja z aplikacji do v1.3.0.
+- Właściciel: akceptacja Etapu 15, potem tag v1.3.1.
+- Właściciel: test Etapów 12–15 na telefonie (wyżej) i aktualizacja z aplikacji do v1.3.0.
 - Właściciel: kopia zapasowa klucza i hasła, test aktualizacji z v1.0.0 do najnowszej na telefonie (wyżej).
 - Wyniki testów Etapów 9–10 na telefonie, gdy właściciel je przekaże.

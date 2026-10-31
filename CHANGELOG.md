@@ -2,6 +2,12 @@
 
 Najnowsza wersja na górze. Workflow wydania bierze do opisu Release sekcję `## X.Y.Z` zgodną z tagiem `vX.Y.Z`.
 
+## 1.3.1
+
+- Przejście między zakładkami idzie w tę stronę, w którą przesuwasz się w pasku: zakładka po lewej wjeżdża z lewej, po prawej z prawej.
+- „Szybki start” na Starcie działa jak pozostałe widżety: możesz go przestawić albo ukryć (ołówek).
+- W trakcie przerwy powiadomienie na żywo (Now Bar) wygląda inaczej niż podczas serii: ma ikonę stopera, tytuł „Przerwa • …”, turkusowy pasek odliczający czas przerwy oraz przyciski „−15 s”, „+30 s” i „Pomiń przerwę”.
+
 ## 1.3.0
 
 - GymTracker jest też po angielsku. Na telefonie po polsku zostaje po polsku, na każdym innym jest po angielsku.

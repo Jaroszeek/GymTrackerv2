@@ -538,7 +538,7 @@ Odrzucone: `USE_EXACT_ALARM` (przyznawane automatycznie, ale zarezerwowane dla b
 
 ### D-067 Układ Startu
 - Widżety i domyślna kolejność: seria tygodni z tym tygodniem, ostatni trening, gotowość, rekordy z 7 dni, kalendarz aktywności, kroki, waga i BMI. Treningi są na górze, bo to główna funkcja aplikacji; dane z HC niżej, bo bez zgód pokazują tylko „Połącz”.
-- „Szybki start” to stała karta pod powitaniem, a nie widżet: w A5.1 jest osobnym punktem, a ukrycie jedynego skrótu do treningu na Starcie nie ma sensu.
+- „Szybki start” to stała karta pod powitaniem, a nie widżet: w A5.1 jest osobnym punktem, a ukrycie jedynego skrótu do treningu na Starcie nie ma sensu. Zmienione przez D-109: przestawia się jak widżet, ale nadal się nie ukrywa.
 - Układ w DataStore jako jeden tekst, np. `hero,last_workout,-steps` (minus = ukryty). Nieznane i powtórzone klucze są pomijane, a widżety dodane w nowszej wersji trafiają na koniec jako widoczne, więc nie trzeba migracji.
 - Każda zmiana w trybie edycji zapisuje się od razu (przeciągnięcie, przełącznik, „Przywróć domyślny”); „Gotowe” i gest wstecz tylko zamykają tryb. Ikona edycji pojawia się dopiero po wczytaniu zapisanego układu. Gdy wszystkie widżety są ukryte, Start pokazuje kartę z wejściem do edycji.
 - Alternatywa: zapis dopiero po „Gotowe” — odrzucona, bo wyjście z aplikacji w trakcie edycji gubiłoby zmiany.
@@ -791,6 +791,20 @@ Właściciel zatwierdził wszystkie (2026-10-24):
 - Na prośbę właściciela (2026-10-25): w Releases zostają wersje stabilne i tylko najnowsze wydanie testowe. Usunięte wydania testowe Etapów 5–13 (z tagami) i wydanie testowe v1.0.1 (tag został, sekcja w `CHANGELOG.md` też).
 - Od teraz każdy etap dalej dostaje wydanie testowe `preview-stage-<nr>`, a poprzednie usuwam razem z tagiem. Po wydaniu wersji stabilnej wydanie testowe dostaje tytuł „GymTracker X.Y.Z — wersja testowa (debug)”.
 - **Alternatywy:** zostawić wszystkie (długa lista, trudno znaleźć właściwy APK); usuwać też wydania testowe po każdej wersji stabilnej (właściciel testuje wersję debug obok zwykłej).
+
+### D-108 Kierunek przejścia zakładek (Etap 15)
+- Na prośbę właściciela (2026-10-25): zakładka po lewej od obecnej wjeżdża z lewej, po prawej z prawej, tak jak przesuwa się kropla w pasku. Kierunek zapamiętuje `TabNavigator` przy zmianie zakładki. Ekran otwarty w zakładce dalej wjeżdża z prawej.
+- Powrót (także do Startu, pierwszej zakładki z lewej) zostaje bez zmian: stary ekran zjeżdża w prawo, czyli zgodnie z tą zasadą.
+- **Alternatywy:** rozpoznawanie zakładki po wpisach sceny w `NavDisplay` (klucze treści są tekstem, kruche); przesuwanie obu ekranów naraz (większa zmiana stylu przejść z vynox).
+
+### D-109 Szybki start jako widżet Startu (Etap 15, zmienia D-067)
+- Na prośbę właściciela (2026-10-25, doprecyzowane 2026-11-01): „Szybki start” jest pełnoprawnym widżetem Startu — w trybie edycji można go zarówno przestawić, jak i ukryć przełącznikiem.
+- Układy zapisane wcześniej nie mają go w tekście, więc trafia na górę, gdzie był. Inne widżety dodane później dalej idą na koniec. Kluczem jest `quick_start` (`-quick_start` gdy ukryty).
+
+### D-110 Powiadomienie przerwy jako stoper (Etap 15, zmienia D-044)
+- W trakcie przerwy powiadomienie na żywo (Live Update / Now Bar) przełącza się w tryb stopera przerwy: ma ikonę stopera (`ic_timer`), tytuł „Przerwa • <nazwa>”, turkusowy akcent (`NotificationRestArgb`), jednolity pasek postępu ubywający co sekundę wraz z odliczaniem oraz akcje „−15 s”, „+30 s” i „Pomiń przerwę”.
+- Po zakończeniu albo pominięciu przerwy wraca wygląd serii: ikona hantla, akcent Volt, segmenty serii i akcja „Ukończ serię”.
+- Odświeżanie co sekundę działa w `WorkoutService` tylko wtedy, gdy trwa przerwa (`workout.rest != null`).
 
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
