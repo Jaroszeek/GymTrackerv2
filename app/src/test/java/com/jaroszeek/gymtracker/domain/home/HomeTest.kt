@@ -148,17 +148,18 @@ class HomeTest {
     }
 
     @Test
-    fun quickStartMovesButNeverHides() {
+    fun quickStartMovesAndHidesLikeOtherWidgets() {
         val layout = HomeLayout().move(from = 0, to = 2).toggle(HomeWidget.QuickStart)
         assertEquals(HomeWidget.QuickStart, layout.order[2])
-        assertEquals(emptySet<HomeWidget>(), layout.hidden)
-        assertEquals(HomeWidget.Body, HomeLayout.decode("body,-quick_start").order[0])
-        assertEquals(emptySet<HomeWidget>(), HomeLayout.decode("body,-quick_start").hidden)
+        assertEquals(setOf(HomeWidget.QuickStart), layout.hidden)
+        val decoded = HomeLayout.decode("body,-quick_start")
+        assertEquals(HomeWidget.Body, decoded.order[0])
+        assertEquals(setOf(HomeWidget.QuickStart), decoded.hidden)
     }
 
     @Test
     fun decodingDropsUnknownAndRepeatedKeysAndAppendsNewWidgets() {
-        // Layouts saved before quick start could move keep it on top
+        // Layouts saved before quick start became a widget keep it on top
         val layout = HomeLayout.decode("steps,-hero,widget_from_v2,steps,-records")
         assertEquals(HomeWidget.QuickStart, layout.order[0])
         assertEquals(HomeWidget.Steps, layout.order[1])

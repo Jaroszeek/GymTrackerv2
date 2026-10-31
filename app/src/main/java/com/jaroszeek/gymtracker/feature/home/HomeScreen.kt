@@ -189,7 +189,6 @@ fun HomeScreen(
                                 title = stringResource(widget.label()),
                                 checked = widget !in state.layout.hidden,
                                 onCheckedChange = { onToggle(widget) },
-                                enabled = widget.hideable,
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -228,7 +227,7 @@ fun HomeScreen(
                 HomeWidget.Body -> BodyCard(state.body, state.weights, onOpen = onProfile)
             }
         }
-        if (state.layout.visible.none { it.hideable }) {
+        if (state.layout.visible.isEmpty()) {
             item(key = "all-hidden") {
                 GlassCard(Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.home_all_hidden), color = colors.textSecondary, style = GtTheme.typography.body)
