@@ -206,7 +206,6 @@ private fun entryProvider(navigator: TabNavigator): (NavKey) -> NavEntry<NavKey>
                 viewModel = hiltViewModel(),
                 pickerViewModel = hiltViewModel(key = "exercisePicker"),
                 onClose = navigator::back,
-                onDiagnostics = { navigator.navigate(LiveUpdateDiagnosticsKey) },
             )
         }
         LiveUpdateDiagnosticsKey -> NavEntry(key) { LiveUpdateDiagnosticsRoute(viewModel = hiltViewModel(), onBack = navigator::back) }

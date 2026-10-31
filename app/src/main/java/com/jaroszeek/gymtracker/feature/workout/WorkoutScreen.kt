@@ -88,7 +88,7 @@ private const val MAX_REPS = 100.0
 private const val RECORD_HAPTIC_DELAY_MILLIS = 150L
 
 @Composable
-fun WorkoutRoute(viewModel: WorkoutViewModel, pickerViewModel: ExercisesViewModel, onClose: () -> Unit, onDiagnostics: () -> Unit) {
+fun WorkoutRoute(viewModel: WorkoutViewModel, pickerViewModel: ExercisesViewModel, onClose: () -> Unit) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     LifecycleResumeEffect(viewModel) {
@@ -117,7 +117,7 @@ fun WorkoutRoute(viewModel: WorkoutViewModel, pickerViewModel: ExercisesViewMode
         return
     }
     val workout = state.workout ?: return
-    WorkoutContent(state, workout, viewModel, onOpenSettings = context::openSettings, onDiagnostics = onDiagnostics)
+    WorkoutContent(state, workout, viewModel, onOpenSettings = context::openSettings)
 
     val ref = state.setActions
     val actionsExercise = workout.exercises.firstOrNull { it.id == ref?.exerciseId }
@@ -175,7 +175,6 @@ private fun WorkoutContent(
     workout: ActiveWorkout,
     viewModel: WorkoutViewModel,
     onOpenSettings: (SystemSettings) -> Unit,
-    onDiagnostics: () -> Unit,
 ) {
     val insets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal).asPaddingValues()
     LazyColumn(
@@ -197,7 +196,7 @@ private fun WorkoutContent(
         }
         if (state.issues.any) {
             item(key = "issues") {
-                BackgroundIssuesCard(state.issues, onOpenSettings = onOpenSettings, onDiagnostics = onDiagnostics, onHide = viewModel::onHideIssues)
+                BackgroundIssuesCard(state.issues, onOpenSettings = onOpenSettings, onHide = viewModel::onHideIssues)
             }
         }
         if (workout.exercises.isEmpty()) {
@@ -242,12 +241,6 @@ private fun WorkoutContent(
                 GlassButton(
                     stringResource(R.string.workout_discard),
                     onClick = viewModel::onDiscardRequest,
-                    style = GlassButtonStyle.Ghost,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                GlassButton(
-                    stringResource(R.string.diagnostics_title),
-                    onClick = onDiagnostics,
                     style = GlassButtonStyle.Ghost,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -427,7 +420,6 @@ private fun SetRow(
 fun BackgroundIssuesCard(
     issues: BackgroundIssues,
     onOpenSettings: (SystemSettings) -> Unit,
-    onDiagnostics: () -> Unit,
     onHide: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -443,10 +435,7 @@ fun BackgroundIssuesCard(
                 GlassButton(stringResource(action), onClick = { onOpenSettings(screen) }, style = GlassButtonStyle.Secondary)
             }
         }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(GtSpacing.s)) {
-            GlassButton(stringResource(R.string.background_diagnostics), onClick = onDiagnostics, style = GlassButtonStyle.Ghost)
-            GlassButton(stringResource(R.string.background_hide), onClick = onHide, style = GlassButtonStyle.Ghost)
-        }
+        GlassButton(stringResource(R.string.background_hide), onClick = onHide, style = GlassButtonStyle.Ghost)
     }
 }
 
@@ -510,7 +499,7 @@ private fun ExerciseCardPreview() {
                     restHidden = true,
                     onShowRest = {},
                 )
-                BackgroundIssuesCard(BackgroundIssues(notificationsOff = true, exactAlarmsOff = true, batteryLimited = true), onOpenSettings = {}, onDiagnostics = {}, onHide = {})
+                BackgroundIssuesCard(BackgroundIssues(notificationsOff = true, exactAlarmsOff = true, batteryLimited = true), onOpenSettings = {}, onHide = {})
                 ExerciseCard(
                     exercise = exercise,
                     exercises = emptyMap(),

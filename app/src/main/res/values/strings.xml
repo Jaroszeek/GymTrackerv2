@@ -293,7 +293,6 @@
     <string name="background_notifications_action">Notifications</string>
     <string name="background_battery_action">Battery: “Unrestricted”</string>
     <string name="background_exact_alarms_action">Alarms</string>
-    <string name="background_diagnostics">Diagnostics</string>
     <string name="background_hide">Hide</string>
 
     <!-- Live Update diagnostics -->

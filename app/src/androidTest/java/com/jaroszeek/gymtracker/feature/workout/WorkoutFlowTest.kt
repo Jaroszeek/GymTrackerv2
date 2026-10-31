@@ -119,7 +119,7 @@ class WorkoutFlowTest {
             GymTrackerTheme {
                 GlassScaffold {
                     if (onWorkout) {
-                        WorkoutRoute(workoutViewModel, pickerViewModel, onClose = { onWorkout = false }, onDiagnostics = {})
+                        WorkoutRoute(workoutViewModel, pickerViewModel, onClose = { onWorkout = false })
                     } else {
                         RoutinesRoute(onEdit = {}, onNew = {}, onTemplates = {}, onOpenWorkout = { onWorkout = true }, viewModel = routinesViewModel)
                     }
