@@ -797,10 +797,14 @@ Właściciel zatwierdził wszystkie (2026-10-24):
 - Powrót (także do Startu, pierwszej zakładki z lewej) zostaje bez zmian: stary ekran zjeżdża w prawo, czyli zgodnie z tą zasadą.
 - **Alternatywy:** rozpoznawanie zakładki po wpisach sceny w `NavDisplay` (klucze treści są tekstem, kruche); przesuwanie obu ekranów naraz (większa zmiana stylu przejść z vynox).
 
-### D-109 Przesuwany szybki start (Etap 15, zmienia D-067)
-- Na prośbę właściciela (2026-10-25): „Szybki start” jest widżetem Startu i w trybie edycji przestawia się jak inne. Ukryć go nadal się nie da (przełącznik wyłączony), bo to jedyny skrót do treningu na Starcie (D-067).
-- Układy zapisane wcześniej nie mają go w tekście, więc trafia na górę, gdzie był. Inne widżety dodane później dalej idą na koniec. Kluczem jest `quick_start`; `-quick_start` z zewnątrz jest ignorowane.
-- **Alternatywy:** przełącznik także do ukrywania (właściciel prosił tylko o przesuwanie, a pusty Start bez skrótu nie ma sensu).
+### D-109 Szybki start jako widżet Startu (Etap 15, zmienia D-067)
+- Na prośbę właściciela (2026-10-25, doprecyzowane 2026-11-01): „Szybki start” jest pełnoprawnym widżetem Startu — w trybie edycji można go zarówno przestawić, jak i ukryć przełącznikiem.
+- Układy zapisane wcześniej nie mają go w tekście, więc trafia na górę, gdzie był. Inne widżety dodane później dalej idą na koniec. Kluczem jest `quick_start` (`-quick_start` gdy ukryty).
+
+### D-110 Powiadomienie przerwy jako stoper (Etap 15, zmienia D-044)
+- W trakcie przerwy powiadomienie na żywo (Live Update / Now Bar) przełącza się w tryb stopera przerwy: ma ikonę stopera (`ic_timer`), tytuł „Przerwa • <nazwa>”, turkusowy akcent (`NotificationRestArgb`), jednolity pasek postępu ubywający co sekundę wraz z odliczaniem oraz akcje „−15 s”, „+30 s” i „Pomiń przerwę”.
+- Po zakończeniu albo pominięciu przerwy wraca wygląd serii: ikona hantla, akcent Volt, segmenty serii i akcja „Ukończ serię”.
+- Odświeżanie co sekundę działa w `WorkoutService` tylko wtedy, gdy trwa przerwa (`workout.rest != null`).
 
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
