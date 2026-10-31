@@ -183,7 +183,7 @@ Aplikacja ma wyglądać jak produkt premium, a nie jak szablon Material. Dark-fi
 - Health Connect: połącz / rozłącz, auto-sync, „Synchronizuj teraz”, data ostatniej synchronizacji, stan uprawnień.
 - Dane: eksport i import (A5.10).
 - Aktualizacje: „Sprawdź teraz” i automatyczne sprawdzanie.
-- „Diagnostyka powiadomień na żywo” (A7).
+- „Diagnostyka powiadomień na żywo” (A7, tylko w `debug`).
 - O aplikacji: wersja z BuildConfig w formacie MAJOR.MINOR.PATCH, licencje i atrybucje.
 
 ### A5.10 Kopia zapasowa
