@@ -20,11 +20,14 @@
 | 13 | Wersja 1.2: polskie instrukcje, poprawki, zależności | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-13` i **v1.2.0**; czeka na test na telefonie |
 | 14 | Wersja 1.3: angielska wersja aplikacji | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-14` i **v1.3.0**; czeka na test na telefonie |
 | 15 | Wersja 1.3.1: kierunek zakładek, widżet szybkiego startu, powiadomienie przerwy | ✅ zaakceptowany (2026-11-01), wydanie **v1.3.1** |
-| 16 | Wersja 1.3.2: ukrycie diagnostyki powiadomień w wydaniach głównych | 🔄 do akceptacji (2026-11-01), wydanie preview-stage-16 |
+| 16 | Wersja 1.3.2: ukrycie diagnostyki powiadomień w wydaniach głównych | ✅ zaakceptowany (2026-11-01), wydanie **v1.3.2** |
+| 17 | Mapa zaangażowanych mięśni po treningu (przód i tył) | 🔄 do akceptacji (2026-11-01) |
 
 ## Bieżący stan
 
-- **Etap 16** do akceptacji (2026-11-01): usunięcie diagnostyki powiadomień z ekranu treningu i ukrycie jej w Ustawieniach w wydaniach głównych (BuildConfig.DEBUG, D-111).
+- **Etap 17** do akceptacji (2026-11-01): anatomiczna mapa zaangażowanych mięśni przodem i tyłem (`GlassMuscleMapCard`, geometria SVG z `melihcolpan/MuscleMap` na licencji MIT, D-112) na ekranie podsumowania po treningu (`WorkoutSummaryScreen`), w szczegółach treningu (`WorkoutDetailScreen`) oraz w galerii komponentów (`GalleryScreen`).
+  - Testy: JVM zielone (w tym `MuscleWorkloadTest`), lint 0 błędów.
+- **Etap 16** zaakceptowany i zmergowany (PR #21, **v1.3.2**, 2026-11-01): usunięcie diagnostyki powiadomień z ekranu treningu i ukrycie jej w Ustawieniach w wydaniach głównych (`BuildConfig.DEBUG`, D-111).
 - **Etap 15** zaakceptowany i zmergowany (PR #20, **v1.3.1**, 2026-11-01): przejście między zakładkami w kierunku ruchu w pasku nawigacji (D-108), „Szybki start” jako pełny widżet Startu — przesuwany i ukrywany (D-109), oraz osobny wygląd powiadomienia na żywo w trakcie przerwy z paskiem odliczającym czas i przyciskami „−15 s”, „+30 s”, „Pomiń przerwę” (D-110).
   - Szybki start sprawdzony na emulatorze: zapisany wcześniej układ ma go na górze; przeciągnięty pod „Ostatni trening” zostaje tam po restarcie; przełącznik ukrywa i pokazuje kartę (`docs/screenshots/stage15-home-*.png`).
   - Powiadomienie przerwy sprawdzone na emulatorze (API 36): `WorkoutNotificationsTest` 3/3, w trakcie przerwy ikona stopera, tytuł „Przerwa • …”, turkusowy pasek odliczający czas i działające przyciski „−15 s”, „+30 s”, „Pomiń przerwę” (`docs/screenshots/stage15-rest-notification.png`).
@@ -154,6 +157,12 @@
   - Test UI: `.\gradlew.bat :app:connectedDebugAndroidTest` (D-042).
   - Gdy emulator przestaje rysować (czarny ekran, tapnięcia bez reakcji, w logu `lowmemorykiller … device is not responding` i ANR „no focused window”), pomaga zimny start: `adb emu kill`, potem `emulator -avd gt-api36 -no-snapshot-load`.
 - **vynox:** sklonowany do `%TEMP%\vynox-ref`, tylko do odczytu.
+
+## Etap 17 — test na telefonie
+
+1. Instalacja: APK z wydania `preview-stage-17` albo `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Dane zostają.
+2. Zakończ krótki trening (albo otwórz istniejący trening w Postępy → Historia): pod kafelkami statystyk widoczna jest karta „Zaangażowane mięśnie” z sylwetką przodem i tyłem („Przód” / „Tył”), podświetleniem partii w 3 stopniach intensywności („Główne”, „Średnie”, „Pomocnicze”) i 2-kolumnową listą zaangażowanych mięśni z liczbą serii.
+3. Ustawienia → O aplikacji → Licencje i atrybucje: widoczny wpis „MuscleMap” (MIT).
 
 ## Etap 15 — test na telefonie
 

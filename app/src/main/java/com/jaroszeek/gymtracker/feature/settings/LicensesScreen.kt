@@ -58,6 +58,7 @@ val Licenses = listOf(
     LicenseGroup(R.string.license_ofl, R.string.license_geist, "licenses/OFL-Geist.txt"),
     LicenseGroup(R.string.license_ofl, R.string.license_instrument_serif, "licenses/OFL-InstrumentSerif.txt"),
     LicenseGroup(R.string.license_unlicense, R.string.license_free_exercise_db, "licenses/LICENSE-free-exercise-db.md", note = R.string.licenses_exercises),
+    LicenseGroup(R.string.license_mit, R.string.license_muscle_map, "licenses/MIT-MuscleMap.txt"),
 )
 
 /** [texts] by asset, read once; [expanded] indices of [Licenses] whose text is shown. */

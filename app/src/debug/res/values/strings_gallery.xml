@@ -98,4 +98,5 @@
     <string name="probe_open_promoted_settings">Live Updates</string>
     <string name="probe_open_notification_settings">Powiadomienia</string>
     <string name="probe_open_battery_settings">Bateria</string>
+    <string name="gallery_section_muscle_map">Mapa mięśni</string>
 </resources>

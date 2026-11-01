@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +40,7 @@ import com.jaroszeek.gymtracker.designsystem.component.GlassButtonStyle
 import com.jaroszeek.gymtracker.designsystem.component.GlassCard
 import com.jaroszeek.gymtracker.designsystem.component.GlassDialog
 import com.jaroszeek.gymtracker.designsystem.component.GlassIconButton
+import com.jaroszeek.gymtracker.designsystem.component.GlassMuscleMapCard
 import com.jaroszeek.gymtracker.designsystem.component.GlassScaffold
 import com.jaroszeek.gymtracker.designsystem.component.navBarContentPadding
 import com.jaroszeek.gymtracker.designsystem.theme.GtShapes
@@ -56,6 +58,8 @@ import com.jaroszeek.gymtracker.domain.routine.SetType
 import com.jaroszeek.gymtracker.domain.workout.LoggedExercise
 import com.jaroszeek.gymtracker.domain.workout.LoggedSet
 import com.jaroszeek.gymtracker.domain.workout.LoggedWorkout
+import com.jaroszeek.gymtracker.domain.workout.exerciseWorkingSets
+import com.jaroszeek.gymtracker.domain.workout.muscleWorkload
 import com.jaroszeek.gymtracker.feature.exercises.ExerciseImage
 import com.jaroszeek.gymtracker.feature.health.ExerciseHeartRateChart
 import com.jaroszeek.gymtracker.feature.health.HeartRateCard
@@ -217,7 +221,9 @@ private fun WorkoutDetails(
             style = GtTheme.typography.label,
         )
     }
+    val workload = remember(workout, exercises) { muscleWorkload(workout.exerciseWorkingSets(), exercises) }
     SummaryStats(workout.summary())
+    GlassMuscleMapCard(workload)
     watchSession()
     workout.exercises.forEach { exercise ->
         ExerciseSets(exercise, exercises[exercise.exerciseId], records, heartRate[exercise.id], onOpen = { onOpenExercise(exercise.exerciseId) })

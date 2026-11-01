@@ -16,6 +16,7 @@ import com.jaroszeek.gymtracker.domain.workout.ActiveWorkout
 import com.jaroszeek.gymtracker.domain.workout.RecordHit
 import com.jaroszeek.gymtracker.domain.workout.TargetChange
 import com.jaroszeek.gymtracker.domain.workout.WorkoutSummary
+import com.jaroszeek.gymtracker.domain.workout.exerciseWorkingSets
 import com.jaroszeek.gymtracker.domain.workout.recordHits
 import com.jaroszeek.gymtracker.domain.workout.records
 import com.jaroszeek.gymtracker.domain.workout.summary
@@ -43,6 +44,7 @@ data class FinishState(
     val summary: WorkoutSummary,
     val changes: List<TargetChange>,
     val records: List<RecordHit> = emptyList(),
+    val exerciseSets: Map<Long, Int> = emptyMap(),
     /** Routine variants whose new targets the user chose to apply. */
     val apply: Set<Long> = emptySet(),
     val changesVisible: Boolean = changes.isNotEmpty(),
@@ -244,7 +246,7 @@ class WorkoutViewModel @Inject constructor(
             try {
                 val finished = manager.finish()
                 val state = finished?.let { (workout, endedAt) ->
-                    workout.summary(endedAt).takeUnless { it.isEmpty }?.let { FinishState(workout.name, it, workout.targetChanges(), workout.recordHits()) }
+                    workout.summary(endedAt).takeUnless { it.isEmpty }?.let { FinishState(workout.name, it, workout.targetChanges(), workout.recordHits(), exerciseSets = workout.exerciseWorkingSets()) }
                 }
                 local.update { it.copy(finishing = false, finished = state) }
             } catch (e: Exception) {

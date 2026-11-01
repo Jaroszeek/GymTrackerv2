@@ -809,6 +809,18 @@ Właściciel zatwierdził wszystkie (2026-10-24):
 ### D-111 Diagnostyka powiadomień tylko w wersji debug w Ustawieniach (Etap 16, zmienia D-047)
 - Na prośbę właściciela (2026-11-01): z ekranu aktywnego treningu (`WorkoutScreen`, także z karty „Trening w tle”) usunięto całkowicie przyciski otwierające „Diagnostykę powiadomień na żywo”, a w `SettingsScreen` pozycja diagnostyki jest widoczna tylko w kompilacji `debug` (`BuildConfig.DEBUG`).
 
+### D-112 Mapa zaangażowanych mięśni po treningu (Etap 17)
+- Na prośbę właściciela (2026-11-01): po zakończeniu treningu (`WorkoutSummaryScreen`) oraz w szczegółach zapisanego treningu (`WorkoutDetailScreen`) wyświetlana jest karta „Zaangażowane mięśnie” (`GlassMuscleMapCard`) z anatomiczną sylwetką człowieka przodem i tyłem (`Przód` / `Tył`), podświetleniem partii mięśniowych i 2-kolumnowym podsumowaniem pod spodem.
+- **Geometria (`MuscleMapPaths`):** wektorowe ścieżki SVG wyodrębnione z repozytorium `melihcolpan/MuscleMap` (licencja MIT, `MaleFrontPaths.swift` i `MaleBackPaths.swift`), parsowane leniwie przez wbudowany `androidx.compose.ui.graphics.vector.PathParser` i rysowane na `Canvas`. Wszystkie 17 wartości `Muscle` z bazy ćwiczeń ma odpowiadające regiony z przodu i/lub z tyłu sylwetki.
+- **Obliczanie obciążenia (`domain/workout/MuscleWorkload.kt`):**
+  - Liczone są tylko ukończone serie robocze (`type != SetType.Warmup`, w aktywnym treningu `done && canComplete`, w zapisanym `reps > 0`).
+  - Mięsień główny (`primaryMuscles`) dostaje `1,0` serii efektywnej za każdą serię roboczą ćwiczenia, a mięsień pomocniczy (`secondaryMuscles`) `0,5` serii efektywnej.
+  - Trzy stopnie intensywności (jednobarwna skala w kolorze akcentu motywu):
+    - `High` („Główne”): `primarySets > 0` oraz `effectiveSets >= 4,0`;
+    - `Medium` („Średnie”): `primarySets > 0` oraz `effectiveSets` w przedziale `2,0..<4,0`;
+    - `Low` („Pomocnicze”): `primarySets == 0` (wyłącznie praca pomocnicza) albo `effectiveSets < 2,0`.
+- **Atrybucja:** tekst licencji MIT w `assets/licenses/MIT-MuscleMap.txt` i wpis `MuscleMap` w `LicensesScreen`.
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |
@@ -834,3 +846,4 @@ Właściciel zatwierdził wszystkie (2026-10-24):
 | benchmark-macro-junit4 / uiautomator | 1.5.0 / 2.4.0 | Apache-2.0 | 1 | macrobenchmark w `:baselineprofile` (nie trafia do APK) |
 | Fonty Geist, Instrument Serif | 1.8.1 / — | OFL-1.1 | 1 | typografia (D-007), ok. 650 KB TTF |
 | free-exercise-db | — | Unlicense | 2 | baza ćwiczeń (atrybucja w „O aplikacji”) |
+| MuscleMap (melihcolpan/MuscleMap) | — | MIT | 17 | ścieżki SVG sylwetki mięśni przodem i tyłem (D-112, atrybucja w „O aplikacji”) |

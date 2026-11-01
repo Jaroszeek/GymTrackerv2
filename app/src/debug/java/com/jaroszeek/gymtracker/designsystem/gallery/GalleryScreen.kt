@@ -71,6 +71,7 @@ import com.jaroszeek.gymtracker.designsystem.component.GlassFullScreenOverlay
 import com.jaroszeek.gymtracker.designsystem.component.GlassIconButton
 import com.jaroszeek.gymtracker.designsystem.component.GlassLineChart
 import com.jaroszeek.gymtracker.designsystem.component.GlassMiniBar
+import com.jaroszeek.gymtracker.designsystem.component.GlassMuscleMapCard
 import com.jaroszeek.gymtracker.designsystem.component.GlassNavBar
 import com.jaroszeek.gymtracker.designsystem.component.GlassNavItem
 import com.jaroszeek.gymtracker.designsystem.component.GlassNumberField
@@ -95,6 +96,8 @@ import com.jaroszeek.gymtracker.designsystem.theme.GtTheme
 import com.jaroszeek.gymtracker.designsystem.theme.ThemeMode
 import com.jaroszeek.gymtracker.designsystem.theme.ThemeSettings
 import com.jaroszeek.gymtracker.designsystem.theme.gtColors
+import com.jaroszeek.gymtracker.domain.exercise.Muscle
+import com.jaroszeek.gymtracker.domain.workout.MuscleLoad
 import com.jaroszeek.gymtracker.feature.progress.dayLabel
 import com.jaroszeek.gymtracker.feature.progress.timeLabel
 import com.jaroszeek.gymtracker.feature.progress.weekdayLabel
@@ -230,6 +233,7 @@ fun GalleryScreen(settings: ThemeSettings, onSettingsChange: (ThemeSettings) -> 
                 }
             }
             section(R.string.gallery_section_charts) { Charts() }
+            section(R.string.gallery_section_muscle_map) { MuscleMapSample() }
             section(R.string.gallery_section_live_update) { LiveUpdateProbeCard() }
             section(R.string.gallery_section_scroll) {}
             items(FILLER_CARDS) { index -> FillerCard(index + 1) }
@@ -587,3 +591,19 @@ private fun FillerCard(number: Int) {
     }
 }
 
+
+@Composable
+private fun MuscleMapSample() {
+    val sample = remember {
+        listOf(
+            MuscleLoad(Muscle.Chest, primarySets = 9, secondarySets = 0),
+            MuscleLoad(Muscle.Shoulders, primarySets = 6, secondarySets = 3),
+            MuscleLoad(Muscle.Triceps, primarySets = 4, secondarySets = 6),
+            MuscleLoad(Muscle.Quadriceps, primarySets = 3, secondarySets = 0),
+            MuscleLoad(Muscle.Abdominals, primarySets = 0, secondarySets = 4),
+            MuscleLoad(Muscle.Traps, primarySets = 0, secondarySets = 3),
+            MuscleLoad(Muscle.Forearms, primarySets = 0, secondarySets = 3),
+        )
+    }
+    GlassMuscleMapCard(workload = sample)
+}

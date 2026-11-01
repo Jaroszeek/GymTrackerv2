@@ -87,6 +87,10 @@ object GtSizes {
     val MiniBarMin = 4.dp
     val CalendarDot = 4.dp
     val TodayOutline = 1.5.dp
+    val MuscleMapHeight = 280.dp
+    val MuscleLegendDot = 10.dp
+    val MuscleChipBarWidth = 4.dp
+    val MuscleChipBarHeight = 18.dp
 }
 
 object GtAlpha {

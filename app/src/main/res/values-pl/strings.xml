@@ -933,4 +933,21 @@
     <string name="licenses_hide">Ukryj tekst licencji</string>
     <string name="licenses_exercises">Ćwiczenia i zdjęcia: free-exercise-db (yuhonas), instrukcje przetłumaczone maszynowo na polski. Warianty z programów Jeffa Nipparda, bez zdjęć.</string>
     <string name="license_apache_items">AndroidX (Compose, Material 3, Navigation 3, Lifecycle, Room, SQLite, DataStore, WorkManager, Health Connect), Kotlin, kotlinx.coroutines, kotlinx.serialization, Dagger Hilt, Coil, OkHttp, Backdrop i Shapes (Kyant), Reorderable (Calvin Liang), Material Symbols</string>
+
+    <!-- Muscle engagement map -->
+    <string name="muscle_map_title">Zaangażowanie mięśni</string>
+    <string name="muscle_map_front">PRZÓD</string>
+    <string name="muscle_map_back">TYŁ</string>
+    <string name="muscle_map_high">Główne</string>
+    <string name="muscle_map_medium">Średnie</string>
+    <string name="muscle_map_low">Pomocnicze</string>
+    <plurals name="muscle_map_sets">
+        <item quantity="one">%1$d seria</item>
+        <item quantity="few">%1$d serie</item>
+        <item quantity="many">%1$d serii</item>
+        <item quantity="other">%1$d serii</item>
+    </plurals>
+    <string name="muscle_map_primary_only">%1$s • %2$s</string>
+    <string name="muscle_map_primary_and_secondary">%1$s + %2$d pom.</string>
+    <string name="muscle_map_secondary_only">%1$d pom. • %2$s</string>
 </resources>
