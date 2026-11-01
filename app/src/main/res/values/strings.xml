@@ -897,4 +897,21 @@
     <string name="license_geist" translatable="false">Geist (Vercel)</string>
     <string name="license_instrument_serif" translatable="false">Instrument Serif (Instrument)</string>
     <string name="license_free_exercise_db" translatable="false">free-exercise-db (yuhonas)</string>
+    <string name="license_mit" translatable="false">MIT License</string>
+    <string name="license_muscle_map" translatable="false">MuscleMap (Melih Colpan)</string>
+
+    <!-- Muscle engagement map -->
+    <string name="muscle_map_title">Muscle engagement</string>
+    <string name="muscle_map_front">FRONT</string>
+    <string name="muscle_map_back">BACK</string>
+    <string name="muscle_map_high">Primary</string>
+    <string name="muscle_map_medium">Moderate</string>
+    <string name="muscle_map_low">Secondary</string>
+    <plurals name="muscle_map_sets">
+        <item quantity="one">%1$d set</item>
+        <item quantity="other">%1$d sets</item>
+    </plurals>
+    <string name="muscle_map_primary_only">%1$s • %2$s</string>
+    <string name="muscle_map_primary_and_secondary">%1$s + %2$d sec.</string>
+    <string name="muscle_map_secondary_only">%1$d sec. • %2$s</string>
 </resources>

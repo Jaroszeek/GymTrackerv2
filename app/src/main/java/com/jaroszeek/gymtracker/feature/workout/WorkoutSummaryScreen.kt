@@ -20,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -33,6 +34,7 @@ import com.jaroszeek.gymtracker.R
 import com.jaroszeek.gymtracker.designsystem.component.GlassBottomSheet
 import com.jaroszeek.gymtracker.designsystem.component.GlassButton
 import com.jaroszeek.gymtracker.designsystem.component.GlassCard
+import com.jaroszeek.gymtracker.designsystem.component.GlassMuscleMapCard
 import com.jaroszeek.gymtracker.designsystem.component.GlassChip
 import com.jaroszeek.gymtracker.designsystem.component.GlassScaffold
 import com.jaroszeek.gymtracker.designsystem.component.navBarContentPadding
@@ -46,6 +48,7 @@ import com.jaroszeek.gymtracker.domain.routine.RoutineTargets
 import com.jaroszeek.gymtracker.domain.workout.RecordHit
 import com.jaroszeek.gymtracker.domain.workout.TargetChange
 import com.jaroszeek.gymtracker.domain.workout.WorkoutSummary
+import com.jaroszeek.gymtracker.domain.workout.muscleWorkload
 import com.jaroszeek.gymtracker.feature.progress.label
 import com.jaroszeek.gymtracker.feature.routines.massLabel
 
@@ -71,8 +74,10 @@ fun WorkoutSummaryScreen(
     ) {
         Text(stringResource(R.string.summary_title), Modifier.semantics { heading() }, style = GtTheme.typography.display)
         Text(state.name, color = GtTheme.colors.textSecondary, style = GtTheme.typography.title)
+        val workload = remember(state.exerciseSets, exercises) { muscleWorkload(state.exerciseSets, exercises) }
         SummaryStats(summary)
         if (state.records.isNotEmpty()) RecordsSummary(state.records, exercises)
+        GlassMuscleMapCard(workload)
         GlassButton(stringResource(R.string.action_done), onClick = onDone, modifier = Modifier.fillMaxWidth())
     }
 

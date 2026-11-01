@@ -2,6 +2,10 @@
 
 Najnowsza wersja na górze. Workflow wydania bierze do opisu Release sekcję `## X.Y.Z` zgodną z tagiem `vX.Y.Z`.
 
+## 1.4.0
+
+- Po treningu i w szczegółach treningu w historii widać mapę zaangażowanych mięśni: sylwetkę przodem i tyłem z podświetlonymi partiami w trzech stopniach (główne, średnie, pomocnicze) i listę mięśni z liczbą serii.
+
 ## 1.3.2
 
 - Usunięto przyciski diagnostyki powiadomień na żywo z ekranu aktywnego treningu, a w Ustawieniach diagnostyka jest widoczna tylko w wersji testowej (debug).
