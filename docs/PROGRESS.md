@@ -21,11 +21,11 @@
 | 14 | Wersja 1.3: angielska wersja aplikacji | ✅ zaakceptowany (2026-10-25), wydania `preview-stage-14` i **v1.3.0**; czeka na test na telefonie |
 | 15 | Wersja 1.3.1: kierunek zakładek, widżet szybkiego startu, powiadomienie przerwy | ✅ zaakceptowany (2026-11-01), wydanie **v1.3.1** |
 | 16 | Wersja 1.3.2: ukrycie diagnostyki powiadomień w wydaniach głównych | ✅ zaakceptowany (2026-11-01), wydanie **v1.3.2** |
-| 17 | Mapa zaangażowanych mięśni po treningu (przód i tył) | 🔄 do akceptacji (2026-11-01) |
+| 17 | Wersja 1.4.0: mapa zaangażowanych mięśni po treningu (przód i tył) | ✅ zaakceptowany (2026-11-01), wydania `preview-stage-17` i **v1.4.0** |
 
 ## Bieżący stan
 
-- **Etap 17** do akceptacji (2026-11-01): anatomiczna mapa zaangażowanych mięśni przodem i tyłem (`GlassMuscleMapCard`, geometria SVG z `melihcolpan/MuscleMap` na licencji MIT, D-112) na ekranie podsumowania po treningu (`WorkoutSummaryScreen`), w szczegółach treningu (`WorkoutDetailScreen`) oraz w galerii komponentów (`GalleryScreen`).
+- **Etap 17** zaakceptowany i zmergowany (PR #22, **v1.4.0**, 2026-11-01): anatomiczna mapa zaangażowanych mięśni przodem i tyłem (`GlassMuscleMapCard`, geometria SVG z `melihcolpan/MuscleMap` na licencji MIT, D-112) na ekranie podsumowania po treningu (`WorkoutSummaryScreen`), w szczegółach treningu (`WorkoutDetailScreen`) oraz w galerii komponentów (`GalleryScreen`).
   - Testy: JVM zielone (w tym `MuscleWorkloadTest`), lint 0 błędów.
 - **Etap 16** zaakceptowany i zmergowany (PR #21, **v1.3.2**, 2026-11-01): usunięcie diagnostyki powiadomień z ekranu treningu i ukrycie jej w Ustawieniach w wydaniach głównych (`BuildConfig.DEBUG`, D-111).
 - **Etap 15** zaakceptowany i zmergowany (PR #20, **v1.3.1**, 2026-11-01): przejście między zakładkami w kierunku ruchu w pasku nawigacji (D-108), „Szybki start” jako pełny widżet Startu — przesuwany i ukrywany (D-109), oraz osobny wygląd powiadomienia na żywo w trakcie przerwy z paskiem odliczającym czas i przyciskami „−15 s”, „+30 s”, „Pomiń przerwę” (D-110).
