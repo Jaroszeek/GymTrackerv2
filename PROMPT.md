@@ -311,6 +311,7 @@ POST_NOTIFICATIONS: prośba przy pierwszym starcie (z wyjaśnieniem) i baner na 
 | 13 | Wersja 1.2: polskie instrukcje, poprawki, zależności | A5.1, A5.5, C8 | wersja 1.2.0 |
 | 14 | Wersja 1.3: angielska wersja aplikacji | A2, A5.9 | wersja 1.3.0 |
 | 15 | Wersja 1.3.1: kierunek przejścia zakładek, przesuwany szybki start | A4, A5.1 | wersja 1.3.1 |
+| 18 | Wersja 1.5.0: powiadomienie treningu jak odtwarzacz na ekranie blokady | A7 | wersja 1.5.0 |
 
 ## Etap 0 — Start i plan
 **Kryteria akceptacji**
@@ -790,6 +791,23 @@ Zakres:
 1. Przejście między zakładkami w kierunku ruchu w pasku nawigacji.
 2. Szybki start przesuwany w trybie edycji Startu.
 Na koniec: changelog 1.3.1 do akceptacji, potem tag v1.3.1.
+```
+
+## Etap 18 — Wersja 1.5.0
+Dodany 2026-11-07 na prośbę właściciela: na ekranie blokady Samsunga (Now Bar) trening ma wyglądać jak przy odblokowanym telefonie, a po stuknięciu pokazywać panel jak odtwarzacz muzyki: zdjęcie ćwiczenia, serie i ciężar oraz przyciski. Bez migracji bazy, bez nowych uprawnień i zależności.
+
+**Kryteria akceptacji**
+- [ ] Powiadomienie: tytuł = ćwiczenie, tekst „Seria 2 z 4 • 80 kg × 8”, rutyna obok, zdjęcie ćwiczenia jako duża ikona
+- [ ] Przyciski jak dotąd: „Ukończ serię”, w przerwie „−15 s”, „+30 s”, „Pomiń przerwę”
+- [ ] Bez internetu powiadomienie działa, tylko bez zdjęcia
+- [ ] Nadal spełnia wymagania Live Update (D-044)
+
+**Prompt**
+```
+Realizujemy Etap 18 — Wersja 1.5.0. Branch: feat/stage-18-lockscreen-player.
+
+Zakres: powiadomienie treningu jak odtwarzacz (zdjęcie, ćwiczenie, seria i ciężar, przyciski), dalej jako Live Update.
+Na koniec: changelog 1.5.0 do akceptacji, potem tag v1.5.0.
 ```
 
 ---

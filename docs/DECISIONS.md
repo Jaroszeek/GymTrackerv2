@@ -821,6 +821,13 @@ Właściciel zatwierdził wszystkie (2026-10-24):
     - `Low` („Pomocnicze”): `primarySets == 0` (wyłącznie praca pomocnicza) albo `effectiveSets < 2,0`.
 - **Atrybucja:** tekst licencji MIT w `assets/licenses/MIT-MuscleMap.txt` i wpis `MuscleMap` w `LicensesScreen`.
 
+### D-113 Powiadomienie treningu jak odtwarzacz (Etap 18, zmienia D-044)
+- Na prośbę właściciela (2026-11-07): na ekranie blokady (Now Bar) panel ma wyglądać jak Spotify — zdjęcie, serie i ciężar, przyciski.
+- Zostajemy przy Live Update (`ProgressStyle`): tytuł to ćwiczenie, tekst „Seria 2 z 4 • 80 kg × 8” (masa w jednostce użytkownika, bez ciężaru liczba powtórzeń), rutyna w `subText`, zdjęcie ćwiczenia jako `largeIcon`. W przerwie tytuł „Przerwa • <rutyna>” i „Następne: <ćwiczenie> • Seria … • …”. Przyciski bez zmian (D-110).
+- Zdjęcie ładuje `WorkoutService` przez Coil (pamięć i dysk Coil, potem sieć), w rozmiarze dużej ikony systemu, bez bitmapy sprzętowej (powiadomienie ją serializuje). Najpierw powiadomienie idzie bez zdjęcia, po wczytaniu jeszcze raz ze zdjęciem; bez internetu zostaje bez zdjęcia.
+- Live Update na ekranie blokady jest zawsze rozwinięty (dokumentacja Androida: „Expanded by default”), więc zdjęcie i przyciski są widoczne po stuknięciu w Now Bar. Jak dokładnie Samsung rysuje kartę w Now Bar, sprawdzi dopiero telefon.
+- **Alternatywy:** prawdziwy odtwarzacz (`MediaStyle` + `MediaSession`) — odrzucony: to nie jest Live Update (inny styl), odtwarzacz GymTrackera wchodziłby w konflikt ze Spotify na ekranie blokady i mógłby przejmować przyciski słuchawek; własny widok (`RemoteViews`) — Live Update go zabrania.
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |

@@ -22,9 +22,14 @@
 | 15 | Wersja 1.3.1: kierunek zakładek, widżet szybkiego startu, powiadomienie przerwy | ✅ zaakceptowany (2026-11-01), wydanie **v1.3.1** |
 | 16 | Wersja 1.3.2: ukrycie diagnostyki powiadomień w wydaniach głównych | ✅ zaakceptowany (2026-11-01), wydanie **v1.3.2** |
 | 17 | Wersja 1.4.0: mapa zaangażowanych mięśni po treningu (przód i tył) | ✅ zaakceptowany (2026-11-01), wydania `preview-stage-17` i **v1.4.0** |
+| 18 | Wersja 1.5.0: powiadomienie treningu jak odtwarzacz na ekranie blokady | 🔄 do akceptacji (2026-11-07), wydanie `preview-stage-18` |
 
 ## Bieżący stan
 
+- **Etap 18** do akceptacji (2026-11-07): powiadomienie treningu jak odtwarzacz na ekranie blokady i w Now Bar (D-113).
+  - Sprawdzone na emulatorze (API 36.0, bez promocji do Live Update): na ekranie blokady i w panelu zdjęcie Barbell Bench Press, tytuł z nazwą ćwiczenia, „Seria 1 z 4 • 50 kg × 8”, „Push” obok, przycisk „Ukończ serię” (`docs/screenshots/stage18-*.png`).
+  - Emulator 36.1 (`gt-api36_1`) restartuje się po wyjściu z aplikacji, a `screencap` na nim pada (błąd sterownika grafiki emulatora), więc wyglądu w promowanej karcie nie dało się obejrzeć — do sprawdzenia na telefonie.
+  - Testy: JVM 329/329, UI 7/7 (API 36.0), lint 0 błędów. `WorkoutFlowTest` padał od Etapu 17 (przycisk „Gotowe” w podsumowaniu jest pod mapą mięśni, poza ekranem) — test przewija teraz do przycisku.
 - **Etap 17** zaakceptowany i zmergowany (PR #22, **v1.4.0**, 2026-11-01): anatomiczna mapa zaangażowanych mięśni przodem i tyłem (`GlassMuscleMapCard`, geometria SVG z `melihcolpan/MuscleMap` na licencji MIT, D-112) na ekranie podsumowania po treningu (`WorkoutSummaryScreen`), w szczegółach treningu (`WorkoutDetailScreen`) oraz w galerii komponentów (`GalleryScreen`).
   - Testy: JVM zielone (w tym `MuscleWorkloadTest`), lint 0 błędów.
 - **Etap 16** zaakceptowany i zmergowany (PR #21, **v1.3.2**, 2026-11-01): usunięcie diagnostyki powiadomień z ekranu treningu i ukrycie jej w Ustawieniach w wydaniach głównych (`BuildConfig.DEBUG`, D-111).
@@ -157,6 +162,14 @@
   - Test UI: `.\gradlew.bat :app:connectedDebugAndroidTest` (D-042).
   - Gdy emulator przestaje rysować (czarny ekran, tapnięcia bez reakcji, w logu `lowmemorykiller … device is not responding` i ANR „no focused window”), pomaga zimny start: `adb emu kill`, potem `emulator -avd gt-api36 -no-snapshot-load`.
 - **vynox:** sklonowany do `%TEMP%\vynox-ref`, tylko do odczytu.
+
+## Etap 18 — test na telefonie
+
+1. Instalacja: APK z wydania `preview-stage-18` albo `adb install -r app\build\outputs\apk\debug\app-debug.apk`. Dane zostają.
+2. Zacznij trening z rutyny, zablokuj telefon: w Now Bar trening; stuknij w niego — zdjęcie ćwiczenia, nazwa, „Seria 1 z 4 • 80 kg × 8” i „Ukończ serię”.
+3. Stuknij „Ukończ serię” na ekranie blokady: przerwa z odliczaniem, „−15 s”, „+30 s”, „Pomiń przerwę”, zdjęcie następnego ćwiczenia.
+4. Tryb samolotowy przy nowym ćwiczeniu: powiadomienie bez zdjęcia, reszta działa.
+5. Do raportu: zrzut Now Bar zwiniętego i po stuknięciu.
 
 ## Etap 17 — test na telefonie
 
@@ -301,7 +314,7 @@ Klucz, sekrety i wydania v1.0.0 oraz v1.0.1 są gotowe. Kopia zapasowa klucza i 
 
 ## Następny krok
 
-- Właściciel: akceptacja Etapu 15, potem tag v1.3.1.
+- Właściciel: test Etapu 18 na telefonie (wyżej), akceptacja, potem tag v1.5.0.
 - Właściciel: test Etapów 12–15 na telefonie (wyżej) i aktualizacja z aplikacji do v1.3.0.
 - Właściciel: kopia zapasowa klucza i hasła, test aktualizacji z v1.0.0 do najnowszej na telefonie (wyżej).
 - Wyniki testów Etapów 9–10 na telefonie, gdy właściciel je przekaże.
