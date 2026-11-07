@@ -34,6 +34,7 @@ class WorkoutNotificationsTest {
 
     private val Notification.title get() = extras.getCharSequence(Notification.EXTRA_TITLE).toString()
     private val Notification.text get() = extras.getCharSequence(Notification.EXTRA_TEXT).toString()
+    private val Notification.subText get() = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()
     private val Notification.shortText get() = extras.getCharSequence(NotificationCompat.EXTRA_SHORT_CRITICAL_TEXT)?.toString()
 
     private fun Notification.assertPromotable(expectedTitle: String = "Push") {
@@ -49,9 +50,11 @@ class WorkoutNotificationsTest {
     @Test
     fun setInProgressShowsTheProgressAndCompletesTheSet() {
         val notification = notifications.build(workout, names)
-        notification.assertPromotable("Push")
+        // Like a player: the exercise on top, the set and its weight under it, the routine aside
+        notification.assertPromotable("Bench Press")
         assertEquals(NotificationWorkoutArgb, notification.color)
-        assertEquals("Bench Press • seria 1", notification.text)
+        assertEquals("Seria 1 z 3 • 60 kg × 8", notification.text)
+        assertEquals("Push", notification.subText)
         // No short text: the status bar chip shows the session clock
         assertNull(notification.shortText)
         assertEquals(1_000L, notification.`when`)
@@ -69,12 +72,25 @@ class WorkoutNotificationsTest {
         val notification = notifications.build(content)
         notification.assertPromotable("Przerwa • Push")
         assertEquals(NotificationRestArgb, notification.color)
-        assertEquals("Następne: Bench Press • seria 2", notification.text)
+        assertEquals("Następne: Bench Press • Seria 2 z 3 • 60 kg × 8", notification.text)
+        assertNull(notification.subText)
         // The chip counts the rest down
         assertNull(notification.shortText)
         assertEquals(130_000L, notification.`when`)
         assertTrue(notification.extras.getBoolean(Notification.EXTRA_CHRONOMETER_COUNT_DOWN))
         assertEquals(listOf("−15 s", "+30 s", "Pomiń przerwę"), notification.actions.map { it.title.toString() })
+    }
+
+    @Test
+    fun theExerciseUpNextBringsItsPhotoAndBodyweightShowsReps() {
+        val bench = workout.exercises[0]
+        val onDips = bench.sets.fold(workout) { current, set -> current.complete(bench.id, set.id, now = 10_000, defaultRestSeconds = 0).skipRest() }
+        val photos = mapOf(10L to "bench.jpg", 20L to "dips.jpg")
+        val content = notifications.content(onDips, names, photos = photos)
+        assertEquals("dips.jpg", content.photoUrl)
+        assertEquals("Dips", content.title)
+        assertEquals("Seria 1 z 2 • 10 powt.", content.text)
+        assertNull(notifications.content(onDips, names).photoUrl)
     }
 
     @Test

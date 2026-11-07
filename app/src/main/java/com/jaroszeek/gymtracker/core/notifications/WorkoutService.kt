@@ -7,10 +7,17 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
+import android.graphics.Bitmap
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import coil3.SingletonImageLoader
+import coil3.request.ErrorResult
+import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.request.allowHardware
+import coil3.toBitmap
 import com.jaroszeek.gymtracker.R
 import com.jaroszeek.gymtracker.core.di.DefaultDispatcher
 import com.jaroszeek.gymtracker.data.exercise.ExerciseRepository
@@ -25,13 +32,16 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 
 /**
@@ -64,6 +74,10 @@ class WorkoutService : Service() {
     @Volatile private var dismissed = false
 
     private val names = MutableStateFlow<Map<Long, String>>(emptyMap())
+    private val photos = MutableStateFlow<Map<Long, String>>(emptyMap())
+
+    /** The large icon: the loaded photo of the exercise up next, with its URL. */
+    private val photo = MutableStateFlow<Pair<String, Bitmap>?>(null)
 
     override fun onCreate() {
         super.onCreate()
@@ -101,26 +115,35 @@ class WorkoutService : Service() {
         scope.launch {
             exercises.observeAll()
                 .catch { e -> Log.e(TAG, "Loading exercise names failed", e) }
-                .collect { all -> names.value = all.associate { it.id to it.name } }
+                .collect { all ->
+                    names.value = all.associate { it.id to it.name }
+                    photos.value = all.mapNotNull { exercise -> exercise.images.firstOrNull()?.let { exercise.id to it } }.toMap()
+                }
+        }
+        val contents = combine(manager.workout, names, photos) { workout, byId, photoById -> Triple(workout, byId, photoById) }
+            .flatMapLatest { (workout, byId, photoById) ->
+                when {
+                    workout == null -> flowOf(null)
+                    workout.rest != null -> flow {
+                        while (true) {
+                            val now = clock.millis()
+                            emit(notifications.content(workout, byId, now, photoById))
+                            if (now >= workout.rest.endsAt) break
+                            delay(TICK_MILLIS)
+                        }
+                    }
+                    else -> flowOf(notifications.content(workout, byId, photos = photoById))
+                }
+            }
+            .distinctUntilChanged()
+            .shareIn(scope, SharingStarted.Eagerly, replay = 1)
+        scope.launch {
+            contents.map { it?.photoUrl }.distinctUntilChanged().collectLatest { url -> photo.value = url?.let { loadPhoto(it) }?.let { url to it } }
         }
         scope.launch {
-            combine(manager.workout, names) { workout, byId -> workout to byId }
-                .flatMapLatest { (workout, byId) ->
-                    when {
-                        workout == null -> flowOf(null)
-                        workout.rest != null -> flow {
-                            while (true) {
-                                val now = clock.millis()
-                                emit(notifications.content(workout, byId, now))
-                                if (now >= workout.rest.endsAt) break
-                                delay(TICK_MILLIS)
-                            }
-                        }
-                        else -> flowOf(notifications.content(workout, byId))
-                    }
-                }
-                .distinctUntilChanged()
-                .collect { content -> if (content == null) stop() else if (!dismissed) post(content) }
+            // Posted without the photo until it loads, and again with it
+            combine(contents, photo) { content, loaded -> content to loaded?.takeIf { it.first == content?.photoUrl }?.second }
+                .collect { (content, bitmap) -> if (content == null) stop() else if (!dismissed) post(content, bitmap) }
         }
         scope.launch {
             manager.workout.map { it?.rest?.endsAt }.distinctUntilChanged().collect { restAlarm.schedule(it) }
@@ -151,10 +174,23 @@ class WorkoutService : Service() {
         }
     }
 
-    private fun post(content: WorkoutNotificationContent) {
+    private fun post(content: WorkoutNotificationContent, photo: Bitmap?) {
         // Without the permission the notification shows only in the task manager; the service still runs
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
-        getSystemService(NotificationManager::class.java).notify(WorkoutNotifications.NOTIFICATION_ID, notifications.build(content))
+        getSystemService(NotificationManager::class.java).notify(WorkoutNotifications.NOTIFICATION_ID, notifications.build(content, photo))
+    }
+
+    /** From Coil's cache or the network; offline the notification simply has no photo. Not a hardware bitmap: it is parceled. */
+    private suspend fun loadPhoto(url: String): Bitmap? {
+        val size = resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_width)
+        val request = ImageRequest.Builder(this).data(url).size(size).allowHardware(false).build()
+        return when (val result = SingletonImageLoader.get(this).execute(request)) {
+            is SuccessResult -> result.image.toBitmap()
+            is ErrorResult -> {
+                Log.w(TAG, "Loading the exercise photo failed", result.throwable)
+                null
+            }
+        }
     }
 
     private fun stop() {

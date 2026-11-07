@@ -14,6 +14,7 @@ import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.room3.Room
@@ -174,7 +175,8 @@ class WorkoutFlowTest {
         assertFalse(file.exists())
 
         compose.waitUntil(TIMEOUT) { compose.onAllNodesWithText("Gotowe").fetchSemanticsNodes().size == 1 }
-        compose.onNodeWithText("Gotowe").performClick()
+        // Below the muscle map since Etap 17
+        compose.onNodeWithText("Gotowe").performScrollTo().performClick()
         compose.waitUntil(TIMEOUT) { !onWorkout }
     }
 
