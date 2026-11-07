@@ -281,7 +281,7 @@
     <!-- Workout notification and Live Update -->
     <string name="notification_channel_workout">Trening w toku</string>
     <string name="notification_channel_workout_description">Czas treningu, postęp serii i odliczanie przerwy. Bez dźwięku; koniec przerwy sygnalizuje wibracja.</string>
-    <string name="notification_set">%1$s • seria %2$d</string>
+    <string name="notification_set_of">Seria %1$d z %2$d</string>
     <string name="notification_rest_title">Przerwa • %1$s</string>
     <string name="notification_rest_next">Następne: %1$s</string>
     <string name="notification_rest_last">To była ostatnia seria</string>

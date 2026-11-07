@@ -2,6 +2,10 @@
 
 Najnowsza wersja na górze. Workflow wydania bierze do opisu Release sekcję `## X.Y.Z` zgodną z tagiem `vX.Y.Z`.
 
+## 1.5.0
+
+- Powiadomienie treningu na ekranie blokady i w Now Bar wygląda jak odtwarzacz: zdjęcie ćwiczenia, jego nazwa, „Seria 2 z 4 • 80 kg × 8”, a pod spodem przyciski („Ukończ serię”, w przerwie „−15 s”, „+30 s”, „Pomiń przerwę”).
+
 ## 1.4.0
 
 - Po treningu i w szczegółach treningu w historii widać mapę zaangażowanych mięśni: sylwetkę przodem i tyłem z podświetlonymi partiami w trzech stopniach (główne, średnie, pomocnicze) i listę mięśni z liczbą serii.
