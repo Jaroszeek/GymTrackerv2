@@ -2,6 +2,11 @@
 
 Najnowsza wersja na górze. Workflow wydania bierze do opisu Release sekcję `## X.Y.Z` zgodną z tagiem `vX.Y.Z`.
 
+## 1.6.0
+
+- Własne ćwiczenie może mieć własne zdjęcia z galerii (do 8). Kilka zdjęć odtwarza się po kolei jak animacja: w szczegółach ćwiczenia, na liście i w powiadomieniu treningu (pierwsze zdjęcie).
+- W edytorze ćwiczenia można wybrać rodzaj ruchu (wielostawowe albo izolowane) i poziom trudności.
+
 ## 1.5.0
 
 - Powiadomienie treningu na ekranie blokady i w Now Bar wygląda jak odtwarzacz: zdjęcie ćwiczenia, jego nazwa, „Seria 2 z 4 • 80 kg × 8”, a pod spodem przyciski („Ukończ serię”, w przerwie „−15 s”, „+30 s”, „Pomiń przerwę”).

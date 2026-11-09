@@ -78,6 +78,14 @@
     <string name="editor_name_error">Podaj nazwę</string>
     <string name="editor_primary_error">Wybierz co najmniej jeden mięsień główny</string>
     <string name="editor_no_equipment">Brak</string>
+    <string name="label_photos">Zdjęcia</string>
+    <string name="editor_photos_add">Dodaj zdjęcia</string>
+    <string name="editor_photos_hint">Kilka zdjęć odtwarza się po kolei, w kolejności dodania, jak animacja.</string>
+    <string name="editor_photo_remove">Usuń zdjęcie %1$d</string>
+    <string name="editor_photos_failed">Nie udało się dodać części zdjęć.</string>
+    <string name="label_mechanic">Rodzaj ruchu</string>
+    <string name="label_level">Poziom</string>
+    <string name="editor_not_set">Nie określono</string>
     <string name="editor_save_failed">Nie udało się zapisać ćwiczenia.</string>
 
     <!-- Body parts (filters) -->

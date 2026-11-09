@@ -143,17 +143,28 @@ data class Exercise(
 data class ExerciseDraft(
     val name: String = "",
     val equipment: Equipment? = null,
+    val mechanic: Mechanic? = null,
+    val level: Level? = null,
     val primaryMuscles: Set<Muscle> = emptySet(),
     val secondaryMuscles: Set<Muscle> = emptySet(),
     val notes: String = "",
+    /** The user's own photos as stored; several play in order like an animation (D-114). */
+    val images: List<String> = emptyList(),
 ) {
     val isValid: Boolean get() = name.isNotBlank() && primaryMuscles.isNotEmpty()
+
+    companion object {
+        const val MAX_PHOTOS = 8
+    }
 }
 
 fun Exercise.toDraft() = ExerciseDraft(
     name = name,
     equipment = equipment,
+    mechanic = mechanic,
+    level = level,
     primaryMuscles = primaryMuscles,
     secondaryMuscles = secondaryMuscles,
     notes = instructions.joinToString(separator = "\n"),
+    images = images,
 )

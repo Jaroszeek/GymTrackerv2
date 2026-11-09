@@ -828,6 +828,14 @@ Właściciel zatwierdził wszystkie (2026-10-24):
 - Live Update na ekranie blokady jest zawsze rozwinięty (dokumentacja Androida: „Expanded by default”), więc zdjęcie i przyciski są widoczne po stuknięciu w Now Bar. Jak dokładnie Samsung rysuje kartę w Now Bar, sprawdzi dopiero telefon.
 - **Alternatywy:** prawdziwy odtwarzacz (`MediaStyle` + `MediaSession`) — odrzucony: to nie jest Live Update (inny styl), odtwarzacz GymTrackera wchodziłby w konflikt ze Spotify na ekranie blokady i mógłby przejmować przyciski słuchawek; własny widok (`RemoteViews`) — Live Update go zabrania.
 
+### D-114 Własne zdjęcia ćwiczenia, rodzaj ruchu i poziom (Etap 19)
+- Na prośbę właściciela (2026-11-09). Baza już ma `images` i `mechanic` (oraz `level`) — wbudowane ćwiczenia je mają, własne zapisywały puste. Edytor własnego ćwiczenia je teraz wypełnia; bez migracji.
+- Zdjęcia wybiera systemowy wybór zdjęć (`PickMultipleVisualMedia`, bez uprawnień), do 8. `ExercisePhotos` kopiuje je do `files/exercise_photos/` pomniejszone do 1280 px po dłuższym boku (WebP 85, obrócone według EXIF), w ćwiczeniu zapisuje `file://…`. Kolejność dodania = kolejność animacji; szczegóły ćwiczenia przełączają zdjęcia jak dotąd co 1,5 s z przenikaniem (bez ruchu przy ograniczonych animacjach).
+- Sprzątanie: przy otwarciu edytora usuwane są pliki, których nie ma w żadnym ćwiczeniu (usunięte zdjęcia, usunięte ćwiczenia, wybrane i niezapisane) — jedno miejsce zamiast pilnowania każdej ścieżki.
+- Kopia zapasowa: kopia Androida (Auto Backup, przeniesienie na nowy telefon) zabiera pliki aplikacji, więc i zdjęcia. Plik kopii z aplikacji ma tylko bazę — po imporcie na innym telefonie ćwiczenie pokazuje zastępczą ikonę zamiast zdjęcia.
+- Tylko własne ćwiczenia; wbudowanych nie da się edytować. Bez zmiany kolejności przeciąganiem (usuń i dodaj ponownie) i bez animowanych GIF-ów (pierwsza klatka).
+- **Alternatywy:** zdjęcia jako BLOB w bazie — byłyby w pliku kopii, ale to migracja i duża baza; GIF/wideo — nowa zależność (`coil-gif`) albo odtwarzacz; własne zdjęcia dla wbudowanych ćwiczeń — osobny zapis nadpisań, poza prośbą.
+
 ## Zależności (plan; każda dostaje wpis z rozmiarem w etapie, w którym wchodzi)
 
 | Biblioteka | Wersja | Licencja | Etap | Po co |

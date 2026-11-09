@@ -312,6 +312,7 @@ POST_NOTIFICATIONS: prośba przy pierwszym starcie (z wyjaśnieniem) i baner na 
 | 14 | Wersja 1.3: angielska wersja aplikacji | A2, A5.9 | wersja 1.3.0 |
 | 15 | Wersja 1.3.1: kierunek przejścia zakładek, przesuwany szybki start | A4, A5.1 | wersja 1.3.1 |
 | 18 | Wersja 1.5.0: powiadomienie treningu jak odtwarzacz na ekranie blokady | A7 | wersja 1.5.0 |
+| 19 | Wersja 1.6.0: własne zdjęcia ćwiczenia (animacja), rodzaj ruchu i poziom w edytorze | A5.1 | wersja 1.6.0 |
 
 ## Etap 0 — Start i plan
 **Kryteria akceptacji**
@@ -808,6 +809,23 @@ Realizujemy Etap 18 — Wersja 1.5.0. Branch: feat/stage-18-lockscreen-player.
 
 Zakres: powiadomienie treningu jak odtwarzacz (zdjęcie, ćwiczenie, seria i ciężar, przyciski), dalej jako Live Update.
 Na koniec: changelog 1.5.0 do akceptacji, potem tag v1.5.0.
+```
+
+## Etap 19 — Wersja 1.6.0
+Dodany 2026-11-09 na prośbę właściciela: własne zdjęcie albo kilka zdjęć ćwiczenia, z których robi się animacja, oraz zapis w bazie, czy ćwiczenie jest izolowane czy wielostawowe. Baza już ma kolumny `images` i `mechanic` (wbudowane ćwiczenia je wypełniają), więc bez migracji. Bez nowych uprawnień (systemowy wybór zdjęć) i zależności.
+
+**Kryteria akceptacji**
+- [ ] W edytorze własnego ćwiczenia: dodawanie zdjęć z galerii (do 8), podgląd w kolejności, usuwanie
+- [ ] Kilka zdjęć odtwarza się po kolei w szczegółach ćwiczenia (jak dwa zdjęcia wbudowanych ćwiczeń); lista i powiadomienie pokazują pierwsze
+- [ ] Rodzaj ruchu (wielostawowe / izolowane) i poziom zapisują się w bazie i są plakietkami w szczegółach
+- [ ] Usunięte i niezapisane zdjęcia nie zostają w pamięci telefonu
+
+**Prompt**
+```
+Realizujemy Etap 19 — Wersja 1.6.0. Branch: feat/stage-19-exercise-photos.
+
+Zakres: własne zdjęcia ćwiczenia (animacja), rodzaj ruchu i poziom w edytorze ćwiczenia.
+Na koniec: changelog 1.6.0 do akceptacji, potem tag v1.6.0.
 ```
 
 ---
