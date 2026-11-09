@@ -68,11 +68,11 @@ class ExerciseRepository @Inject constructor(
             aliasesPl = emptyList(),
             category = ExerciseCategory.Strength.key,
             equipment = draft.equipment?.key,
-            level = null,
-            mechanic = null,
+            level = draft.level?.key,
+            mechanic = draft.mechanic?.key,
             force = null,
             instructions = draft.notes.lines().map { it.trim() }.filter { it.isNotEmpty() },
-            images = emptyList(),
+            images = draft.images,
             source = ExerciseSource.Custom.key,
         )
         val exerciseId = if (id == null) {
@@ -117,9 +117,9 @@ internal fun ExerciseWithMuscles.toDomain(): Exercise = Exercise(
     source = ExerciseSource.fromKey(exercise.source),
 )
 
-/** free-exercise-db photos, pinned to the commit the bundled JSON comes from. */
+/** free-exercise-db photos, pinned to the commit the bundled JSON comes from; the user's own photos are already file URIs. */
 internal object ExerciseImages {
     private const val BASE = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/f00c92c7dcf1216a928a52c3706c7ce8e2f71ed5/exercises/"
 
-    fun url(path: String) = BASE + path
+    fun url(path: String) = if (path.startsWith(ExercisePhotos.SCHEME)) path else BASE + path
 }

@@ -2,7 +2,10 @@ package com.jaroszeek.gymtracker.data.exercise
 
 import com.jaroszeek.gymtracker.domain.exercise.Equipment
 import com.jaroszeek.gymtracker.domain.exercise.ExerciseDraft
+import com.jaroszeek.gymtracker.domain.exercise.Level
+import com.jaroszeek.gymtracker.domain.exercise.Mechanic
 import com.jaroszeek.gymtracker.domain.exercise.Muscle
+import com.jaroszeek.gymtracker.domain.exercise.toDraft
 import com.jaroszeek.gymtracker.testing.asset
 import com.jaroszeek.gymtracker.testing.bundledSeed
 import com.jaroszeek.gymtracker.testing.inMemoryDatabase
@@ -13,11 +16,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
+import java.io.File
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 
 /** DAO, seed and repository on an in-memory database with the bundled SQLite driver (runs on the JVM and in CI). */
 class ExerciseRepositoryTest {
@@ -27,6 +33,9 @@ class ExerciseRepositoryTest {
     private fun seeder() = seeder(database)
 
     private fun repository() = ExerciseRepository(database, seeder(), Dispatchers.IO)
+
+    @get:Rule
+    val folder = TemporaryFolder()
 
     @After
     fun close() = database.close()
@@ -71,6 +80,33 @@ class ExerciseRepositoryTest {
 
         assertEquals(DeleteResult.Deleted, repository.deleteCustom(id))
         assertNull(repository.observe(id).first())
+    }
+
+    @Test
+    fun customExerciseKeepsItsPhotosMovementAndLevel() = runTest {
+        val repository = repository()
+        val dir = folder.newFolder("exercise_photos")
+        val photos = listOf("a.webp", "b.webp").map { ExercisePhotos.SCHEME + File(dir, it).absolutePath }
+        val draft = ExerciseDraft(
+            name = "Landmine Press",
+            mechanic = Mechanic.Compound,
+            level = Level.Beginner,
+            primaryMuscles = setOf(Muscle.Shoulders),
+            images = photos,
+        )
+        val id = repository.saveCustom(null, draft)
+        val saved = repository.observe(id).first()!!
+        assertEquals(Mechanic.Compound, saved.mechanic)
+        assertEquals(Level.Beginner, saved.level)
+        // Own photos stay file URIs, in order, and survive a round trip through the editor
+        assertEquals(photos, saved.images)
+        assertEquals(draft.copy(name = "Landmine Press"), saved.toDraft())
+
+        // A photo removed in the editor (b) and one picked but never saved (c) go; a goes on
+        repository.saveCustom(id, draft.copy(images = photos.take(1)))
+        listOf("a.webp", "b.webp", "c.webp").forEach { File(dir, it).writeText("photo") }
+        ExercisePhotos(dir, database, Dispatchers.IO) { error("not used") }.sweep()
+        assertEquals(listOf("a.webp"), dir.list()!!.toList())
     }
 
     @Test

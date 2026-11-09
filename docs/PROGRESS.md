@@ -23,9 +23,13 @@
 | 16 | Wersja 1.3.2: ukrycie diagnostyki powiadomień w wydaniach głównych | ✅ zaakceptowany (2026-11-01), wydanie **v1.3.2** |
 | 17 | Wersja 1.4.0: mapa zaangażowanych mięśni po treningu (przód i tył) | ✅ zaakceptowany (2026-11-01), wydania `preview-stage-17` i **v1.4.0** |
 | 18 | Wersja 1.5.0: powiadomienie treningu jak odtwarzacz na ekranie blokady | ✅ zaakceptowany (2026-11-07), wydania `preview-stage-18` i **v1.5.0**; czeka na test na telefonie |
+| 19 | Wersja 1.6.0: własne zdjęcia ćwiczenia (animacja), rodzaj ruchu i poziom w edytorze | 🔄 do akceptacji (2026-11-09), wydanie `preview-stage-19` |
 
 ## Bieżący stan
 
+- **Etap 19** do akceptacji (2026-11-09): własne zdjęcia ćwiczenia, z kilku animacja, oraz rodzaj ruchu i poziom w edytorze ćwiczenia (D-114). Bez migracji, uprawnień i zależności.
+  - Sprawdzone na emulatorze (API 36.0): systemowy wybór zdjęć, 3 klatki w edytorze w kolejności wyboru, zapis; szczegóły przełączają klatki, plakietki „Średniozaawansowany”, „Wielostawowe”; usunięcie klatki i ponowne otwarcie edytora kasuje jej plik (`docs/screenshots/stage19-*.png`).
+  - Testy: JVM 330/330, UI 7/7 (API 36.0), lint 0 błędów.
 - **Etap 18** zaakceptowany i zmergowany (PR #23, **v1.5.0**, 2026-11-07): powiadomienie treningu jak odtwarzacz na ekranie blokady i w Now Bar (D-113). Workflow „Release” zielony; wydanie testowe ma tytuł „GymTracker 1.5.0 — wersja testowa (debug)”.
   - Sprawdzone na emulatorze (API 36.0, bez promocji do Live Update): na ekranie blokady i w panelu zdjęcie Barbell Bench Press, tytuł z nazwą ćwiczenia, „Seria 1 z 4 • 50 kg × 8”, „Push” obok, przycisk „Ukończ serię” (`docs/screenshots/stage18-*.png`).
   - Emulator 36.1 (`gt-api36_1`) restartuje się po wyjściu z aplikacji, a `screencap` na nim pada (błąd sterownika grafiki emulatora), więc wyglądu w promowanej karcie nie dało się obejrzeć — do sprawdzenia na telefonie.
@@ -162,6 +166,14 @@
   - Test UI: `.\gradlew.bat :app:connectedDebugAndroidTest` (D-042).
   - Gdy emulator przestaje rysować (czarny ekran, tapnięcia bez reakcji, w logu `lowmemorykiller … device is not responding` i ANR „no focused window”), pomaga zimny start: `adb emu kill`, potem `emulator -avd gt-api36 -no-snapshot-load`.
 - **vynox:** sklonowany do `%TEMP%\vynox-ref`, tylko do odczytu.
+
+## Etap 19 — test na telefonie
+
+1. Instalacja: APK z wydania `preview-stage-19`. Dane zostają.
+2. Ćwiczenia → „Dodaj ćwiczenie” → „Dodaj zdjęcia”: wybierz 2–4 zdjęcia w kolejności ruchu, wybierz rodzaj ruchu i poziom, zapisz.
+3. Szczegóły ćwiczenia: zdjęcia zmieniają się po kolei, plakietki rodzaju ruchu i poziomu; na liście miniatura.
+4. Trening z tym ćwiczeniem: zdjęcie w powiadomieniu na ekranie blokady.
+5. Edycja: usuń jedno zdjęcie, zapisz — w szczegółach już go nie ma.
 
 ## Etap 18 — test na telefonie
 
@@ -314,6 +326,7 @@ Klucz, sekrety i wydania v1.0.0 oraz v1.0.1 są gotowe. Kopia zapasowa klucza i 
 
 ## Następny krok
 
+- Właściciel: test Etapu 19 na telefonie (wyżej), akceptacja, potem tag v1.6.0.
 - Właściciel: test Etapu 18 na telefonie (wyżej) i aktualizacja z aplikacji do v1.5.0.
 - Właściciel: test Etapów 12–15 na telefonie (wyżej) i aktualizacja z aplikacji do v1.3.0.
 - Właściciel: kopia zapasowa klucza i hasła, test aktualizacji z v1.0.0 do najnowszej na telefonie (wyżej).

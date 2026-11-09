@@ -31,6 +31,10 @@ interface ExerciseDao {
     @Query("SELECT id, external_id AS externalId, name FROM exercises WHERE source != 'custom'")
     suspend fun bundled(): List<BundledRow>
 
+    /** The photos of every custom exercise; a photo file no exercise lists is garbage. */
+    @Query("SELECT images FROM exercises WHERE source = 'custom'")
+    suspend fun customImages(): List<ImagesRow>
+
     @Query("SELECT COUNT(*) FROM exercises WHERE source != 'custom'")
     suspend fun countSeeded(): Int
 
@@ -65,3 +69,5 @@ interface ExerciseDao {
 data class ExternalIdRow(val id: Long, val externalId: String)
 
 data class BundledRow(val id: Long, val externalId: String, val name: String)
+
+data class ImagesRow(val images: List<String>)

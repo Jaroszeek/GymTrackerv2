@@ -77,6 +77,14 @@
     <string name="editor_primary_error">Select at least one primary muscle</string>
     <string name="editor_no_equipment">None</string>
     <string name="editor_save_failed">Couldn’t save the exercise.</string>
+    <string name="label_photos">Photos</string>
+    <string name="editor_photos_add">Add photos</string>
+    <string name="editor_photos_hint">Several photos play in the order you add them, like an animation.</string>
+    <string name="editor_photo_remove">Remove photo %1$d</string>
+    <string name="editor_photos_failed">Couldn’t add some of the photos.</string>
+    <string name="label_mechanic">Movement</string>
+    <string name="label_level">Level</string>
+    <string name="editor_not_set">Not set</string>
 
     <!-- Body parts (filters) -->
     <string name="body_part_chest">Chest</string>
